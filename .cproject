@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="cdt.managedbuild.toolchain.gnu.base.1108309246">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.base.1108309246" moduleId="org.eclipse.cdt.core.settings" name="Default">
+				<externalSettings>
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ecore"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/ecore/Default"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="ecore"/>
+					</externalSetting>
+				</externalSettings>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactExtension="" artifactName="ecore" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" description="" id="cdt.managedbuild.toolchain.gnu.base.1108309246" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.226628424" name="/" resourcePath="">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.base.89326592" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.921976607" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
+							<builder buildPath="${workspace_loc:/ecore/Default}" id="org.eclipse.cdt.build.core.internal.builder.1298534545" keepEnvironmentInBuildfile="false" name="CDT Internal Builder" superClass="org.eclipse.cdt.build.core.internal.builder"/>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1656294842" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.468504040" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
+								<option id="gnu.cpp.compiler.option.preprocessor.def.396942638" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
+								<option id="gnu.cpp.compiler.option.include.paths.1510595791" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/laslib/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/vtk-5.8/"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/pcl}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/local/include/eigen3/"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.optimization.level.1112171059" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.optimization.flags.1884638573" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="-fPIC" valueType="string"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1792422537" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.427852695" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1757021008" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="ANDROID_OS=1"/>
+									<listOptionValue builtIn="false" value="E_PRINT=1"/>
+									<listOptionValue builtIn="false" value="USE_STDOUT_LOG=1"/>
+									<listOptionValue builtIn="false" value="TEST_SICKLD=0"/>
+									<listOptionValue builtIn="false" value="TEST_MSG_MONITOR=0"/>
+									<listOptionValue builtIn="false" value="TEST_POOL=0"/>
+									<listOptionValue builtIn="false" value="TEST_CONTROL=1"/>
+									<listOptionValue builtIn="false" value="UNORDERED=1"/>
+									<listOptionValue builtIn="false" value="TEST_SCAN=1"/>
+									<listOptionValue builtIn="false" value="LINUX=1"/>
+									<listOptionValue builtIn="false" value="TEST_PCL=1"/>
+									<listOptionValue builtIn="false" value="TEST_GIF=1"/>
+									<listOptionValue builtIn="false" value="TEST_ADAPTER=1"/>
+								</option>
+								<option id="gnu.c.compiler.option.include.paths.1980833946" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/laslib/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/vtk-5.8/"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/pcl}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/local/include/eigen3/"/>
+								</option>
+								<option id="gnu.c.compiler.option.optimization.level.1186660336" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" value="gnu.c.optimization.level.none" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.optimization.flags.1890667245" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fPIC" valueType="string"/>
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.111184556" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1291019912" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
+								<option defaultValue="true" id="gnu.c.link.option.shared.681489451" name="Shared (-shared)" superClass="gnu.c.link.option.shared" valueType="boolean"/>
+							</tool>
+							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.linker.base.1240255873" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base">
+								<option id="gnu.cpp.link.option.libs.56175709" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="m"/>
+									<listOptionValue builtIn="false" value="pthread"/>
+									<listOptionValue builtIn="false" value="c"/>
+									<listOptionValue builtIn="false" value="boost_thread-mt"/>
+									<listOptionValue builtIn="false" value="rt"/>
+									<listOptionValue builtIn="false" value="pcl_common"/>
+									<listOptionValue builtIn="false" value="pcl_io"/>
+									<listOptionValue builtIn="false" value="boost_system"/>
+									<listOptionValue builtIn="false" value="pcl_visualization"/>
+									<listOptionValue builtIn="false" value="gif"/>
+								</option>
+								<option defaultValue="true" id="gnu.cpp.link.option.shared.1420882869" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
+								<option id="gnu.cpp.link.option.paths.845491378" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/lib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/libs/x86/gif}&quot;"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.771889049" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+								<outputType id="cdt.managedbuild.tool.gnu.cpp.linker.output.so.804214545" outputPrefix="" superClass="cdt.managedbuild.tool.gnu.cpp.linker.output.so"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.base.1705858268" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base">
+								<option id="gnu.both.asm.option.include.paths.168600678" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/laslib/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/vtk-5.8/"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/pcl}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/local/include/eigen3/"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1038426824" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.74610257" name="cderror.h" rcbsApplicability="disable" resourcePath="external/jpeg/cderror.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1522632192" name="cdjpeg.h" rcbsApplicability="disable" resourcePath="external/jpeg/cdjpeg.h" toolsToInvoke=""/>
+					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.879060216" name="/" resourcePath="src/plat/ls300">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.base.1815173297" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base" unusedChildren="">
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.159238848" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.1656294842"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1087615020" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.468504040"/>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1254285948" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.427852695"/>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.279068834" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1291019912"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.432723473" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1240255873"/>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.base.897813603" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.1705858268"/>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="external/jpeg|inc/ls300/hd_data_writer.h|inc/ls300/hd_data_router.h|src/test_case/Ls300_moinitor|src/test_case/ls300/sprite.c|src/test_case/ls300/gl0.c|src/test_case/ls300/gl.c|external/jpeg/rdswitch.c|external/jpeg/rdgif.c|external/jpeg/wrtarga.c|ls300/LaserScan.cpp|external/jpeg/ckconfig.c|external/jpeg/ansi2knr.c|external/jpeg/transupp.c|external/jpeg/rdjpgcom.c|external/jpeg/jidctfst.S|external/jpeg/rdrle.c|external/jpeg/wrgif.c|ls300/Laser_Control.cpp|external/jpeg/wrbmp.c|external/jpeg/jmemmac.c|external/jpeg/cderror.h|external/jpeg/rdbmp.c|external/jpeg/jmemansi.c|external/jpeg/cdjpeg.h|external/jpeg/jmemdosa.asm|external/jpeg/cjpeg.c|external/jpeg/jmemdos.c|external/jpeg/rdppm.c|external/jpeg/transupp.h|external/jpeg/djpeg.c|external/jpeg/rdcolmap.c|external/jpeg/rdtarga.c|external/jpeg/wrjpgcom.c|external/jpeg/cdjpeg.c|external/hd/hd_jpg.cpp|ls300/Laser_Control.h|external/jpeg/jmemnobs.c|external/jpeg/wrppm.c|ls300/LaserScan.h|external/jpeg/jpegtran.c|external/jpeg/example.c|external/jpeg/jmemname.c|external/jpeg/wrrle.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811" moduleId="org.eclipse.cdt.core.settings" name="Static">
+				<externalSettings>
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ecore"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/ecore/Static"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="ecore"/>
+					</externalSetting>
+				</externalSettings>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactExtension="a" artifactName="ecore" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" description="Static library" id="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811" name="Static" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811." name="/" resourcePath="">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.base.2136017239" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.67527791" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
+							<builder buildPath="${workspace_loc:/ecore/Default}" id="org.eclipse.cdt.build.core.internal.builder.1143726550" keepEnvironmentInBuildfile="false" name="CDT Internal Builder" superClass="org.eclipse.cdt.build.core.internal.builder"/>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.273102920" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1761559904" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
+								<option id="gnu.cpp.compiler.option.preprocessor.def.625549603" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="ANDROID_OS=1"/>
+									<listOptionValue builtIn="false" value="E_PRINT=1"/>
+									<listOptionValue builtIn="false" value="USE_STDOUT_LOG=1"/>
+									<listOptionValue builtIn="false" value="TEST_SICKLD=0"/>
+									<listOptionValue builtIn="false" value="TEST_MSG_MONITOR=0"/>
+									<listOptionValue builtIn="false" value="TEST_POOL=0"/>
+									<listOptionValue builtIn="false" value="TEST_CONTROL=0"/>
+									<listOptionValue builtIn="false" value="UNORDERED=1"/>
+									<listOptionValue builtIn="false" value="TEST_SCAN=0"/>
+									<listOptionValue builtIn="false" value="LINUX=1"/>
+									<listOptionValue builtIn="false" value="TEST_PCL=0"/>
+									<listOptionValue builtIn="false" value="TEST_GIF=0"/>
+									<listOptionValue builtIn="false" value="TEST_ADAPTER=0"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.include.paths.481457773" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/laslib/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/eigen3/"/>
+									<listOptionValue builtIn="false" value="/usr/include/vtk-5.8/"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/pcl}&quot;"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.optimization.level.608086036" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.optimization.flags.1209437113" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="-fPIC" valueType="string"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.689373470" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1624098040" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1480508195" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="ANDROID_OS=1"/>
+									<listOptionValue builtIn="false" value="E_PRINT=1"/>
+									<listOptionValue builtIn="false" value="USE_STDOUT_LOG=1"/>
+									<listOptionValue builtIn="false" value="TEST_SICKLD=0"/>
+									<listOptionValue builtIn="false" value="TEST_MSG_MONITOR=0"/>
+									<listOptionValue builtIn="false" value="TEST_POOL=0"/>
+									<listOptionValue builtIn="false" value="TEST_CONTROL=0"/>
+									<listOptionValue builtIn="false" value="UNORDERED=1"/>
+									<listOptionValue builtIn="false" value="TEST_SCAN=0"/>
+									<listOptionValue builtIn="false" value="LINUX=1"/>
+									<listOptionValue builtIn="false" value="TEST_PCL=0"/>
+									<listOptionValue builtIn="false" value="TEST_GIF=0"/>
+									<listOptionValue builtIn="false" value="TEST_ADAPTER=0"/>
+								</option>
+								<option id="gnu.c.compiler.option.include.paths.511797096" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/laslib/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/eigen3/"/>
+									<listOptionValue builtIn="false" value="/usr/include/vtk-5.8/"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/pcl}&quot;"/>
+								</option>
+								<option id="gnu.c.compiler.option.optimization.level.2124440737" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" value="gnu.c.optimization.level.none" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.optimization.flags.321840569" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fPIC" valueType="string"/>
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1499291935" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1712441300" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
+								<option defaultValue="true" id="gnu.c.link.option.shared.1003820771" name="Shared (-shared)" superClass="gnu.c.link.option.shared" valueType="boolean"/>
+							</tool>
+							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.linker.base.898958658" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base">
+								<option id="gnu.cpp.link.option.libs.585257866" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="m"/>
+									<listOptionValue builtIn="false" value="pthread"/>
+									<listOptionValue builtIn="false" value="c"/>
+									<listOptionValue builtIn="false" value="boost_thread-mt"/>
+									<listOptionValue builtIn="false" value="rt"/>
+								</option>
+								<option defaultValue="true" id="gnu.cpp.link.option.shared.1428387483" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" valueType="boolean"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.125373781" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.base.1667394916" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base">
+								<option id="gnu.both.asm.option.include.paths.1317631217" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/laslib/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc/pcl}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/eigen3/"/>
+									<listOptionValue builtIn="false" value="/usr/include/vtk-5.8/"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/pcl}&quot;"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.386026829" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811.external/jpeg/cderror.h" name="cderror.h" rcbsApplicability="disable" resourcePath="external/jpeg/cderror.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811.external/jpeg/cdjpeg.h" name="cdjpeg.h" rcbsApplicability="disable" resourcePath="external/jpeg/cdjpeg.h" toolsToInvoke=""/>
+					<sourceEntries>
+						<entry excluding="external/jpeg|inc/ls300/hd_data_writer.h|inc/ls300/hd_data_router.h|src/test_case/Ls300_moinitor|src/test_case/ls300/sprite.c|src/test_case/ls300/gl0.c|src/test_case/ls300/gl.c|external/jpeg/rdswitch.c|external/jpeg/rdgif.c|external/jpeg/wrtarga.c|ls300/LaserScan.cpp|external/jpeg/ckconfig.c|external/jpeg/ansi2knr.c|external/jpeg/transupp.c|external/jpeg/rdjpgcom.c|external/jpeg/jidctfst.S|external/jpeg/rdrle.c|external/jpeg/wrgif.c|ls300/Laser_Control.cpp|external/jpeg/wrbmp.c|external/jpeg/jmemmac.c|external/jpeg/cderror.h|external/jpeg/rdbmp.c|external/jpeg/jmemansi.c|external/jpeg/cdjpeg.h|external/jpeg/jmemdosa.asm|external/jpeg/cjpeg.c|external/jpeg/jmemdos.c|external/jpeg/rdppm.c|external/jpeg/transupp.h|external/jpeg/djpeg.c|external/jpeg/rdcolmap.c|external/jpeg/rdtarga.c|external/jpeg/wrjpgcom.c|external/jpeg/cdjpeg.c|external/hd/hd_jpg.cpp|ls300/Laser_Control.h|external/jpeg/jmemnobs.c|external/jpeg/wrppm.c|ls300/LaserScan.h|external/pcl_android|external/jpeg/jpegtran.c|external/jpeg/example.c|external/jpeg/jmemname.c|external/jpeg/wrrle.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192" moduleId="org.eclipse.cdt.core.settings" name="Excute">
+				<externalSettings>
+					<externalSetting>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ecore"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/ecore/Excute"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="ecore"/>
+					</externalSetting>
+				</externalSettings>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactExtension="" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" description="Excute bin" errorParsers="" id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192" name="Excute" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192." name="/" resourcePath="">
+						<toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.base.2103489771" name="cdt.managedbuild.toolchain.gnu.base" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.base" superClass="cdt.managedbuild.toolchain.gnu.base">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.784697767" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
+							<builder autoBuildTarget="all" buildPath="${workspace_loc:/ecore/Excute}" cleanBuildTarget="clean" id="org.eclipse.cdt.build.core.internal.builder.1656807802" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" superClass="org.eclipse.cdt.build.core.internal.builder"/>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.531571164" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
+							<tool errorParsers="" id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1787895676" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
+								<option id="gnu.cpp.compiler.option.preprocessor.def.2039742889" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="LINUX=1"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.include.paths.1700284306" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/laslib/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/local/include/eigen3/"/>
+									<listOptionValue builtIn="false" value="/usr/include/vtk-5.8/"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/pcl}&quot;"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.optimization.level.1345902939" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.optimization.flags.1463542035" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.pic.2011742941" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.other.verbose.984672114" name="Verbose (-v)" superClass="gnu.cpp.compiler.option.other.verbose" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.other.other.1693246514" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-pointer-sign" valueType="string"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2008115321" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+							</tool>
+							<tool errorParsers="" id="cdt.managedbuild.tool.gnu.c.compiler.base.1676941859" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.383123059" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="LINUX=1"/>
+								</option>
+								<option id="gnu.c.compiler.option.include.paths.1891785520" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/laslib/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/local/include/eigen3/"/>
+									<listOptionValue builtIn="false" value="/usr/include/vtk-5.8/"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/pcl}&quot;"/>
+								</option>
+								<option id="gnu.c.compiler.option.optimization.level.1407079937" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" value="gnu.c.optimization.level.none" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.optimization.flags.1858908843" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.pic.1426341506" name="Position Independent Code (-fPIC)" superClass="gnu.c.compiler.option.misc.pic" value="true" valueType="boolean"/>
+								<option id="gnu.c.compiler.option.misc.verbose.1188667156" name="Verbose (-v)" superClass="gnu.c.compiler.option.misc.verbose" value="true" valueType="boolean"/>
+								<option id="gnu.c.compiler.option.misc.other.654012370" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-pointer-sign" valueType="string"/>
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.185262759" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1788810768" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
+								<option defaultValue="true" id="gnu.c.link.option.shared.1765969419" name="Shared (-shared)" superClass="gnu.c.link.option.shared" valueType="boolean"/>
+							</tool>
+							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="" id="cdt.managedbuild.tool.gnu.cpp.linker.base.1171125255" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base">
+								<option id="gnu.cpp.link.option.libs.872090592" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="m"/>
+									<listOptionValue builtIn="false" value="pthread"/>
+									<listOptionValue builtIn="false" value="c"/>
+									<listOptionValue builtIn="false" value="boost_thread-mt"/>
+									<listOptionValue builtIn="false" value="rt"/>
+									<listOptionValue builtIn="false" value="pcl_common"/>
+									<listOptionValue builtIn="false" value="pcl_io"/>
+									<listOptionValue builtIn="false" value="boost_system"/>
+									<listOptionValue builtIn="false" value="pcl_visualization"/>
+									<listOptionValue builtIn="false" value="gif"/>
+								</option>
+								<option defaultValue="true" id="gnu.cpp.link.option.shared.720539715" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" value="false" valueType="boolean"/>
+								<option id="gnu.cpp.link.option.paths.1950054674" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.662695012" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+								<outputType id="cdt.managedbuild.tool.gnu.cpp.linker.output.so.1240402653" outputPrefix="" superClass="cdt.managedbuild.tool.gnu.cpp.linker.output.so"/>
+							</tool>
+							<tool errorParsers="" id="cdt.managedbuild.tool.gnu.assembler.base.1372653653" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base">
+								<option id="gnu.both.asm.option.include.paths.1752859196" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/laslib/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/vtk-5.8/"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/pcl}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/local/include/eigen3/"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.546214761" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.external/jpeg/cderror.h" name="cderror.h" rcbsApplicability="disable" resourcePath="external/jpeg/cderror.h" toolsToInvoke=""/>
+					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.external/jpeg/cdjpeg.h" name="cdjpeg.h" rcbsApplicability="disable" resourcePath="external/jpeg/cdjpeg.h" toolsToInvoke=""/>
+					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1773838564" name="/" resourcePath="src/plat/ls300">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.base.228986153" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base" unusedChildren="">
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.702192267" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.531571164"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.769631151" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.1787895676"/>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.439920560" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.1676941859"/>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1459768738" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1788810768"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.227806295" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1171125255"/>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.base.654093533" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.1372653653"/>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="external/jpeg|inc/ls300/hd_data_writer.h|inc/ls300/hd_data_router.h|src/test_case/Ls300_moinitor|rt_picture|src/test_case/ls300/sprite.c|src/test_case/ls300/gl0.c|src/test_case/ls300/gl.c|external/jpeg/rdswitch.c|external/jpeg/rdgif.c|external/jpeg/wrtarga.c|ls300/LaserScan.cpp|external/jpeg/ckconfig.c|external/jpeg/ansi2knr.c|external/jpeg/transupp.c|external/jpeg/rdjpgcom.c|external/jpeg/jidctfst.S|external/jpeg/rdrle.c|external/jpeg/wrgif.c|ls300/Laser_Control.cpp|external/jpeg/wrbmp.c|external/jpeg/jmemmac.c|external/jpeg/cderror.h|external/jpeg/rdbmp.c|external/jpeg/jmemansi.c|external/jpeg/cdjpeg.h|external/jpeg/jmemdosa.asm|external/jpeg/cjpeg.c|external/jpeg/jmemdos.c|external/jpeg/rdppm.c|external/jpeg/transupp.h|external/jpeg/djpeg.c|external/jpeg/rdcolmap.c|external/jpeg/rdtarga.c|external/jpeg/wrjpgcom.c|external/jpeg/cdjpeg.c|external/hd/hd_jpg.cpp|ls300/Laser_Control.h|external/jpeg/jmemnobs.c|external/jpeg/wrppm.c|ls300/LaserScan.h|external/pcl_android|external/jpeg/jpegtran.c|external/jpeg/example.c|external/jpeg/jmemname.c|external/jpeg/wrrle.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="ecore.null.1368280518" name="ecore"/>
+	</storageModule>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/ecore"/>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="com.android.toolchain.gcc.844490482;com.android.toolchain.gcc.844490482.1753549567;com.android.tool.compiler.g++.1763959228;com.android.tool.compiler.g++.input.310398316">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.2125054746;cdt.managedbuild.tool.gnu.cpp.compiler.base.707553259;cdt.managedbuild.tool.gnu.cpp.compiler.input.1189403738">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.2074553312;cdt.managedbuild.tool.gnu.cpp.compiler.base.468504040.1679376093;cdt.managedbuild.tool.gnu.cpp.compiler.input.826167593">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.148759024;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.1941694198;cdt.managedbuild.tool.gnu.c.compiler.input.1982782838">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811;cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811.;cdt.managedbuild.tool.gnu.cpp.compiler.base.1761559904;cdt.managedbuild.tool.gnu.cpp.compiler.input.689373470">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.703556703;cdt.managedbuild.tool.gnu.cpp.compiler.base.1787895676.274577745;cdt.managedbuild.tool.gnu.cpp.compiler.input.47088540">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.433810680;cdt.managedbuild.tool.gnu.c.compiler.base.699212126;cdt.managedbuild.tool.gnu.c.compiler.input.241320575">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.133162156;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.839584130;cdt.managedbuild.tool.gnu.c.compiler.input.524535170">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811;cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811.;cdt.managedbuild.tool.gnu.c.compiler.base.1624098040;cdt.managedbuild.tool.gnu.c.compiler.input.1499291935">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.814515337;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.595408472;cdt.managedbuild.tool.gnu.c.compiler.input.112372957">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.619421936;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.899629506;cdt.managedbuild.tool.gnu.c.compiler.input.1219163345">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.226628424;cdt.managedbuild.tool.gnu.c.compiler.base.427852695;cdt.managedbuild.tool.gnu.c.compiler.input.111184556">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811;cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811.1678195062;cdt.managedbuild.tool.gnu.c.compiler.base.1420494088;cdt.managedbuild.tool.gnu.c.compiler.input.1484216822">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1775506642;cdt.managedbuild.tool.gnu.cpp.compiler.base.2014654584;cdt.managedbuild.tool.gnu.cpp.compiler.input.202219656">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1020674927;cdt.managedbuild.tool.gnu.c.compiler.base.1676941859.795567775;cdt.managedbuild.tool.gnu.c.compiler.input.254216194">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.1044631977;cdt.managedbuild.tool.gnu.c.compiler.base.1648916529;cdt.managedbuild.tool.gnu.c.compiler.input.1503118774">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.720668549;cdt.managedbuild.tool.gnu.c.compiler.base.1676941859.831805293;cdt.managedbuild.tool.gnu.c.compiler.input.1756200967">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.2047316819;cdt.managedbuild.tool.gnu.cpp.compiler.base.37201498;cdt.managedbuild.tool.gnu.cpp.compiler.input.1476244047">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.2015551793;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.1661943474;cdt.managedbuild.tool.gnu.c.compiler.input.133110695">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.93909795;cdt.managedbuild.tool.gnu.c.compiler.base.1325990677;cdt.managedbuild.tool.gnu.c.compiler.input.517832918">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811;cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811.141201954;cdt.managedbuild.tool.gnu.c.compiler.base.110117404;cdt.managedbuild.tool.gnu.c.compiler.input.34071124">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.2125054746;cdt.managedbuild.tool.gnu.c.compiler.base.1770759771;cdt.managedbuild.tool.gnu.c.compiler.input.1096693877">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="com.android.toolchain.gcc.844490482;com.android.toolchain.gcc.844490482.1753549567;com.android.tool.compiler.c.815194256;com.android.tool.compiler.c.input.1523930456">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.93909795;cdt.managedbuild.tool.gnu.cpp.compiler.base.1922663577;cdt.managedbuild.tool.gnu.cpp.compiler.input.893931196">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.;cdt.managedbuild.tool.gnu.c.compiler.base.1676941859;cdt.managedbuild.tool.gnu.c.compiler.input.185262759">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.591725961;cdt.managedbuild.tool.gnu.cpp.compiler.base.507074733;cdt.managedbuild.tool.gnu.cpp.compiler.input.323564168">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.549703947;cdt.managedbuild.tool.gnu.c.compiler.base.1676941859.513488057;cdt.managedbuild.tool.gnu.c.compiler.input.454940238">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.1909965683;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.386691751;cdt.managedbuild.tool.gnu.c.compiler.input.1332587627">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.821634915;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.2130486347;cdt.managedbuild.tool.gnu.c.compiler.input.873163768">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1786925353;cdt.managedbuild.tool.gnu.cpp.compiler.base.781081358;cdt.managedbuild.tool.gnu.cpp.compiler.input.560397780">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.2116650989;cdt.managedbuild.tool.gnu.c.compiler.base.1676941859.517206744;cdt.managedbuild.tool.gnu.c.compiler.input.2026373681">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.226628424;cdt.managedbuild.tool.gnu.cpp.compiler.base.468504040;cdt.managedbuild.tool.gnu.cpp.compiler.input.1792422537">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.1079615772;cdt.managedbuild.tool.gnu.cpp.compiler.base.468504040.2028812928;cdt.managedbuild.tool.gnu.cpp.compiler.input.142697318">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.36671750;cdt.managedbuild.tool.gnu.c.compiler.base.1676941859.40967770;cdt.managedbuild.tool.gnu.c.compiler.input.1782336911">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.108019471;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.738127570;cdt.managedbuild.tool.gnu.c.compiler.input.2016616304">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.1432755835;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.1447668509;cdt.managedbuild.tool.gnu.c.compiler.input.656853705">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.517349229;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.1002668514;cdt.managedbuild.tool.gnu.c.compiler.input.1796204232">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1786925353;cdt.managedbuild.tool.gnu.c.compiler.base.1556413291;cdt.managedbuild.tool.gnu.c.compiler.input.458481028">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.2047316819;cdt.managedbuild.tool.gnu.c.compiler.base.792305161;cdt.managedbuild.tool.gnu.c.compiler.input.835046922">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1775506642;cdt.managedbuild.tool.gnu.c.compiler.base.2133196762;cdt.managedbuild.tool.gnu.c.compiler.input.2077701694">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.947959038;cdt.managedbuild.tool.gnu.c.compiler.base.1673102120;cdt.managedbuild.tool.gnu.c.compiler.input.1330750217">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.947959038;cdt.managedbuild.tool.gnu.cpp.compiler.base.415239643;cdt.managedbuild.tool.gnu.cpp.compiler.input.1921219170">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.591725961;cdt.managedbuild.tool.gnu.c.compiler.base.335043498;cdt.managedbuild.tool.gnu.c.compiler.input.1316390710">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.;cdt.managedbuild.tool.gnu.cpp.compiler.base.1787895676;cdt.managedbuild.tool.gnu.cpp.compiler.input.2008115321">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.1673196982;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.765863749;cdt.managedbuild.tool.gnu.c.compiler.input.1426631829">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.433810680;cdt.managedbuild.tool.gnu.cpp.compiler.base.928203704;cdt.managedbuild.tool.gnu.cpp.compiler.input.154192375">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811;cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811.141201954;cdt.managedbuild.tool.gnu.cpp.compiler.base.1267909621;cdt.managedbuild.tool.gnu.cpp.compiler.input.1968785539">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.1044631977;cdt.managedbuild.tool.gnu.cpp.compiler.base.1715685567;cdt.managedbuild.tool.gnu.cpp.compiler.input.2117976991">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.874857052;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.1730230535;cdt.managedbuild.tool.gnu.c.compiler.input.935844449">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.2044784225;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.1216204286;cdt.managedbuild.tool.gnu.c.compiler.input.1426278880">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811;cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811.1678195062;cdt.managedbuild.tool.gnu.cpp.compiler.base.616345422;cdt.managedbuild.tool.gnu.cpp.compiler.input.1530516236">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
+	</storageModule>
+</cproject>
