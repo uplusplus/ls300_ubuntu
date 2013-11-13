@@ -1,0 +1,143 @@
+/*
+ * jpeg_mem.c
+ *
+ *  Created on: Sep 25, 2013
+ *      Author: uplusplus
+ */
+
+#include <stdio.h>
+#include <malloc.h>
+#include <arch/hd_plat_base.h>
+#include <jpeg/jpeglib.h>
+
+#define JPEG_QUALITY 100
+//in: nBits = Width * nDepthBits
+int charAlign(int nBits) {
+	int nAlignchars = (nBits + 31) / 32 * 4;
+	return nAlignchars;
+}
+
+/*encode BMP24 into JPEG
+ use jpeg-lib 8.0
+ parameter:
+ char *pRGB24In    [in]        RGB24 的BMP 数据，不包含头信息；
+ int nWidth             [in]        BMP 图像的宽度（像素）；
+ int nHight              [in]        BMP 图像的高度（像素）；
+ int nLinechars       [in]        BMP 图像的每行的字节数(必须4字节对齐，如没有对齐需要补齐)；
+ char *pJpgOut      [out]     转换成JPG的数据
+
+ return:                     压缩为JPG后的数据大小
+
+ Note:                        pJpgOut 会在函数内部进行内存分配，使用此函数后需要释放内存
+ nCompressed   0---100之间，表示图像压缩率，建议75
+ */
+int JpegFromBMP24(char *pRGB24In, int nWidth, int nHeight, int nLinechars,
+		char **pJpgOut) {
+	struct jpeg_compress_struct jcs;
+	struct jpeg_error_mgr jsrcerr;
+
+	if (pRGB24In == NULL)
+		return 0;
+	if (nWidth == 0)
+		return 0;
+	if (nHeight == 0)
+		return 0;
+
+	/*  initialize the JPEG compression object. */
+	jcs.err = jpeg_std_error(&jsrcerr);
+	jpeg_create_compress(&jcs);
+
+	unsigned long lsize = 0;
+	char* lpJpgData = NULL;
+	jpeg_mem_dest(&jcs, &lpJpgData, &lsize);
+
+	jcs.image_width = nWidth; /* image widthPix and height, in pixels */
+	jcs.image_height = nHeight;
+	jcs.input_components = 3; /* # of color components per pixel */
+	jcs.in_color_space = JCS_RGB; /* colorspace of input image */
+
+	jpeg_set_defaults(&jcs);
+	int nCompressed = 71; /*[0-100], if 0, quality is best, but size is biggest*/
+	jpeg_set_quality(&jcs, nCompressed,
+			TRUE /* limit to baseline-JPEG values */);
+	jpeg_start_compress(&jcs, TRUE);
+
+	while (jcs.next_scanline < jcs.image_height) {
+		char * outRow;
+		int nRow = jcs.image_height - jcs.next_scanline - 1; //last to header
+		int offset = nRow * nLinechars;
+		int index;
+		outRow = pRGB24In + offset;
+		for (index = 0; index < nLinechars / 3; index++) {
+			int nRGBbit = index * 3;
+
+			char tmp;
+			tmp = *(outRow + nRGBbit + 0);
+			*(outRow + nRGBbit + 0) = *(outRow + nRGBbit + 2); //r = g
+			*(outRow + nRGBbit + 2) = tmp; //g = r
+		}
+		(void) jpeg_write_scanlines(&jcs, &outRow, 1);
+	}
+
+	jpeg_finish_compress(&jcs);
+	jpeg_destroy_compress(&jcs);
+
+	if ((*pJpgOut) == NULL) {
+		(*pJpgOut) = (char *) malloc(lsize);
+		memset((*pJpgOut), 0, lsize);
+	}
+	memcpy((*pJpgOut), lpJpgData, lsize);
+
+	if (lpJpgData != NULL)
+		free(lpJpgData);
+
+	return lsize;
+}
+//
+//int JpegToBMP24(char *pJpgIn, int nJPGDataSize, char ** pRGB24Out, int* nWidth,
+//		int* nHight, int * nLinechars) {
+//	if (pJpgIn == NULL)
+//		return FALSE;
+//
+//	struct jpeg_decompress_struct jds;
+//	struct jpeg_error_mgr jdsterr;
+//
+//	jds.err = jpeg_std_error(&jdsterr);
+//	jpeg_create_decompress(&jds);
+//	jpeg_mem_src(&jds, pJpgIn, nJPGDataSize);
+//
+//	(void) jpeg_read_header(&jds, TRUE);
+//	jpeg_start_decompress(&jds);
+//
+//	(*nWidth) = jds.output_width;
+//	(*nHight) = jds.output_height;
+//	(*nLinechars) = charAlign((*nWidth) * 24);
+//
+//	JSAMPARRAY buffer; /* Output row buffer */
+//	int row_width;
+//
+//	/* SAMPLEs per row in output buffer */
+//	row_width = jds.output_width * jds.output_components;
+//
+//	buffer = (*jds.mem->alloc_sarray)((j_common_ptr) &jds, JPOOL_IMAGE,
+//			(*nLinechars), 1);
+//
+//	if ((*pRGB24Out) == NULL) {
+//		int dataSize = ((*nLinechars)) * ((*nHight));
+//		(*pRGB24Out) = (char *) malloc(dataSize);
+//		memset((*pRGB24Out), 0, dataSize);
+//	}
+//
+//	while (jds.output_scanline < jds.output_height) {
+//		(void) jpeg_read_scanlines(&jds, buffer, 1);
+//		if (jds.out_color_components == 3) {
+//			JPGputRGBScanline(buffer[0], (*nWidth), pRGB24Out,
+//					jds.output_height - jds.output_scanline);
+//		}
+//	}
+//
+//	jpeg_finish_decompress(&jds);
+//	jpeg_destroy_decompress(&jds);
+//
+//	return TRUE;
+//}

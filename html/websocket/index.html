@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>WebSocket Test</title>
+<div id="header">
+  <div id="logo"><img src="logo.png" /></div>
+  <div>
+    <font size="30" color="black" ><br>LS300 Control Panel<br></font>
+    <link type="text/css" rel="stylesheet" href="style.css"/>
+    <script src="main.js"></script>
+    <script src="jsl.parser.js"></script>
+  </div>
+</div>
+</div>
+<div style="left">
+  <canvas id="world" width="800" height="600" style="border:1px solid #c3c3c3;">
+    Your browser does not support the canvas element.
+  </canvas>
+  
+  <div style="left" class="rounded">
+    <button onclick="Processor.connect()" class="rounded">Connect</button>
+    <button onclick="Processor.disconnect()" class="rounded">Disconnect</button>
+    <button onclick="Processor.config()" class="rounded">Config</button>
+    <button onclick="Processor.pointscan()" class="rounded">PointScan</button>
+    <button onclick="Processor.photoscan()" class="rounded">PhotoScan</button>
+    <button onclick="Processor.size()" class="rounded">Monitor</button>
+    <button onclick="Processor.cancel()" class="rounded">Cancel</button>
+    <button onclick="Processor.update()" class="rounded">Update</button>
+    <button onclick="pseudoFill()" class="rounded">Fill</button>
+    <div id="input_div"> 
+      <input  id="input_cmd" type="text" size="40" onkeypress="handleCmdInput()" class="rounded">
+    </input>
+    <span>
+      Type command here and press enter
+    </span>
+  </div>
+</div>
+<div id="output"></div>
+<div id="footer">
+  Copyright &copy; 2013-2015 by Hi-Target
+</div>
+</div>
+</html>

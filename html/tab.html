@@ -1,0 +1,132 @@
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+	<meta http-equiv="Content-Type" content="text/html;charset=utf8" /> 
+	<title>简洁Tab</title> 
+	<style type="text/css"> 
+	body,div,ul,li{ 
+		padding:0; 
+		text-align:center; 
+	} 
+	body{ 
+		font:12px "宋体"; 
+		text-align:center; 
+	} 
+	a:link{ 
+		color:#00F; 
+		text-decoration:none; 
+	} 
+	a:visited { 
+		color: #00F; 
+		text-decoration:none; 
+	} 
+	a:hover { 
+		color: #c00; 
+		text-decoration:underline; 
+	} 
+	ul{ list-style:none;} 
+	/*选项卡1*/ 
+	#Tab1{ 
+		width:100%; 
+		margin:0px; 
+		padding:0px; 
+		margin:0 auto;
+	} 
+	/*选项卡2*/ 
+	#Tab2{ 
+		width:100%; 
+		margin:0px; 
+		padding:0px; 
+		margin:0 auto;
+	} 
+	/*菜单class*/ 
+	.Menubox { 
+		width:100%; 
+		background:url(http://www.jb51.net/upload/small/20079299441652.gif); 
+		height:28px; 
+		line-height:28px; 
+	} 
+	.Menubox ul{ 
+		margin:0px; 
+		padding:0px; 
+	} 
+	.Menubox li{ 
+		float:left; 
+		display:block; 
+		cursor:pointer; 
+		width:114px; 
+		text-align:center; 
+		color:#949694; 
+		font-weight:bold; 
+	} 
+	.Menubox li.hover{ 
+		padding:0px; 
+		background:#fff; 
+		width:116px; 
+		border-left:1px solid #A8C29F; 
+		border-top:1px solid #A8C29F; 
+		border-right:1px solid #A8C29F; 
+		background:url(http://www.jb51.net/upload/small/200792994426548.gif); 
+		color:#739242; 
+		font-weight:bold; 
+		height:27px; 
+		line-height:27px; 
+	} 
+	.Contentbox{ 
+		clear:both; 
+		margin-top:0px; 
+		border:1px solid #A8C29F; 
+		border-top:none; 
+		height:100%; 
+		text-align:center; 
+		padding-top:8px; 
+	} 
+	</style> 
+	<script> 
+	/*第一种形式 第二种形式 更换显示样式*/ 
+	function setTab(name,cursel,n){ 
+		for(i=1;i<=n;i++){ 
+			var menu=document.getElementById(name+i); 
+			var con=document.getElementById("con_"+name+"_"+i); 
+			menu.className=i==cursel?"hover":""; 
+			con.style.display=i==cursel?"block":"none"; 
+		} 
+	} 
+	</script> 
+</head> 
+<body>
+	<div id="Tab1"> 
+		<div class="Menubox"> 
+			<ul> 
+				<li id="one1" onClick="setTab('one',1,4)" class="hover">新闻1</li> 
+				<li id="one2" onClick="setTab('one',2,4)" >新闻2</li> 
+				<li id="one3" onClick="setTab('one',3,4)">新闻3</li> 
+				<li id="one4" onClick="setTab('one',4,4)">新闻4</li> 
+			</ul> 
+		</div> 
+		<div class="Contentbox"> 
+			<div id="con_one_1" class="hover">新闻列表1</div> 
+			<div id="con_one_2" style="display:none">新闻列表2</div> 
+			<div id="con_one_3" style="display:none">新闻列表3</div> 
+			<div id="con_one_4" style="display:none">新闻列表4</div> 
+		</div> 
+	</div>
+
+	<script language="JavaScript">  
+	top.window.moveTo(0,0);  
+	//判断是否为IE浏览器  
+	if (document.all)   
+	{  
+		top.window.resizeTo(screen.availWidth,screen.availHeight);  
+	}  
+	else if (document.layers||document.getElementById)   
+	{  
+		if(top.window.outerHeight<screen.availHeight||  
+			top.window.outerWidth<screen.availWidth)  
+		{  
+			top.window.outerHeight = screen.availHeight;  
+			top.window.outerWidth = screen.availWidth;  
+		}  
+	}  
+	</script>  
+</body>
+</html>
