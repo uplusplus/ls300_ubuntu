@@ -44,7 +44,7 @@ static const e_uint8 START_WORK[] = { 0x23, 0x4d, 0x4f, 0x54, 0x4f, 0x2c,
 		0x40, 0x0 };
 
 #define TIMEOUT_TURNTABLE (1E6)//转盘 100MS
-#define TIMEOUT_SEARCH_ZERO (1E6*30)//转盘到0点 30秒
+#define TIMEOUT_SEARCH_ZERO (1E6*90)//转盘到0点 1分钟 57.6s
 #define TIMEOUT_ANGLE 	(1E6)  	//倾角
 #define TIMEOUT_STEP 	(1E6)  	//水平角度
 #define TIMEOUT_TEMPERATURE (1E6)		//温度

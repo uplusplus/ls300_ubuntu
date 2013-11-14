@@ -110,16 +110,6 @@
 					</folderInfo>
 					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.74610257" name="cderror.h" rcbsApplicability="disable" resourcePath="external/jpeg/cderror.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1522632192" name="cdjpeg.h" rcbsApplicability="disable" resourcePath="external/jpeg/cdjpeg.h" toolsToInvoke=""/>
-					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.879060216" name="/" resourcePath="src/plat/ls300">
-						<toolChain id="cdt.managedbuild.toolchain.gnu.base.1815173297" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base" unusedChildren="">
-							<tool id="cdt.managedbuild.tool.gnu.archiver.base.159238848" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.1656294842"/>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1087615020" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.468504040"/>
-							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1254285948" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.427852695"/>
-							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.279068834" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1291019912"/>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.432723473" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1240255873"/>
-							<tool id="cdt.managedbuild.tool.gnu.assembler.base.897813603" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.1705858268"/>
-						</toolChain>
-					</folderInfo>
 					<sourceEntries>
 						<entry excluding="external/jpeg|inc/ls300/hd_data_writer.h|inc/ls300/hd_data_router.h|src/test_case/Ls300_moinitor|src/test_case/ls300/sprite.c|src/test_case/ls300/gl0.c|src/test_case/ls300/gl.c|external/jpeg/rdswitch.c|external/jpeg/rdgif.c|external/jpeg/wrtarga.c|ls300/LaserScan.cpp|external/jpeg/ckconfig.c|external/jpeg/ansi2knr.c|external/jpeg/transupp.c|external/jpeg/rdjpgcom.c|external/jpeg/jidctfst.S|external/jpeg/rdrle.c|external/jpeg/wrgif.c|ls300/Laser_Control.cpp|external/jpeg/wrbmp.c|external/jpeg/jmemmac.c|external/jpeg/cderror.h|external/jpeg/rdbmp.c|external/jpeg/jmemansi.c|external/jpeg/cdjpeg.h|external/jpeg/jmemdosa.asm|external/jpeg/cjpeg.c|external/jpeg/jmemdos.c|external/jpeg/rdppm.c|external/jpeg/transupp.h|external/jpeg/djpeg.c|external/jpeg/rdcolmap.c|external/jpeg/rdtarga.c|external/jpeg/wrjpgcom.c|external/jpeg/cdjpeg.c|external/hd/hd_jpg.cpp|ls300/Laser_Control.h|external/jpeg/jmemnobs.c|external/jpeg/wrppm.c|ls300/LaserScan.h|external/jpeg/jpegtran.c|external/jpeg/example.c|external/jpeg/jmemname.c|external/jpeg/wrrle.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
@@ -342,16 +332,6 @@
 					</folderInfo>
 					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.external/jpeg/cderror.h" name="cderror.h" rcbsApplicability="disable" resourcePath="external/jpeg/cderror.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.external/jpeg/cdjpeg.h" name="cdjpeg.h" rcbsApplicability="disable" resourcePath="external/jpeg/cdjpeg.h" toolsToInvoke=""/>
-					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1773838564" name="/" resourcePath="src/plat/ls300">
-						<toolChain id="cdt.managedbuild.toolchain.gnu.base.228986153" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base" unusedChildren="">
-							<tool id="cdt.managedbuild.tool.gnu.archiver.base.702192267" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.531571164"/>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.769631151" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.1787895676"/>
-							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.439920560" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.1676941859"/>
-							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.1459768738" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1788810768"/>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.227806295" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1171125255"/>
-							<tool id="cdt.managedbuild.tool.gnu.assembler.base.654093533" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.1372653653"/>
-						</toolChain>
-					</folderInfo>
 					<sourceEntries>
 						<entry excluding="external/jpeg|inc/ls300/hd_data_writer.h|inc/ls300/hd_data_router.h|src/test_case/Ls300_moinitor|rt_picture|src/test_case/ls300/sprite.c|src/test_case/ls300/gl0.c|src/test_case/ls300/gl.c|external/jpeg/rdswitch.c|external/jpeg/rdgif.c|external/jpeg/wrtarga.c|ls300/LaserScan.cpp|external/jpeg/ckconfig.c|external/jpeg/ansi2knr.c|external/jpeg/transupp.c|external/jpeg/rdjpgcom.c|external/jpeg/jidctfst.S|external/jpeg/rdrle.c|external/jpeg/wrgif.c|ls300/Laser_Control.cpp|external/jpeg/wrbmp.c|external/jpeg/jmemmac.c|external/jpeg/cderror.h|external/jpeg/rdbmp.c|external/jpeg/jmemansi.c|external/jpeg/cdjpeg.h|external/jpeg/jmemdosa.asm|external/jpeg/cjpeg.c|external/jpeg/jmemdos.c|external/jpeg/rdppm.c|external/jpeg/transupp.h|external/jpeg/djpeg.c|external/jpeg/rdcolmap.c|external/jpeg/rdtarga.c|external/jpeg/wrjpgcom.c|external/jpeg/cdjpeg.c|external/hd/hd_jpg.cpp|ls300/Laser_Control.h|external/jpeg/jmemnobs.c|external/jpeg/wrppm.c|ls300/LaserScan.h|external/pcl_android|external/jpeg/jpegtran.c|external/jpeg/example.c|external/jpeg/jmemname.c|external/jpeg/wrrle.c" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
@@ -409,14 +389,14 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811;cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811.1678195062;cdt.managedbuild.tool.gnu.c.compiler.base.1420494088;cdt.managedbuild.tool.gnu.c.compiler.input.1484216822">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1775506642;cdt.managedbuild.tool.gnu.cpp.compiler.base.2014654584;cdt.managedbuild.tool.gnu.cpp.compiler.input.202219656">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.1044631977;cdt.managedbuild.tool.gnu.c.compiler.base.1648916529;cdt.managedbuild.tool.gnu.c.compiler.input.1503118774">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1020674927;cdt.managedbuild.tool.gnu.c.compiler.base.1676941859.795567775;cdt.managedbuild.tool.gnu.c.compiler.input.254216194">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.1044631977;cdt.managedbuild.tool.gnu.c.compiler.base.1648916529;cdt.managedbuild.tool.gnu.c.compiler.input.1503118774">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1775506642;cdt.managedbuild.tool.gnu.cpp.compiler.base.2014654584;cdt.managedbuild.tool.gnu.cpp.compiler.input.202219656">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192;cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.720668549;cdt.managedbuild.tool.gnu.c.compiler.base.1676941859.831805293;cdt.managedbuild.tool.gnu.c.compiler.input.1756200967">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
@@ -511,11 +491,11 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811;cdt.managedbuild.toolchain.gnu.base.1108309246.1032156811.141201954;cdt.managedbuild.tool.gnu.cpp.compiler.base.1267909621;cdt.managedbuild.tool.gnu.cpp.compiler.input.1968785539">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.1044631977;cdt.managedbuild.tool.gnu.cpp.compiler.base.1715685567;cdt.managedbuild.tool.gnu.cpp.compiler.input.2117976991">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
-		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.874857052;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.1730230535;cdt.managedbuild.tool.gnu.c.compiler.input.935844449">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.1044631977;cdt.managedbuild.tool.gnu.cpp.compiler.base.1715685567;cdt.managedbuild.tool.gnu.cpp.compiler.input.2117976991">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.base.1108309246;cdt.managedbuild.toolchain.gnu.base.1108309246.2044784225;cdt.managedbuild.tool.gnu.c.compiler.base.427852695.1216204286;cdt.managedbuild.tool.gnu.c.compiler.input.1426278880">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>

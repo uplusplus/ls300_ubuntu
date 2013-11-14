@@ -37,13 +37,8 @@
 #include <ls300/hd_connect.h>
 
 #include <las/HLSWriter.h>
-
-extern "C" {
-#include <jpeg/jpeglib.h>
-#define JPEG_QUALITY 100
-
+#include <jpg/hd_jpeg.h>
 #include <gif/gif_api.h>
-}
 
 ////////////////////////////////////////////////////////////////////////
 //底层开发
@@ -1037,96 +1032,12 @@ static e_int32 inter_jpg_combine(file_ptr_t *file1, file_ptr_t *file2) {
 	return E_OK;
 }
 
-int _save2image(char *filename, unsigned char *bits, int width, int height) {
-	struct jpeg_compress_struct cinfo;
-	struct jpeg_error_mgr jerr;
-	FILE * outfile; /* target file */
-	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
-	int row_stride; /* physical row width in image buffer */
-
-	cinfo.err = jpeg_std_error(&jerr);
-	jpeg_create_compress(&cinfo);
-
-	if ((outfile = fopen(filename, "wb")) == NULL) {
-		fprintf(stderr, "can't open %s/n", filename);
-		return -1;
-	}
-	jpeg_stdio_dest(&cinfo, outfile);
-
-	cinfo.image_width = width; // image width and height, in pixels
-	cinfo.image_height = height;
-	cinfo.input_components = 1; // # of color components per pixel
-	cinfo.in_color_space = JCS_GRAYSCALE; //colorspace of input image
-	jpeg_set_defaults(&cinfo);
-	jpeg_set_quality(&cinfo, JPEG_QUALITY, TRUE); // limit to baseline-JPEG values
-	jpeg_start_compress(&cinfo, TRUE);
-	row_stride = width * 1; // JSAMPLEs per row in image_buffer
-	while (cinfo.next_scanline < cinfo.image_height) {
-//这里我做过修改，由于jpg文件的图像是倒的，所以改了一下读的顺序
-		row_pointer[0] = &bits[cinfo.next_scanline * row_stride];
-//row_pointer[0] = & bits[(cinfo.image_height - cinfo.next_scanline - 1) * row_stride];
-		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-	}
-
-	jpeg_finish_compress(&cinfo);
-	fclose(outfile);
-
-	jpeg_destroy_compress(&cinfo);
-	return 0;
-}
-
-static int _save2image_rotation(char *filename, unsigned char *bits, int width,
-		int height) {
-	struct jpeg_compress_struct cinfo;
-	struct jpeg_error_mgr jerr;
-	FILE * outfile; /* target file */
-	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
-	int row_stride; /* physical row width in image buffer */
-
-	cinfo.err = jpeg_std_error(&jerr);
-	jpeg_create_compress(&cinfo);
-
-	if ((outfile = fopen(filename, "wb")) == NULL) {
-		fprintf(stderr, "can't open %s/n", filename);
-		return -1;
-	}
-	jpeg_stdio_dest(&cinfo, outfile);
-
-	cinfo.image_width = height; /* image width and height, in pixels */
-	cinfo.image_height = width;
-	cinfo.input_components = 1; /* # of color components per pixel */
-	cinfo.in_color_space = JCS_GRAYSCALE; /* colorspace of input image */
-
-	jpeg_set_defaults(&cinfo);
-	jpeg_set_quality(&cinfo, JPEG_QUALITY,
-			TRUE /* limit to baseline-JPEG values */);
-
-	jpeg_start_compress(&cinfo, TRUE);
-
-	row_stride = height; /* JSAMPLEs per row in image_buffer */
-
-	unsigned char *row = (unsigned char *) malloc(row_stride);
-	row_pointer[0] = row;
-	while (cinfo.next_scanline < cinfo.image_height) {
-		for (int i = 0; i < row_stride; i++) { //get one row
-			row[i] = bits[cinfo.next_scanline + i * width];
-		}
-		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-	}
-	free(row);
-
-	jpeg_finish_compress(&cinfo);
-	fclose(outfile);
-
-	jpeg_destroy_compress(&cinfo);
-	return 0;
-}
 
 static e_int32 inter_jpg_close(file_ptr_t *file, int save) {
 	e_uint8 *jpg = (e_uint8 *) file->handle;
 	DMSG((STDOUT,"inter_jpg_close try save file:%s",file->info.file_name));
 	if (save && (file->info.mode == E_WRITE || E_DWRITE == file->info.mode)) {
-		_save2image(file->info.file_name, jpg, file->info.width,
+		gray_to_jpeg_file(file->info.file_name, jpg, file->info.width,
 				file->info.height);
 		DMSG((STDOUT,"inter_jpg_close save file done:%s",file->info.file_name));
 	}

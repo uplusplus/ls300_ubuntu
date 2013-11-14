@@ -339,7 +339,7 @@ e_int32 Socket_Connect(socket_t *socket) {
 	ioctl(sockfd, FIONBIO, &ul); //设置为阻塞模式
 
 	DMSG(
-			(STDOUT,"Socket_Connect  address=%s sockfd=%d ret=%d",socket->ip_address,sockfd,ret));
+			(STDOUT,"Socket_Connect  address=%s sockfd=%d ret=%d\n",socket->ip_address,sockfd,ret));
 
 	return ret;
 }
@@ -490,8 +490,7 @@ e_int32 Socket_Send(socket_t *socket, e_uint8 *buffer, e_uint32 blen) {
 #endif
 
 	if (byteSend <= 0)
-		DMSG(
-				(STDOUT,"Socket_Send fd:%d [%d,%s] byteSend=%d errno=%d",sockfd,blen,buffer,byteSend,errno));
+		DMSG((STDOUT,"Socket_Send fd:%d [%d,%p] byteSend=%d errno=%d\n",sockfd,blen,buffer,byteSend,errno));
 
 	return byteSend;
 }

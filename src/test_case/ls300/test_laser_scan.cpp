@@ -38,7 +38,12 @@ int main() {
 
 	DMSG((STDOUT,"LASER scan TEST config.\r\n"));
 
+#if LINUX
 	sj_set_data_dir(job, ".", ".", ".");
+#else
+	sj_set_data_dir(job, "/sdcard/ls300/data/point_cloud",
+			"/sdcard/ls300/data/image", "/data/data/com.hdsy.ls300/files");
+#endif
 
 	/*
 	 * time		resolotion		speed_h		speed_v		width			height

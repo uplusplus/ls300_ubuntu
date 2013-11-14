@@ -244,7 +244,7 @@ e_int32 hl_turntable_start(laser_control_t *lc) {
 
 	//开始工作前，由速度和总步数结合得到该具体发送的命令,认为只要消息发送成功便是启动成功
 	sprintf(buf, MOTO_MSG_F,
-			(int) lc->real_steps + ANGLE_TO_STEP(lc->angle_pre) + 100,
+			(int) lc->real_steps + ANGLE_TO_STEP(lc->angle_pre) + 500,
 			(int) lc->plus_delay); //冗余处理
 	DMSG((STDOUT,"REQUEST turn:%s",buf));
 
@@ -303,23 +303,24 @@ static e_int32 inter_turn_by_step(laser_control_t *lc, e_uint32 speed, int step,
 		int sync) {
 	e_uint8 bufSend[40] = { 0 };
 	e_int32 ret, timeout = 0;
+	int step_abs;
 
 	if (step == 0) {
 		return E_OK;
 	}
 
-	lc->end_steps = abs(step);
+	step_abs = abs(step);
 
 	//每转一步的时间,调整角度时以最快速度1毫秒，迅速转到起始角度
 	if (step > 0)
-		sprintf(bufSend, MOTO_MSG_F, step, (int) speed);
+		sprintf(bufSend, MOTO_MSG_F, step_abs, (int) speed);
 	else
-		sprintf(bufSend, MOTO_MSG_R, -step, (int) speed);
+		sprintf(bufSend, MOTO_MSG_R, step_abs, (int) speed);
 	DMSG((STDOUT,"REQUEST turn:%s\r\n",bufSend));
 
 	//计算理论的运行时间
 	timeout = PULSE_SPEED_TO_STEP_TIME(speed)
-			* lc->end_steps+ TIMEOUT_TURNTABLE;
+			* step_abs + TIMEOUT_TURNTABLE;
 
 	if (sync) {
 		ret = fsocket_command(lc->fs_turntable, bufSend, strlen(bufSend),
@@ -564,6 +565,8 @@ e_int32 hl_led_off(laser_control_t *lc) {
 static e_int32 inter_searchzero(laser_control_t *lc) {
 	e_int32 ret;
 	e_uint8 buf[MSG_MAX_LEN] = { 0 };
+	ret = inter_turn_by_step(lc,FAST_SPEED,300,1);
+	e_assert(ret>0, ret);
 	ret = fsocket_request_success(lc->fs_turntable, SEARCH_ZERO,
 			sizeof(SEARCH_ZERO), buf, sizeof(buf), SEARCH_SUCCESS,
 			sizeof(SEARCH_SUCCESS), TIMEOUT_SEARCH_ZERO);

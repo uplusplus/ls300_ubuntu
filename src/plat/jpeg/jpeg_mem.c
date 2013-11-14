@@ -4,7 +4,7 @@
 #include <jpeg/jpeglib.h>
 #include <jpg/hd_jpeg.h>
 
-e_int32 gray_to_jpeg( e_uint32 uWidth, e_uint32 uHeight, unsigned char* pImg,
+e_int32 gray_to_jpeg_mem( e_uint32 uWidth, e_uint32 uHeight, unsigned char* pImg,
 		e_uint32 iQuality, unsigned char **r_buf, e_uint32 *r_size){
 
 	unsigned char*buf = NULL;
@@ -55,3 +55,4 @@ e_int32 gray_to_jpeg( e_uint32 uWidth, e_uint32 uHeight, unsigned char* pImg,
 
 	return 1;
 }
+

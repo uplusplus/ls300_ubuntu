@@ -13,6 +13,8 @@
 
 #include <ls300/hd_data_manager.h>
 #include <arch/hd_timer_api.h>
+#include <jpg/hd_jpeg.h>
+#include <comm/hd_utils.h>
 
 char EGL_NODE[100] = "test.sprite";
 
@@ -21,8 +23,8 @@ char EGL_NODE[100] = "test.sprite";
 //#define DMSG
 //#endif
 
-#define DANUM 4
-//三个输出点：一个点云输出点，一个灰度图输出点，一个监控输出点。
+#define DANUM 2
+//2个输出点：一个点云输出点，一个灰度图输出点
 
 struct data_manager_t {
 	e_int32 state;
@@ -31,7 +33,6 @@ struct data_manager_t {
 
 	char data_file[MAX_PATH_LEN];
 	char gray_file[MAX_PATH_LEN];
-	char pipe_file[MAX_PATH_LEN];
 
 	//点云宽度
 	e_uint32 width, height;
@@ -43,7 +44,7 @@ struct data_manager_t {
 	//灰度图缓冲区
 	point_t *points_gray;
 
-	data_adapter_t adapters[];
+	data_adapter_t adapters[DANUM];
 };
 
 data_manager_t*
@@ -57,8 +58,7 @@ dm_alloc(char* ptDir, char *grayDir, char *files_dir, int width, int height,
 	e_assert(ptDir&&grayDir&&width&&height&& (mode==E_DWRITE||mode==E_WRITE),
 			E_ERROR_INVALID_PARAMETER);
 
-	data_manager_t*dm =
-			calloc(1, sizeof(data_manager_t) + sizeof(data_adapter_t) * DANUM);
+	data_manager_t*dm = calloc(1, sizeof(data_manager_t));
 	e_assert(dm, dm);
 
 	dm->width = width;
@@ -73,20 +73,13 @@ dm_alloc(char* ptDir, char *grayDir, char *files_dir, int width, int height,
 			sys_time.second);
 
 	files[0] = dm->data_file;
-	files[1] = dm->gray_file;
-	files[2] = "test.memgray";
-#if LINUX
-	files[3] = "/tmp/test.sprite";
-#else
-	snprintf(EGL_NODE, sizeof(EGL_NODE), "%s/egl.sprite", files_dir);
-	files[3] = EGL_NODE;
-#endif
+	files[1] = "test.memgray";
 
 	pda = dm->adapters;
 	dm->num = 0;
-	for (i = 0; i < sizeof(files) / sizeof(char*); i++) {
-		DMSG((STDOUT,"data_manager try open file[%d]=%s",i,files[i]));
-		ret = da_open(pda, files[i], width, height,h_w, mode);
+	for (i = 0; i < DANUM; i++) {
+		DMSG((STDOUT,"data_manager try open file[%d]=%s\n",i,files[i]));
+		ret = da_open(pda, files[i], width, height, h_w, mode);
 		if (e_failed(ret)) {
 			continue;
 		}
@@ -94,8 +87,10 @@ dm_alloc(char* ptDir, char *grayDir, char *files_dir, int width, int height,
 		pda++;
 	}
 
-	if (dm->num > 0)
+	if (dm->num > 0) {
+		socket_video_server_start("127.0.0.1", 9090, E_SOCKET_TCP);
 		dm->state = 1;
+	}
 	return dm;
 }
 
@@ -104,7 +99,12 @@ e_int32 dm_free(data_manager_t *dm, int save) {
 	data_adapter_t* pda;
 	e_assert(dm, E_ERROR_INVALID_HANDLER);
 
-	DMSG((STDOUT,"dm_free close file save?%d",save));
+	DMSG((STDOUT,"dm_free close file save?%d\n",save));
+
+	socket_video_server_stop();
+
+	if (display.buf)
+		gray_to_jpeg_file(dm->gray_file, display.buf, display.w, display.h);
 
 	pda = dm->adapters;
 	for (i = 0; i < dm->num; i++) {
@@ -118,6 +118,7 @@ e_int32 dm_free(data_manager_t *dm, int save) {
 	if (dm->points_gray)
 		free(dm->points_gray);
 	free(dm);
+
 	return E_OK;
 }
 

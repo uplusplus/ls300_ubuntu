@@ -22,7 +22,7 @@ enum {
 };
 
 static char tostring[1024];
-#define CONNECT_DELAY (1000000) //ms
+#define CONNECT_DELAY (3000) //ms
 /**
  *\brief 创建套接字连接，并设置套接字相应得属性。
  *\param sc 定义了海达连接的对象指针。
@@ -30,6 +30,7 @@ static char tostring[1024];
  *\param sick_tcp_port 定义了套接字的端口号。
  *\retval E_OK 表示成功。
  */
+
 e_int32 sc_open_socket(hd_connect_t* sc, char* sick_ip_address, e_uint16 sick_tcp_port,
 		int socket_type) {
 	int ret;

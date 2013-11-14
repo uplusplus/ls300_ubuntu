@@ -76,7 +76,7 @@ static enum {
 #define HACK_INVALID_DATA 1
 //#define HACK_PNT_ANGLE_H 1
 #define HACK_SLIP_ANGLE 1
-#define HACK_SLIP_IDX 1
+//#define HACK_SLIP_IDX 1
 
 ////////////////////////////////////////////////////////////////////////////////
 //local functions
@@ -233,6 +233,11 @@ static e_int32 inter_ls_scan(laser_sick_t *ls) {
 			ls->end_angle_h + ls->pre_scan_angle);
 	e_assert(ret>0, ret);
 
+
+	//开始真正数据采集前的准备工作,快速转动转台到0点
+	ret = hl_search_zero(ls->control);
+	e_assert(ret>0 && should_continue, ret);
+
 	//开始真正数据采集前的准备工作,快速转动转台到需要的启始位置
 	ret = hl_turntable_prepare(ls->control, ls->pre_scan_angle);
 	e_assert(ret>0 && should_continue, ret);
@@ -382,6 +387,7 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 //		DMSG((STDOUT,"control trun to start angle left  %f\n",sdata.h_angle));
 		ret = sld_flush(ls->sick);
 		if (sdata.h_angle > ls->start_angle_h - angle_dif) {
+//		if (sdata.h_angle > ls->start_angle_h + angle_dif*5) {
 //			if (ret > 0) {
 //				DMSG((STDOUT,"sld_get_measurements sick is in target position!\r\n Start to get data.\r\n"));
 //				DMSG((STDOUT,"\rWRITE TO FILE: %f end: %f\n",sdata.h_angle,ls->end_angle_h));
@@ -408,6 +414,7 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 //		}
 
 		if (sdata.h_angle <= 0) {
+			DMSG((STDOUT,"angle = %f, leave.",sdata.h_angle));
 			pool_disconnect(&ls->pool);
 			break;
 		}
@@ -427,8 +434,7 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 			break;
 		}
 
-		DMSG(
-				(STDOUT,"\rWRITE TO FILE: %f end: %f\n",sdata.h_angle,ls->end_angle_h));
+//		DMSG((STDOUT,"\rWRITE TO FILE: %f end: %f\n",sdata.h_angle,ls->end_angle_h));
 		ret = pool_write(&ls->pool, &sdata);
 		if(e_failed(ret)) break;
 
@@ -551,13 +557,13 @@ static e_int32 one_slip(laser_sick_t* ls, scan_data_t * pdata, e_int32 data_idx,
 
 #if HACK_SLIP_IDX
 	cidx = ls->width * (pdata->h_angle - ls->start_angle_h)
-			/ (ls->end_angle_h - ls->start_angle_h);
+			/ (ls->end_angle_h - ls->start_angle_h)+0.5f;
 #else
 	cidx = ls->slip_idx;
 #endif
 	if (!type)
 		DMSG(
-				(STDOUT,"ls->slip_idx =========================== %d/%d cidx=%d\n", ls->slip_idx, ls->width,cidx));
+				(STDOUT,"ls->slip_idx == %d/%d cidx=%d  pdata->h_angle=%f \n", ls->slip_idx, ls->width,cidx,pdata->h_angle ));
 
 //if (!bPreScan)
 	{

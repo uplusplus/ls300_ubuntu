@@ -411,7 +411,7 @@ struct {
 static void send_jpg(struct mg_connection *conn) {
 
 	if (jctx.hash != display.hash) {
-		gray_to_jpeg(display.w, display.h, display.buf, 50, &jctx.jpg_buf,
+		gray_to_jpeg_mem(display.w, display.h, display.buf, 50, &jctx.jpg_buf,
 				&jctx.jpg_size);
 		jctx.hash = display.hash;
 	}

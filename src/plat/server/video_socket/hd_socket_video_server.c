@@ -44,7 +44,7 @@ static struct video_server_t {
 	int loop;
 } video_server;
 
-#define FPS_DELAY 1000000 //ms
+#define FPS_DELAY 1000 //ms
 static void server_loop(void* vs) {
 	int ret;
 	video_server.loop = 1;
@@ -65,27 +65,34 @@ static void server_loop(void* vs) {
 			if (ret > 0)
 				ret = sc_try_connect(&connect, 65535);
 
+			DMSG((STDOUT,"server_loop connected to server.\n"));
+
 			//发送长宽信息
 			if (ret > 0)
 				ret = sc_select(&connect, E_WRITE, 100000);
 			if (ret > 0)
 				ret = sc_send(&connect, buf, 26);
+
+			DMSG((STDOUT,"server_loop start frame send loop.\n"));
 			if (ret > 0) {
-				for (;;) { //定时发送帧数据
+				for (;video_server.loop;) { //定时发送帧数据
 					ret = sc_select(&connect, E_WRITE, 1E6);
+//					DMSG((STDOUT,"server_loop sc_select ret %d.\n",ret));
 					if (ret == E_ERROR_TIME_OUT)
 						continue;
 					else if (ret > 0)
 						ret = sc_send(&connect, display.buf,
 								display.h * display.w);
-					else
+					if (ret <= 0)
 						break;
 					Delay(FPS_DELAY);
+//					DMSG((STDOUT,"server_loop send a frame.\n"));
 				}
 			}
 
 			if (ret <= 0)
 				sc_close(&connect);
+			DMSG((STDOUT,"server_loop disconnected,reset.\n"));
 		} while (ret <= 0); //连接，显示服务器未就绪，等待
 	}
 	DMSG((STDOUT, "socket video server loop routine stoped...\r\n"));
