@@ -220,6 +220,9 @@ static e_int32 thread_scan_func(laser_sick_t *ls) {
 	ret = sld_uninitialize(ls->sick);
 	e_check(ret<=0);
 
+	//等待数据刷新完毕
+	Delay(1000);
+
 	DMSG((STDOUT,"sick main thread save files.... state:%d\n",ls->state));
 	dm_free(ls->writer, ls->state == STATE_DONE); //写入文件
 	ls->state = STATE_IDLE;
@@ -387,15 +390,17 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 
 	angle_dif = ls->angle_dif_per_cloumn;
 
+	ret = sld_set_sensor_mode_to_rotate(ls->sick);
+	e_assert(ret>0);
 //等待扫描仪就位,会有准备工作开始
 	do {
 //		DMSG(
 //				(STDOUT,"sld_get_measurements sick is not in target position: delay and retry. angle_dif_per_cloumn=%f\r\n",angle_dif));
 		sdata.h_angle = hl_turntable_get_angle(ls->control) - ls->pre_scan_angle
 				+ ls->start_angle_h;
-//		DMSG((STDOUT,"control trun to start angle left  %f\n",sdata.h_angle));
-		ret = sld_flush(ls->sick);
-		if (sdata.h_angle > ls->start_angle_h - angle_dif) {
+		DMSG((STDOUT,"control trun to start angle left  %f\n",sdata.h_angle));
+//		ret = sld_flush(ls->sick);
+		if (sdata.h_angle > ls->start_angle_h) {
 //		if (sdata.h_angle > ls->start_angle_h + angle_dif*5) {
 //			if (ret > 0) {
 //				DMSG((STDOUT,"sld_get_measurements sick is in target position!\r\n Start to get data.\r\n"));
@@ -406,6 +411,9 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 			break;
 		}
 	} while (ls->state == STATE_WORK);
+
+	ret = sld_set_sensor_mode_to_measure(ls->sick);
+	e_assert(ret>0);
 
 	while (ls->state == STATE_WORK) {
 		//1先读取水平方向角度
@@ -449,7 +457,7 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 			break;
 
 	}
-
+	sld_set_sensor_mode_to_idle(ls->sick);
 	DMSG((STDOUT,"scan job:write_data_routine done.\n"));
 }
 

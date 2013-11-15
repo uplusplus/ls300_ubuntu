@@ -64,6 +64,21 @@ e_int32 DEV_EXPORT sld_release(sickld_t **sick);
 e_int32 DEV_EXPORT sld_initialize(sickld_t* sick);
 e_int32 DEV_EXPORT sld_uninitialize(sickld_t* sick);
 
+
+/**
+ * \brief Sets the Sick LD sensor mode to ROTATE
+ */
+e_int32 DEV_EXPORT sld_set_sensor_mode_to_rotate(sickld_t *sick);
+/**
+ * \brief Sets the Sick LD sensor mode to ROTATE
+ */
+e_int32 DEV_EXPORT sld_set_sensor_mode_to_measure(sickld_t *sick);
+/**
+ * \brief Sets the Sick LD sensor mode to IDLE
+ */
+e_int32 DEV_EXPORT sld_set_sensor_mode_to_idle(sickld_t *sick);
+
+
 e_int32 DEV_EXPORT sld_set_temp_scan_areas(sickld_t *sick,
 		const e_float64 * active_sector_start_angles,
 		const e_float64 * active_sector_stop_angles,

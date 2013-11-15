@@ -58,9 +58,9 @@ int main() {
 //	ret =  sj_config(job, 50, 0, 360, 5, 0.5, -45, 90);
 //	ret =  sj_config(job, 50, 0, 360, 7, 0.375, -45, 90);
 //	ret =  sj_config(job, 100, 0, 360, 5, 0.25, -45, 90);
-//	ret =  sj_config(job, 200, 0, 360, 5, 0.125, -45, 90);
+	ret =  sj_config(job, 200, 0, 360, 5, 0.125, -45, 90);
 //	ret =  sj_config(job, 400, 0, 360, 5, 0.0625, -45, 90);
-	ret =  sj_config(job, 200, 0, 360, 10, 0.0625, -45, 90);
+//	ret =  sj_config(job, 200, 0, 360, 10, 0.0625, -45, 90);
 
 	e_assert(ret>0, ret);
 

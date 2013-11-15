@@ -66,9 +66,6 @@ static e_int32 sld_send_message_and_getreply(sickld_t *sick,
 		const sick_message_t *send_message, sick_message_t *recv_message);
 static e_int32 sld_set_sensor_mode(sickld_t *sick,
 		const e_uint8 new_sick_sensor_mode);
-static e_int32 sld_set_sensor_mode_to_rotate(sickld_t *sick);
-static e_int32 sld_set_sensor_mode_to_measure(sickld_t *sick);
-static e_int32 sld_set_sensor_mode_to_idle(sickld_t *sick);
 static e_float64 sld_ticks2angle(const e_uint16 ticks);
 static e_uint16 sld_angle2ticks(const e_float64 angle);
 static e_int32 sld_cancel_scan_profiles(sickld_t *sick);
@@ -1620,7 +1617,7 @@ static e_int32 sld_generate_sector_config(
 /**
  * \brief Sets the Sick LD sensor mode to ROTATE
  */
-static e_int32 sld_set_sensor_mode_to_rotate(sickld_t *sick) {
+e_int32 sld_set_sensor_mode_to_rotate(sickld_t *sick) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* If necessary adjust the operating mode of the sensor */
@@ -1634,7 +1631,7 @@ static e_int32 sld_set_sensor_mode_to_rotate(sickld_t *sick) {
 /**
  * \brief Sets the Sick LD sensor mode to ROTATE
  */
-static e_int32 sld_set_sensor_mode_to_measure(sickld_t *sick) {
+e_int32 sld_set_sensor_mode_to_measure(sickld_t *sick) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* If necessary adjust the operating mode of the sensor */
@@ -1648,7 +1645,7 @@ static e_int32 sld_set_sensor_mode_to_measure(sickld_t *sick) {
 /**
  * \brief Sets the Sick LD sensor mode to IDLE
  */
-static e_int32 sld_set_sensor_mode_to_idle(sickld_t *sick) {
+e_int32 sld_set_sensor_mode_to_idle(sickld_t *sick) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* If necessary adjust the operating mode of the sensor */
