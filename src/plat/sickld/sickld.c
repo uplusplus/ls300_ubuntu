@@ -93,8 +93,7 @@ static e_int32 sld_print_init_footer(sickld_t *sick);
  * \param sick_tcp_port port
  * \return E_RESULT
  */
-e_int32 sld_create(sickld_t **sickld, char* ip, e_uint16 port)
-{
+e_int32 sld_create(sickld_t **sickld, char* ip, e_uint16 port) {
 	e_int32 ret;
 	sickld_t* sick = (sickld_t*) malloc(sizeof(sickld_t));
 	e_assert(sick, E_ERROR_BAD_ALLOCATE);
@@ -115,8 +114,7 @@ e_int32 sld_create(sickld_t **sickld, char* ip, e_uint16 port)
 	return E_OK;
 }
 
-e_int32 sld_release(sickld_t **sickld)
-{
+e_int32 sld_release(sickld_t **sickld) {
 	e_assert(sickld, E_ERROR_INVALID_HANDLER);
 
 	sc_close(&(*sickld)->sick_connect);
@@ -131,8 +129,7 @@ e_int32 sld_release(sickld_t **sickld)
  * \param[in] sickld pointer to sickld_t
  * \return E_RESULT
  */
-e_int32 sld_initialize(sickld_t* sick)
-{
+e_int32 sld_initialize(sickld_t* sick) {
 	e_int32 ret;
 	DMSG((STDOUT,"\t*** Attempting to initialize the Sick LD...\r\n"));
 	/*assert sick is not null*/
@@ -143,7 +140,7 @@ e_int32 sld_initialize(sickld_t* sick)
 	/* Ok, lets sync the driver with the Sick */
 	DMSG((STDOUT,"\tAttempting to sync driver with Sick LD...\r\n"));
 	ret = sld_sync_driver_with_sick(sick);
-	if ( ret <= 0 )
+	if (ret <= 0)
 		return ret;
 
 	DMSG((STDOUT,"\t\tSynchronized!\r\n"));
@@ -155,8 +152,7 @@ e_int32 sld_initialize(sickld_t* sick)
 /**
  * \brief Tear down the connection between the host and the Sick LD
  */
-e_int32 sld_uninitialize(sickld_t* sick)
-{
+e_int32 sld_uninitialize(sickld_t* sick) {
 	e_int32 ret;
 
 	DMSG((STDOUT,"\t*** Attempting to uninitialize the Sick LD...\r\n"));
@@ -165,8 +161,7 @@ e_int32 sld_uninitialize(sickld_t* sick)
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Ensure the device has been initialized */
 
-	if ( e_check(!sick->initialized,"Device NOT Initialized!!!\r\n") )
-	{
+	if (e_check(!sick->initialized,"Device NOT Initialized!!!\r\n")) {
 		return E_ERROR_INVALID_STATUS;
 	}
 
@@ -194,8 +189,7 @@ e_int32 sld_uninitialize(sickld_t* sick)
 	return E_OK;
 }
 
-static e_int32 sld_sync_driver_with_sick(sickld_t *sick)
-{
+static e_int32 sld_sync_driver_with_sick(sickld_t *sick) {
 	e_int32 ret;
 	/* Acquire current configuration */
 	ret = sld_get_status(sick);
@@ -218,8 +212,7 @@ static e_int32 sld_sync_driver_with_sick(sickld_t *sick)
 e_int32 sld_set_temp_scan_areas(sickld_t *sick,
 		const e_float64 * active_sector_start_angles,
 		const e_float64 * active_sector_stop_angles,
-		const e_uint32 num_active_sectors)
-{
+		const e_uint32 num_active_sectors) {
 	int ret;
 	/* Ensure the device has been initialized */
 	e_assert(sick->initialized, E_ERROR_INVALID_STATUS);
@@ -229,7 +222,7 @@ e_int32 sld_set_temp_scan_areas(sickld_t *sick,
 	/* Set the temporary scan configuration */
 	DMSG((STDOUT,"\tAttempting to set desired scan config...\r\n"));
 	ret = sld_set_temporary_scan_areas(sick, active_sector_start_angles,
-										active_sector_stop_angles, num_active_sectors);
+			active_sector_stop_angles, num_active_sectors);
 	e_assert(ret>0, ret);
 
 	DMSG((STDOUT,"\t\tUsing desired scan area(s)!\r\n"));
@@ -246,26 +239,21 @@ e_int32 sld_set_temp_scan_areas(sickld_t *sick,
 static e_int32 sld_set_temporary_scan_areas(sickld_t *sick,
 		const e_float64 * const active_sector_start_angles,
 		const e_float64 * const active_sector_stop_angles,
-		const e_uint32 num_active_sectors)
-{
+		const e_uint32 num_active_sectors) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Define buffers to hold the device-ready configuration */
 	e_uint32 num_sectors = 0;
-	e_uint32 sector_functions[SICK_MAX_NUM_SECTORS] =
-			{ 0 };
-	e_float64 sector_stop_angles[SICK_MAX_NUM_SECTORS] =
-			{ 0 };
+	e_uint32 sector_functions[SICK_MAX_NUM_SECTORS] = { 0 };
+	e_float64 sector_stop_angles[SICK_MAX_NUM_SECTORS] = { 0 };
 
 	/* A few dummy buffers */
-	e_float64 sorted_active_sector_start_angles[SICK_MAX_NUM_SECTORS] =
-			{ 0 };
-	e_float64 sorted_active_sector_stop_angles[SICK_MAX_NUM_SECTORS] =
-			{ 0 };
+	e_float64 sorted_active_sector_start_angles[SICK_MAX_NUM_SECTORS] = { 0 };
+	e_float64 sorted_active_sector_stop_angles[SICK_MAX_NUM_SECTORS] = { 0 };
 
 	/* Begin by checking the num of active sectors */
 	e_assert( (num_active_sectors <= SICK_MAX_NUM_SECTORS/2),
-				E_ERROR_INVALID_PARAMETER);
+			E_ERROR_INVALID_PARAMETER);
 
 	/* Copy the input arguments */
 	memcpy(sorted_active_sector_start_angles, active_sector_start_angles,
@@ -275,33 +263,31 @@ static e_int32 sld_set_temporary_scan_areas(sickld_t *sick,
 
 	/* Ensure a proper ordering of the given sector angle sets */
 	ret = sld_sort_scan_areas(sorted_active_sector_start_angles,
-								sorted_active_sector_stop_angles, num_active_sectors);
+			sorted_active_sector_stop_angles, num_active_sectors);
 
 	/* Check for an invalid configuration */
 	ret = sld_valid_active_sectors(sorted_active_sector_start_angles,
-									sorted_active_sector_stop_angles, num_active_sectors);
-	if ( e_failed(ret,"Invalid sector configuration!") )
+			sorted_active_sector_stop_angles, num_active_sectors);
+	if (e_failed(ret,"Invalid sector configuration!"))
 		return ret;
 
 	/* Ensure the resulting pulse frequency is valid for the device */
-	ret =
-			sld_valid_pulse_frequency_ex(sld_get_motor_speed(sick),
-											sld_get_scan_resolution(sick), sorted_active_sector_start_angles,
-											sorted_active_sector_stop_angles, num_active_sectors);
-	if ( e_failed(ret,"Invalid pulse frequency!") )
+	ret = sld_valid_pulse_frequency_ex(sld_get_motor_speed(sick),
+			sld_get_scan_resolution(sick), sorted_active_sector_start_angles,
+			sorted_active_sector_stop_angles, num_active_sectors);
+	if (e_failed(ret,"Invalid pulse frequency!"))
 		return ret;
 
 	/* Generate the corresponding device-ready sector config */
-	ret =
-			sld_generate_sector_config(sorted_active_sector_start_angles,
-										sorted_active_sector_stop_angles, num_active_sectors,
-										sld_get_scan_resolution(sick), sector_functions, sector_stop_angles,
-										&num_sectors);
+	ret = sld_generate_sector_config(sorted_active_sector_start_angles,
+			sorted_active_sector_stop_angles, num_active_sectors,
+			sld_get_scan_resolution(sick), sector_functions, sector_stop_angles,
+			&num_sectors);
 	e_assert(ret>0, E_ERROR_INVALID_PARAMETER);
 
 	/* Set the new sector configuration */
 	ret = sld_set_sector_config(sick, sector_functions, sector_stop_angles,
-								num_sectors, 0);
+			num_sectors, 0);
 	e_assert(ret>0, E_ERROR_INVALID_PARAMETER);
 	return E_OK;
 }
@@ -311,11 +297,9 @@ static e_int32 sld_set_temporary_scan_areas(sickld_t *sick,
  * \param profile_format The requested profile format.
  * \return True if the given scan profile is supported by the driver
  */
-e_int32 sld_supported_scan_profile_format(const e_uint16 profile_format)
-{
+e_int32 sld_supported_scan_profile_format(const e_uint16 profile_format) {
 	/* Check the supplied scan profile format */
-	switch (profile_format)
-	{
+	switch (profile_format) {
 	case SICK_SCAN_PROFILE_RANGE:
 		return E_OK;
 	case SICK_SCAN_PROFILE_RANGE_AND_ECHO:
@@ -330,10 +314,8 @@ e_int32 sld_supported_scan_profile_format(const e_uint16 profile_format)
  * \param profile_format The profile format to be converted
  * \return The corresponding string
  */
-e_uint8* sld_profile_format_to_string(const e_uint16 profile_format)
-{
-	switch (profile_format)
-	{
+e_uint8* sld_profile_format_to_string(const e_uint16 profile_format) {
+	switch (profile_format) {
 	case SICK_SCAN_PROFILE_RANGE:
 		return "RANGE ONLY";
 	case SICK_SCAN_PROFILE_RANGE_AND_ECHO:
@@ -350,8 +332,7 @@ e_uint8* sld_profile_format_to_string(const e_uint16 profile_format)
  *                     (NOTE: When num_profiles = 0, the Sick LD continuously streams profile data)
  */
 e_int32 sld_get_scan_profiles(sickld_t *sick, const e_uint16 profile_format,
-		const e_uint16 num_profiles)
-{
+		const e_uint16 num_profiles) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Ensure the device is in measurement mode */
@@ -361,11 +342,10 @@ e_int32 sld_get_scan_profiles(sickld_t *sick, const e_uint16 profile_format,
 
 	/* A quick check to ensure the requested format is supported by the driver */
 	ret = sld_supported_scan_profile_format(profile_format);
-	if ( e_failed(ret,"Unsupported profile format!\r\n") )
+	if (e_failed(ret,"Unsupported profile format!\r\n"))
 		return ret;
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service code and subcode */
 	payload_buffer[0] = SICK_MEAS_SERV_CODE;
@@ -381,13 +361,12 @@ e_int32 sld_get_scan_profiles(sickld_t *sick, const e_uint16 profile_format,
 	memcpy(&payload_buffer[4], &temp_buffer, 2);
 
 	/* Send the request */
-	if ( num_profiles == 0 )
-			{
-		DMSG((STDOUT,"\tRequesting %s data stream from Sick LD...\r\n", sld_profile_format_to_string(profile_format)));
-	}
-	else
-	{
-		DMSG((STDOUT,"\tRequesting %d %s data stream from Sick LD...\r\n", num_profiles, sld_profile_format_to_string(profile_format)));
+	if (num_profiles == 0) {
+		DMSG(
+				(STDOUT,"\tRequesting %s data stream from Sick LD...\r\n", sld_profile_format_to_string(profile_format)));
+	} else {
+		DMSG(
+				(STDOUT,"\tRequesting %d %s data stream from Sick LD...\r\n", num_profiles, sld_profile_format_to_string(profile_format)));
 	}
 
 	ret = sld_quick_request(sick, payload_buffer, 6);
@@ -399,29 +378,22 @@ e_int32 sld_get_scan_profiles(sickld_t *sick, const e_uint16 profile_format,
 	temp_buffer = sick_ld_to_host_byte_order16(temp_buffer);
 
 	/* Another sanity check */
-	if ( e_check(temp_buffer != profile_format,
-			"Incorrect profile format was returned by the Sick LD!\r\n") )
+	if (e_check(temp_buffer != profile_format,
+			"Incorrect profile format was returned by the Sick LD!\r\n"))
 		return E_ERROR;
 
 	/* Check if the data stream flags need to be set */
-	if ( num_profiles == 0 && profile_format == SICK_SCAN_PROFILE_RANGE )
-	{
+	if (num_profiles == 0 && profile_format == SICK_SCAN_PROFILE_RANGE) {
 		sick->streaming_range_data = true;
+	} else if (num_profiles
+			== 0&& profile_format == SICK_SCAN_PROFILE_RANGE_AND_ECHO) {
+		sick->streaming_range_and_echo_data = true;
 	}
-	else
-		if ( num_profiles
-				== 0 && profile_format == SICK_SCAN_PROFILE_RANGE_AND_ECHO )
-		{
-			sick->streaming_range_and_echo_data = true;
-		}
 
 	/* Show some output */
-	if ( num_profiles == 0 )
-			{
+	if (num_profiles == 0) {
 		DMSG((STDOUT,"\t\tData stream started!\r\n"));
-	}
-	else
-	{
+	} else {
 		DMSG((STDOUT,"\t\tSick LD sending %u scan profiles!\r\n",num_profiles));
 	}
 
@@ -434,8 +406,7 @@ e_int32 sld_get_scan_profiles(sickld_t *sick, const e_uint16 profile_format,
  * \param &profile_data The destination data structure
  */
 e_int32 sld_parse_scan_profile(e_uint8 * const src_buffer,
-		sick_ld_scan_profile_t *profile_data)
-{
+		sick_ld_scan_profile_t *profile_data) {
 
 	e_uint16 profile_format = 0;
 	e_uint32 data_offset = 0, i, j;
@@ -455,8 +426,7 @@ e_int32 sld_parse_scan_profile(e_uint8 * const src_buffer,
 	e_uint16 temp_buffer; // A temporary buffer
 
 	/* Check if PROFILESENT is included */
-	if ( profile_format & 0x0001 )
-			{
+	if (profile_format & 0x0001) {
 		memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 		profile_data->profile_number =
 				sick_ld_to_host_byte_order16( temp_buffer);
@@ -464,8 +434,7 @@ e_int32 sld_parse_scan_profile(e_uint8 * const src_buffer,
 	}
 
 	/* Check if PROFILECOUNT is included */
-	if ( profile_format & 0x0002 )
-			{
+	if (profile_format & 0x0002) {
 		memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 		profile_data->profile_counter =
 				sick_ld_to_host_byte_order16( temp_buffer);
@@ -473,8 +442,7 @@ e_int32 sld_parse_scan_profile(e_uint8 * const src_buffer,
 	}
 
 	/* Check if LAYERNUM is included */
-	if ( profile_format & 0x0004 )
-			{
+	if (profile_format & 0x0004) {
 		memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 		profile_data->layer_num = sick_ld_to_host_byte_order16(temp_buffer);
 		data_offset += 2;
@@ -483,177 +451,139 @@ e_int32 sld_parse_scan_profile(e_uint8 * const src_buffer,
 	/* The extraneous stuff is out of the way, now extract the data
 	 * for each of the sectors in the scan area...
 	 */
-	for (i = 0; i < profile_data->num_sectors; i++)
-			{
+	for (i = 0; i < profile_data->num_sectors; i++) {
 
 		/* Check if SECTORNUM is included */
-		if ( profile_format & 0x0008 )
-				{
+		if (profile_format & 0x0008) {
 			memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 			profile_data->sector_data[i].sector_num =
 					sick_ld_to_host_byte_order16(temp_buffer);
 			data_offset += 2;
-		}
-		else
-		{
+		} else {
 			profile_data->sector_data[i].sector_num = 0;
 		}
 
 		/* Check if DIRSTEP is included */
-		if ( profile_format & 0x0010 )
-				{
+		if (profile_format & 0x0010) {
 			memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 			profile_data->sector_data[i].angle_step =
 					((e_float64) sick_ld_to_host_byte_order16(temp_buffer))
 							/ 16;
 			data_offset += 2;
-		}
-		else
-		{
+		} else {
 			profile_data->sector_data[i].angle_step = 0;
 		}
 
 		/* Check if POINTNUM is included */
-		if ( profile_format & 0x0020 )
-				{
+		if (profile_format & 0x0020) {
 			memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 			profile_data->sector_data[i].num_data_points =
 					sick_ld_to_host_byte_order16(temp_buffer);
 			data_offset += 2;
-		}
-		else
-		{
+		} else {
 			profile_data->sector_data[i].num_data_points = 0;
 		}
 
 		/* Check if TSTART is included */
-		if ( profile_format & 0x0040 )
-				{
+		if (profile_format & 0x0040) {
 			memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 			profile_data->sector_data[i].timestamp_start =
 					sick_ld_to_host_byte_order16(temp_buffer);
 			data_offset += 2;
-		}
-		else
-		{
+		} else {
 			profile_data->sector_data[i].timestamp_start = 0;
 		}
 
 		/* Check if STARTDIR is included */
-		if ( profile_format & 0x0080 )
-				{
+		if (profile_format & 0x0080) {
 			memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 			profile_data->sector_data[i].angle_start =
 					((e_float64) sick_ld_to_host_byte_order16(temp_buffer))
 							/ 16;
 			data_offset += 2;
-		}
-		else
-		{
+		} else {
 			profile_data->sector_data[i].angle_start = 0;
 		}
 
 		/* Acquire the range and echo values for the sector */
-		for (j = 0; j < profile_data->sector_data[i].num_data_points; j++)
-				{
+		for (j = 0; j < profile_data->sector_data[i].num_data_points; j++) {
 
 			/* Check if DISTANCE-n is included */
-			if ( profile_format & 0x0100 )
-					{
+			if (profile_format & 0x0100) {
 				memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 				profile_data->sector_data[i].range_values[j] =
 						((e_float64) sick_ld_to_host_byte_order16(temp_buffer))
 								/ 256;
 				data_offset += 2;
-			}
-			else
-			{
+			} else {
 				profile_data->sector_data[i].range_values[j] = 0;
 			}
 
 			/* Check if DIRECTION-n is included */
-			if ( profile_format & 0x0200 )
-					{
+			if (profile_format & 0x0200) {
 				memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 				profile_data->sector_data[i].scan_angles[j] =
 						((e_float64) sick_ld_to_host_byte_order16(temp_buffer))
 								/ 16;
 				data_offset += 2;
-			}
-			else
-			{
+			} else {
 				profile_data->sector_data[i].scan_angles[j] = 0;
 			}
 
 			/* Check if ECHO-n is included */
-			if ( profile_format & 0x0400 )
-					{
+			if (profile_format & 0x0400) {
 				memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 				profile_data->sector_data[i].echo_values[j] =
 						sick_ld_to_host_byte_order16(temp_buffer);
 				data_offset += 2;
-			}
-			else
-			{
+			} else {
 				profile_data->sector_data[i].echo_values[j] = 0;
 			}
 
 		}
 
 		/* Check if TEND is included */
-		if ( profile_format & 0x0800 )
-				{
+		if (profile_format & 0x0800) {
 			memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 			profile_data->sector_data[i].timestamp_stop =
 					sick_ld_to_host_byte_order16(temp_buffer);
 			data_offset += 2;
-		}
-		else
-		{
+		} else {
 			profile_data->sector_data[i].timestamp_stop = 0;
 		}
 
 		/* Check if ENDDIR is included */
-		if ( profile_format & 0x1000 )
-				{
+		if (profile_format & 0x1000) {
 			memcpy(&temp_buffer, &src_buffer[data_offset], 2);
 			profile_data->sector_data[i].angle_stop =
 					((e_float64) sick_ld_to_host_byte_order16(temp_buffer))
 							/ 16;
 			data_offset += 2;
-		}
-		else
-		{
+		} else {
 			profile_data->sector_data[i].angle_stop = 0;
 		}
 
 	}
 
 	/* Check if SENSTAT is included */
-	if ( profile_format & 0x2000 )
-			{
+	if (profile_format & 0x2000) {
 		profile_data->sensor_status = src_buffer[data_offset + 3] & 0x0F;
 		profile_data->motor_status = (src_buffer[data_offset + 3] >> 4) & 0x0F;
-	}
-	else
-	{
+	} else {
 		profile_data->sensor_status = SICK_SENSOR_MODE_UNKNOWN;
 		profile_data->motor_status = SICK_MOTOR_MODE_UNKNOWN;
 	}
 	return E_OK;
 }
 
-e_int32
-sld_flush(sickld_t *sick)
-{
+e_int32 sld_flush(sickld_t *sick) {
 	e_int32 ret = E_OK;
-	e_uint32 i, total_measurements;
+
 	/* Ensure the device has been initialized */
 	e_assert(sick&&sick->initialized, E_ERROR_INVALID_HANDLER);
 
 	/* If there aren't any active data streams, setup a new one */
-	if ( !sick->streaming_range_data && !sick->streaming_range_and_echo_data )
-			{
+	if (!sick->streaming_range_data && !sick->streaming_range_and_echo_data) {
 		/* Request a RANGE+ONLY data stream */
 		ret = sld_get_scan_profiles(sick, SICK_SCAN_PROFILE_RANGE, 0);
 		e_assert(ret>0, ret);
@@ -708,8 +638,7 @@ e_int32 sld_get_measurements(sickld_t *sick,
 		e_float64 * const sector_start_angles,
 		e_float64 * const sector_stop_angles,
 		e_uint32 * const sector_start_timestamps,
-		e_uint32 * const sector_stop_timestamps)
-{
+		e_uint32 * const sector_stop_timestamps) {
 	e_int32 ret = E_OK;
 	e_uint32 i, total_measurements;
 	/* Ensure the device has been initialized */
@@ -718,8 +647,7 @@ e_int32 sld_get_measurements(sickld_t *sick,
 	/* The following conditional holds true if the user wants a RANGE+ECHO data
 	 * stream but already has an active RANGE-ONLY stream.
 	 */
-	if ( sick->streaming_range_data && echo_measurements != NULL )
-	{
+	if (sick->streaming_range_data && echo_measurements != NULL) {
 		/* Cancel the current RANGE-ONLY data stream */
 		ret = sld_cancel_scan_profiles(sick);
 		e_assert(ret>0, ret);
@@ -732,8 +660,7 @@ e_int32 sld_get_measurements(sickld_t *sick,
 	/* The following conditional holds true if the user wants a RANGE-ONLY data
 	 * stream but already has an active RANGE+ECHO stream.
 	 */
-	if ( sick->streaming_range_and_echo_data && echo_measurements == NULL )
-	{
+	if (sick->streaming_range_and_echo_data && echo_measurements == NULL) {
 
 		/* Cancel the current RANGE-ONLY data stream */
 		ret = sld_cancel_scan_profiles(sick);
@@ -745,18 +672,14 @@ e_int32 sld_get_measurements(sickld_t *sick,
 	}
 
 	/* If there aren't any active data streams, setup a new one */
-	if ( !sick->streaming_range_data && !sick->streaming_range_and_echo_data )
-			{
+	if (!sick->streaming_range_data && !sick->streaming_range_and_echo_data) {
 		/* Determine the target data stream by checking the value of echo_measurements */
-		if ( echo_measurements != NULL )
-		{
+		if (echo_measurements != NULL) {
 			/* Request a RANGE+ECHO data stream */
 			ret = sld_get_scan_profiles(sick, SICK_SCAN_PROFILE_RANGE_AND_ECHO,
-										0);
+					0);
 			e_assert(ret>0, ret);
-		}
-		else
-		{
+		} else {
 			/* Request a RANGE+ONLY data stream */
 			ret = sld_get_scan_profiles(sick, SICK_SCAN_PROFILE_RANGE, 0);
 			e_assert(ret>0, ret);
@@ -770,16 +693,15 @@ e_int32 sld_get_measurements(sickld_t *sick,
 
 	/* Acquire the most recently buffered message */
 	ret = sld_recv_message(sick, &recv_message, (e_uint32) 1e6);
-	if ( e_failed(ret) )
+	if (e_failed(ret))
 		goto OUT;
 
 	/* A single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Get the message payload */
 	ret = skm_get_payload(&recv_message, payload_buffer);
-	if ( e_failed(ret) )
+	if (e_failed(ret))
 		goto OUT;
 
 	/* Define the destination Sick LD scan profile struct */
@@ -787,23 +709,22 @@ e_int32 sld_get_measurements(sickld_t *sick,
 
 	/* Extract the scan profile */
 	ret = sld_parse_scan_profile(&payload_buffer[2], &profile_data);
-	if ( e_failed(ret) )
+	if (e_failed(ret))
 		goto OUT;
 
 	/* Update and check the returned sensor status */
-	if ( (sick->sensor_mode = profile_data.sensor_status)
-			!= SICK_SENSOR_MODE_MEASURE )
-	{
-		DMSG((STDOUT,"Unexpected sensor mode! %s \r\n",
-				sld_sensor_mode_to_string(sick->sensor_mode)));
+	if ((sick->sensor_mode = profile_data.sensor_status)
+			!= SICK_SENSOR_MODE_MEASURE) {
+		DMSG(
+				(STDOUT,"Unexpected sensor mode! %s \r\n", sld_sensor_mode_to_string(sick->sensor_mode)));
 		ret = E_ERROR_INVALID_STATUS;
 		goto OUT;
 	}
 
 	/* Update and check the returned motor status */
-	if ( (sick->motor_mode = profile_data.motor_status) != SICK_MOTOR_MODE_OK )
-	{
-		DMSG((STDOUT,"Unexpected motor mode! (Are you using a valid motor speed!)"));
+	if ((sick->motor_mode = profile_data.motor_status) != SICK_MOTOR_MODE_OK) {
+		DMSG(
+				(STDOUT,"Unexpected motor mode! (Are you using a valid motor speed!)"));
 		ret = E_ERROR_INVALID_STATUS;
 		goto OUT;
 
@@ -811,8 +732,7 @@ e_int32 sld_get_measurements(sickld_t *sick,
 
 	/* Everything is OK, so now populate the relevant return buffers */
 	for (i = 0, total_measurements = 0;
-			i < sick->sector_config.sick_num_active_sectors; i++)
-			{
+			i < sick->sector_config.sick_num_active_sectors; i++) {
 
 		/* Copy over the returned range values */
 		memcpy(&range_measurements[total_measurements],
@@ -821,8 +741,7 @@ e_int32 sld_get_measurements(sickld_t *sick,
 						* sizeof(e_float64));
 
 		/* Copy the returned echo values  if requested */
-		if ( echo_measurements != NULL )
-		{
+		if (echo_measurements != NULL) {
 			memcpy(&echo_measurements[total_measurements],
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].echo_values,
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].num_data_points
@@ -830,8 +749,7 @@ e_int32 sld_get_measurements(sickld_t *sick,
 		}
 
 		//add
-		if ( angle_measurements != NULL )
-		{
+		if (angle_measurements != NULL) {
 			memcpy(&angle_measurements[total_measurements],
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].scan_angles,
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].num_data_points
@@ -839,56 +757,48 @@ e_int32 sld_get_measurements(sickld_t *sick,
 		}
 
 		/* Set the number of measurements */
-		if ( num_measurements != NULL )
-		{
+		if (num_measurements != NULL) {
 			num_measurements[i] =
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].num_data_points;
 		}
 
 		/* Set the associated sector's id if requested */
-		if ( sector_ids != NULL )
-		{
+		if (sector_ids != NULL) {
 			sector_ids[i] =
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].sector_num;
 		}
 
 		/* Set the associated sector's index into the range measurement buffer if requested */
-		if ( sector_data_offsets != NULL )
-		{
+		if (sector_data_offsets != NULL) {
 			sector_data_offsets[i] = total_measurements;
 		}
 
 		/* Set the step angle if requested */
-		if ( sector_step_angles != NULL )
-		{
+		if (sector_step_angles != NULL) {
 			sector_step_angles[i] =
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].angle_step;
 		}
 
 		/* Set the sector start angle if requested */
-		if ( sector_start_angles != NULL )
-		{
+		if (sector_start_angles != NULL) {
 			sector_start_angles[i] =
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].angle_start;
 		}
 
 		/* Set the sector stop angle if requested */
-		if ( sector_stop_angles != NULL )
-		{
+		if (sector_stop_angles != NULL) {
 			sector_stop_angles[i] =
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].angle_stop;
 		}
 
 		/* Set the sector start timestamp if requested */
-		if ( sector_start_timestamps != NULL )
-		{
+		if (sector_start_timestamps != NULL) {
 			sector_start_timestamps[i] =
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].timestamp_start;
 		}
 
 		/* Set the sector stop timestamp if requested */
-		if ( sector_stop_timestamps != NULL )
-		{
+		if (sector_stop_timestamps != NULL) {
 			sector_stop_timestamps[i] =
 					profile_data.sector_data[sick->sector_config.sick_active_sector_ids[i]].timestamp_stop;
 		}
@@ -909,24 +819,20 @@ e_int32 sld_get_measurements(sickld_t *sick,
  * \param num_active_sectors Number of active sectors
  */
 static e_int32 sld_sort_scan_areas(e_float64 * const sector_start_angles,
-		e_float64 * const sector_stop_angles, const e_uint32 num_sectors)
-{
+		e_float64 * const sector_stop_angles, const e_uint32 num_sectors) {
 
 	/* A dummy temp variable */
 	e_float64 temp = 0;
 	e_uint32 i, j;
 
 	/* Employ a simple bubblesort (NOTE: Only at most a handful of values will have to be sorted) */
-	for (i = 0; i < num_sectors; i++)
-			{
-		for (j = (num_sectors - 1); j > i; j--)
-				{
-			if ( sector_start_angles[j] < sector_start_angles[j - 1] )
-					{
+	for (i = 0; i < num_sectors; i++) {
+		for (j = (num_sectors - 1); j > i; j--) {
+			if (sector_start_angles[j] < sector_start_angles[j - 1]) {
 				SWAP_VALUES(sector_start_angles[j], sector_start_angles[j-1],
-							temp);
+						temp);
 				SWAP_VALUES(sector_stop_angles[j], sector_stop_angles[j-1],
-							temp);
+						temp);
 			}
 		}
 	}
@@ -941,38 +847,31 @@ static e_int32 sld_sort_scan_areas(e_float64 * const sector_start_angles,
  */
 static e_int32 sld_valid_active_sectors(
 		const e_float64 * const sector_start_angles,
-		const e_float64 * const sector_stop_angles, const e_uint32 num_sectors)
-{
+		const e_float64 * const sector_stop_angles, const e_uint32 num_sectors) {
 	e_uint32 i;
 	/* A sanity check to make sure all are in [0,360) */
-	for (i = 0; i < num_sectors; i++)
-			{
-		if ( e_check((sector_start_angles[i] < 0 || sector_stop_angles[i] < 0 ||
+	for (i = 0; i < num_sectors; i++) {
+		if (e_check((sector_start_angles[i] < 0 || sector_stop_angles[i] < 0 ||
 						sector_start_angles[i] >= 360 || sector_stop_angles[i] >= 360),
-				"Invalid sector config! (all degree values must be in [0,360))\r\n") )
-		{
+				"Invalid sector config! (all degree values must be in [0,360))\r\n")) {
 			return E_ERROR_INVALID_PARAMETER;
 		}
 	}
 
 	/* If multiple sectors are defined */
-	if ( num_sectors > 1 )
-			{
+	if (num_sectors > 1) {
 		/* Check whether the given sector arrangement is overlapping */
-		for (i = 0; i < (num_sectors - 1); i++)
-				{
-			if ( e_check((sector_start_angles[i] > sector_stop_angles[i]
+		for (i = 0; i < (num_sectors - 1); i++) {
+			if (e_check((sector_start_angles[i] > sector_stop_angles[i]
 							|| sector_stop_angles[i] >= sector_start_angles[i + 1]),
-					"Invalid sector definitions! (check sector bounds)\r\n") )
-			{
+					"Invalid sector definitions! (check sector bounds)\r\n")) {
 				return E_ERROR_INVALID_PARAMETER;
 			}
 		}
 		/* Check the last sector against the first */
-		if ( e_check((sector_stop_angles[num_sectors - 1]<= sector_start_angles[num_sectors - 1]
+		if (e_check((sector_stop_angles[num_sectors - 1]<= sector_start_angles[num_sectors - 1]
 						&& sector_stop_angles[num_sectors - 1] >= sector_start_angles[0]),
-				"Invalid sector definitions! (check sector bounds)\r\n") )
-		{
+				"Invalid sector definitions! (check sector bounds)\r\n")) {
 			return E_ERROR_INVALID_PARAMETER;
 		}
 	}
@@ -984,12 +883,10 @@ static e_int32 sld_valid_active_sectors(
  * \brief Checks whether the given sick motor speed is valid for the device.
  * \param sick_motor_speed The sick motor speed (Hz)
  */
-e_int32 sld_valid_motor_speed(const e_uint32 sick_motor_speed)
-{
+e_int32 sld_valid_motor_speed(const e_uint32 sick_motor_speed) {
 	/* Check the validity of the new Sick LD motor speed */
-	if ( sick_motor_speed < SICK_MIN_MOTOR_SPEED
-			|| sick_motor_speed > SICK_MAX_MOTOR_SPEED )
-	{
+	if (sick_motor_speed < SICK_MIN_MOTOR_SPEED
+			|| sick_motor_speed > SICK_MAX_MOTOR_SPEED) {
 		return E_ERROR;
 	}
 	/* Success */
@@ -1004,26 +901,24 @@ e_int32 sld_valid_motor_speed(const e_uint32 sick_motor_speed)
  */
 e_int32 sld_valid_scan_resolution(const e_float64 sick_angle_step,
 		const e_float64 * const sector_start_angles,
-		const e_float64 * const sector_stop_angles, const e_uint32 num_sectors)
-{
+		const e_float64 * const sector_stop_angles, const e_uint32 num_sectors) {
 	e_uint32 i;
 	/* Check the validity of the new Sick LD angular step */
-	if ( sick_angle_step < SICK_MAX_SCAN_ANGULAR_RESOLUTION
-			|| fmod(sick_angle_step, SICK_MAX_SCAN_ANGULAR_RESOLUTION) != 0 )
-					{
-		DMSG((STDOUT, "Invalid scan resolution! (should be a positive multiple of %f)\r\n",SICK_MAX_SCAN_ANGULAR_RESOLUTION));
+	if (sick_angle_step < SICK_MAX_SCAN_ANGULAR_RESOLUTION
+			|| fmod(sick_angle_step, SICK_MAX_SCAN_ANGULAR_RESOLUTION) != 0) {
+		DMSG(
+				(STDOUT, "Invalid scan resolution! (should be a positive multiple of %f)\r\n",SICK_MAX_SCAN_ANGULAR_RESOLUTION));
 		return E_ERROR;
 	}
 
 	/* Ensure that the sector boundaries are divisible by the desired step angle */
-	for (i = 0; i < num_sectors; i++)
-			{
+	for (i = 0; i < num_sectors; i++) {
 
 		/* Check both the sector start and stop angles */
-		if ( fmod(sector_start_angles[i], sick_angle_step) != 0
-				|| fmod(sector_stop_angles[i], sick_angle_step) != 0 )
-						{
-			DMSG((STDOUT, "Invalid scan resolution! (sector boundaries must be evenly divisible by the step angle)\r\n"));
+		if (fmod(sector_start_angles[i], sick_angle_step) != 0
+				|| fmod(sector_stop_angles[i], sick_angle_step) != 0) {
+			DMSG(
+					(STDOUT, "Invalid scan resolution! (sector boundaries must be evenly divisible by the step angle)\r\n"));
 			return E_ERROR;
 		}
 
@@ -1039,15 +934,14 @@ e_int32 sld_valid_scan_resolution(const e_float64 sick_angle_step,
  * \param sick_angle_step Desired scan angular resolution (deg)
  */
 static e_int32 sld_valid_pulse_frequency(sickld_t *sick,
-		const e_uint32 sick_motor_speed, const e_float64 sick_angle_step)
-{
+		const e_uint32 sick_motor_speed, const e_float64 sick_angle_step) {
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 
 	/* Simply call the other function w/ the current sector config and the given motor and step angle values */
 	return sld_valid_pulse_frequency_ex(sick_motor_speed, sick_angle_step,
-										sick->sector_config.sick_sector_start_angles,
-										sick->sector_config.sick_sector_stop_angles,
-										sick->sector_config.sick_num_active_sectors);
+			sick->sector_config.sick_sector_start_angles,
+			sick->sector_config.sick_sector_stop_angles,
+			sick->sector_config.sick_num_active_sectors);
 }
 
 /**
@@ -1062,28 +956,25 @@ static e_int32 sld_valid_pulse_frequency_ex(const e_uint32 sick_motor_speed,
 		const e_float64 sick_angle_step,
 		const e_float64 * const active_sector_start_angles,
 		const e_float64 * const active_sector_stop_angles,
-		const e_uint32 num_active_sectors)
-{
+		const e_uint32 num_active_sectors) {
 
 	/* Compute the scan area */
-	e_float64 scan_area =
-			sld_compute_scan_area(sick_angle_step,
-									active_sector_start_angles, active_sector_stop_angles,
-									num_active_sectors);
+	e_float64 scan_area = sld_compute_scan_area(sick_angle_step,
+			active_sector_start_angles, active_sector_stop_angles,
+			num_active_sectors);
 
 	/* Check the mean pulse rate of the desired configuration */
-	if ( sld_compute_mean_pulse_frequency(scan_area, sick_motor_speed,
-											sick_angle_step) > SICK_MAX_MEAN_PULSE_FREQUENCY )
-											{
-		DMSG((STDOUT,"Max mean pulse frequency exceeded! (try a slower motor speed,"
-		"a larger step angle and/or a smaller active scan area)\r\n"));
+	if (sld_compute_mean_pulse_frequency(scan_area, sick_motor_speed,
+			sick_angle_step) > SICK_MAX_MEAN_PULSE_FREQUENCY) {
+		DMSG(
+				(STDOUT,"Max mean pulse frequency exceeded! (try a slower motor speed,"
+				"a larger step angle and/or a smaller active scan area)\r\n"));
 		return E_ERROR;
 	}
 
 	/* Check the maximum pulse rate of the desired configuration */
-	if ( sld_compute_max_pulse_frequency(SICK_MAX_SCAN_AREA, sick_motor_speed,
-											sick_angle_step) > SICK_MAX_PULSE_FREQUENCY )
-	{
+	if (sld_compute_max_pulse_frequency(SICK_MAX_SCAN_AREA, sick_motor_speed,
+			sick_angle_step) > SICK_MAX_PULSE_FREQUENCY) {
 		DMSG((STDOUT, "Max pulse frequency exceeded! (try a slower motor speed,"
 		"a larger step angle and/or a smaller active scan area)\r\n"));
 		return E_ERROR;
@@ -1113,8 +1004,7 @@ static e_int32 sld_valid_pulse_frequency_ex(const e_uint32 sick_motor_speed,
 static e_float64 sld_compute_scan_area(const e_float64 sick_angle_step,
 		const e_float64 * const active_sector_start_angles,
 		const e_float64 * const active_sector_stop_angles,
-		const e_uint32 num_active_sectors)
-{
+		const e_uint32 num_active_sectors) {
 
 	/* Define the current scan area */
 	e_float64 total_scan_area = 0;
@@ -1122,13 +1012,11 @@ static e_float64 sld_compute_scan_area(const e_float64 sick_angle_step,
 	e_uint32 i;
 
 	/* For each sector given sum the absolute scan area for it */
-	for (i = 0; i < num_active_sectors; i++)
-			{
+	for (i = 0; i < num_active_sectors; i++) {
 
 		/* Compute the total scan area for this sector */
 		curr_sector_scan_area = fabs(
-										active_sector_start_angles[i]
-												- active_sector_stop_angles[i]);
+				active_sector_start_angles[i] - active_sector_stop_angles[i]);
 
 		/* Update the total scan area */
 		total_scan_area += curr_sector_scan_area;
@@ -1148,11 +1036,10 @@ static e_float64 sld_compute_scan_area(const e_float64 sick_angle_step,
  */
 static e_float64 sld_compute_mean_pulse_frequency(
 		const e_float64 active_scan_area, const e_float64 curr_motor_speed,
-		const e_float64 curr_angular_resolution)
-{
+		const e_float64 curr_angular_resolution) {
 	/* Compute the mean pulse frequency */
 	return sld_compute_max_pulse_frequency(SICK_MAX_SCAN_AREA, curr_motor_speed,
-											curr_angular_resolution)
+			curr_angular_resolution)
 			* (active_scan_area / ((e_float64) SICK_MAX_SCAN_AREA));
 }
 
@@ -1165,8 +1052,7 @@ static e_float64 sld_compute_mean_pulse_frequency(
  */
 static e_float64 sld_compute_max_pulse_frequency(
 		const e_float64 total_scan_area, const e_float64 curr_motor_speed,
-		const e_float64 curr_angular_resolution)
-{
+		const e_float64 curr_angular_resolution) {
 	/* Compute the maximum pulse frequency */
 	return total_scan_area * curr_motor_speed * (1 / curr_angular_resolution);
 }
@@ -1175,8 +1061,7 @@ static e_float64 sld_compute_max_pulse_frequency(
  * \brief Acquire the Sick LD's current scan resolution
  * \return The Sick LD scan resolution
  */
-static e_float64 sld_get_scan_resolution(sickld_t *sick)
-{
+static e_float64 sld_get_scan_resolution(sickld_t *sick) {
 	e_assert(sick&&sick->initialized, E_ERROR);
 	return sick->global_config.sick_angle_step;
 }
@@ -1191,18 +1076,15 @@ static e_float64 sld_get_scan_resolution(sickld_t *sick)
 static e_int32 sld_set_sector_config(sickld_t *sick,
 		const e_uint32 * const sector_functions,
 		const e_float64 * const sector_stop_angles, const e_uint32 num_sectors,
-		const e_bool write_to_flash)
-{
+		const e_bool write_to_flash) {
 	int ret;
 	e_uint32 sector_id;
 	/* Assign the new sector configuration to the device */
-	for (sector_id = 0; sector_id < num_sectors; sector_id++)
-			{
+	for (sector_id = 0; sector_id < num_sectors; sector_id++) {
 		/* Set the corresponding sector function */
-		ret =
-				sld_set_sector_function(sick, sector_id,
-										sector_functions[sector_id], sector_stop_angles[sector_id],
-										write_to_flash);
+		ret = sld_set_sector_function(sick, sector_id,
+				sector_functions[sector_id], sector_stop_angles[sector_id],
+				write_to_flash);
 		e_assert(ret>0, ret);
 		/* Resync the driver with the new sector configuration */
 		ret = sld_get_sector_config(sick);
@@ -1220,8 +1102,7 @@ static e_int32 sld_set_sector_config(sickld_t *sick,
  *       stop angle does not give enough information to extract the
  *       start angle of sectors that aren't "normal measurement".
  */
-static e_int32 sld_get_sector_config(sickld_t *sick)
-{
+static e_int32 sld_get_sector_config(sickld_t *sick) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	e_uint32 i;
@@ -1229,23 +1110,20 @@ static e_int32 sld_get_sector_config(sickld_t *sick)
 	memset(&sick->sector_config, 0, sizeof(sick_ld_config_sector_t));
 
 	/* Get the configuration for all initialized sectors */
-	for (i = 0; i < SICK_MAX_NUM_SECTORS; i++)
-			{
+	for (i = 0; i < SICK_MAX_NUM_SECTORS; i++) {
 		/* Query the Sick for the function of the ith sector */
 		ret = sld_get_sector_function(sick, i,
-										&sick->sector_config.sick_sector_functions[i],
-										&sick->sector_config.sick_sector_stop_angles[i]);
+				&sick->sector_config.sick_sector_functions[i],
+				&sick->sector_config.sick_sector_stop_angles[i]);
 		e_assert(ret>0, ret);
 
 		/* Check if the sector is initialized */
-		if ( sick->sector_config.sick_sector_functions[i]
-				!= SICK_CONF_SECTOR_NOT_INITIALIZED )
-		{
+		if (sick->sector_config.sick_sector_functions[i]
+				!= SICK_CONF_SECTOR_NOT_INITIALIZED) {
 
 			/* Check whether the sector is active (i.e. measuring) */
-			if ( sick->sector_config.sick_sector_functions[i]
-					== SICK_CONF_SECTOR_NORMAL_MEASUREMENT )
-			{
+			if (sick->sector_config.sick_sector_functions[i]
+					== SICK_CONF_SECTOR_NORMAL_MEASUREMENT) {
 				sick->sector_config.sick_active_sector_ids[sick->sector_config.sick_num_active_sectors] =
 						i;
 				sick->sector_config.sick_num_active_sectors++;
@@ -1253,9 +1131,7 @@ static e_int32 sld_get_sector_config(sickld_t *sick)
 
 			/* Update the number of initialized sectors */
 			sick->sector_config.sick_num_initialized_sectors++;
-		}
-		else
-		{
+		} else {
 
 			/* An uninitialized sector marks the end of the sector configuration */
 			break;
@@ -1264,17 +1140,14 @@ static e_int32 sld_get_sector_config(sickld_t *sick)
 	}
 
 	/* Compute the starting angle for each of the initialized sectors */
-	for (i = 1; i < sick->sector_config.sick_num_initialized_sectors; i++)
-			{
-		sick->sector_config.sick_sector_start_angles[i] =
-				fmod(
-						sick->sector_config.sick_sector_stop_angles[i - 1]
-								+ sick->global_config.sick_angle_step, 360);
+	for (i = 1; i < sick->sector_config.sick_num_initialized_sectors; i++) {
+		sick->sector_config.sick_sector_start_angles[i] = fmod(
+				sick->sector_config.sick_sector_stop_angles[i - 1]
+						+ sick->global_config.sick_angle_step, 360);
 	}
 
 	/* Determine the starting angle for the first sector */
-	if ( sick->sector_config.sick_num_initialized_sectors > 1 )
-			{
+	if (sick->sector_config.sick_num_initialized_sectors > 1) {
 		sick->sector_config.sick_sector_start_angles[0] =
 				fmod(
 						sick->sector_config.sick_sector_stop_angles[sick->sector_config.sick_num_initialized_sectors
@@ -1291,38 +1164,32 @@ static e_int32 sld_get_sector_config(sickld_t *sick)
  * \param byte_interval Minimum time in microseconds between transmitted bytes
  */
 static e_int32 sld_send_message(sickld_t *sick,
-		const sick_message_t * sick_message, const e_uint32 byte_interval)
-{
+		const sick_message_t * sick_message, const e_uint32 byte_interval) {
 	e_uint32 i;
 	int ret = E_OK;
 	e_uint32 len;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
-	e_uint8 message_buffer[MESSAGE_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 message_buffer[MESSAGE_MAX_LENGTH] = { 0 };
 
 	/* Copy the given message and get the message length */
 	skm_get_message(sick_message, message_buffer);
 	e_uint32 message_length = skm_get_message_length(sick_message);
 
 	/* Check whether a transmission delay between bytes is requested */
-	if ( byte_interval == 0 )
-			{
+	if (byte_interval == 0) {
 
 		/* Write the message to the stream */
 		len = sc_send(&sick->sick_connect, message_buffer, message_length);
-		if ( e_check(len!=message_length,"send failed.\r\n") )
+		if (e_check(len!=message_length,"send failed.\r\n"))
 			goto OUT;
-	}
-	else
-	{
+	} else {
 
 		/* Write the message to the unit one byte at a time */
-		for (i = 0; i < message_length; i++)
-				{
+		for (i = 0; i < message_length; i++) {
 
 			/* Write a single byte to the stream */
 			len = sc_send(&sick->sick_connect, &message_buffer[i], 1);
-			if ( e_check(len!=1,"send failed.\r\n") )
+			if (e_check(len!=1,"send failed.\r\n"))
 				goto OUT;
 
 			/* Some time between bytes (Sick LMS 2xx likes this) */
@@ -1335,8 +1202,7 @@ static e_int32 sld_send_message(sickld_t *sick,
 
 /*in us*/
 static e_uint32 sld_compute_elapsed_time(const e_uint32 beg_time,
-		e_uint32 end_time)
-{
+		e_uint32 end_time) {
 	return (end_time - beg_time);
 }
 
@@ -1347,8 +1213,7 @@ static e_uint32 sld_compute_elapsed_time(const e_uint32 beg_time,
  * \return True if a new message was received, False otherwise
  */
 static e_int32 sld_recv_message(sickld_t *sick, sick_message_t *sick_message,
-		const e_uint32 timeout_value)
-{
+		const e_uint32 timeout_value) {
 	int ret = E_OK;
 	e_uint32 len;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
@@ -1361,15 +1226,13 @@ static e_int32 sld_recv_message(sickld_t *sick, sick_message_t *sick_message,
 	/* Check the shared object */
 	ret = sld_get_next_message_from_datastream(sick, sick_message);
 
-	while (ret <= 0)
-	{
+	while (ret <= 0) {
 		/* Sleep a little bit */
 		Delay(DEFAULT_SICK_MSG_RECV_SLEEP / 1000); //us to ms
 		/* Check whether the allowed time has expired */
 		end_time = GetTickCount();
 		len = sld_compute_elapsed_time(beg_time, end_time);
-		if ( e_check(len>timeout_value,"Timeout occurred!\r\n") )
-		{
+		if (e_check(len>timeout_value,"Timeout occurred!\r\n")) {
 			return E_ERROR_TIME_OUT;
 		}
 		ret = sld_get_next_message_from_datastream(sick, sick_message);
@@ -1390,8 +1253,7 @@ static e_int32 sld_recv_message(sickld_t *sick, sick_message_t *sick_message,
  */
 e_int32 sld_recv_message_ex(sickld_t *sick, sick_message_t *sick_message,
 		const e_uint8 * const byte_sequence,
-		const e_uint32 byte_sequence_length, const e_uint32 timeout_value)
-{
+		const e_uint32 byte_sequence_length, const e_uint32 timeout_value) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Define a buffer */
@@ -1403,8 +1265,7 @@ e_int32 sld_recv_message_ex(sickld_t *sick, sick_message_t *sick_message,
 	/* A container for the message */
 	sick_message_t curr_message;
 	ret = skm_create(&curr_message);
-	if ( e_failed(ret) )
-	{
+	if (e_failed(ret)) {
 		goto OUT;
 	}
 
@@ -1412,16 +1273,14 @@ e_int32 sld_recv_message_ex(sickld_t *sick, sick_message_t *sick_message,
 	beg_time = GetTickCount();
 
 	/* Check until it is found or a timeout */
-	for (;;)
-			{
+	for (;;) {
 		/* Attempt to acquire the message */
 		e_uint32 i = 0;
 		ret = sld_get_next_message_from_datastream(sick, &curr_message);
-		if ( ret > 0 )
-				{
+		if (ret > 0) {
 			/* Extract the payload subregion */
 			ret = skm_get_payload_subregion(&curr_message, payload_buffer, 0,
-											byte_sequence_length - 1);
+					byte_sequence_length - 1);
 			e_assert(ret>0, ret);
 
 			/* Match the byte sequence */
@@ -1431,8 +1290,7 @@ e_int32 sld_recv_message_ex(sickld_t *sick, sick_message_t *sick_message,
 				;
 
 			/* Our message was found! */
-			if ( i == byte_sequence_length )
-					{
+			if (i == byte_sequence_length) {
 				skm_copy(sick_message, &curr_message);
 				ret = E_OK;
 				goto OUT;
@@ -1445,8 +1303,7 @@ e_int32 sld_recv_message_ex(sickld_t *sick, sick_message_t *sick_message,
 //		DMSG((STDOUT,"++++++++++++++TIME ELAPSED beg_time %u,end_time %u,elapsed %u us\r\n",
 //		(e_uint32)beg_time, (e_uint32)end_time,((e_uint32)end_time - (e_uint32) beg_time)));
 		i = sld_compute_elapsed_time(beg_time, end_time);
-		if ( e_check(i>timeout_value,"Timeout occurred!\r\n") )
-		{
+		if (e_check(i>timeout_value,"Timeout occurred!\r\n")) {
 			ret = E_ERROR_TIME_OUT;
 			goto OUT;
 		}
@@ -1468,8 +1325,7 @@ static e_int32 sld_send_message_and_getreply_ex(sickld_t *sick,
 		const sick_message_t *send_message, sick_message_t *recv_message,
 		const e_uint8 * const byte_sequence,
 		const e_uint32 byte_sequence_length, const e_uint32 byte_interval,
-		const e_uint32 timeout_value, const e_uint32 num_tries)
-{
+		const e_uint32 timeout_value, const e_uint32 num_tries) {
 	e_uint32 i;
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
@@ -1480,22 +1336,19 @@ static e_int32 sld_send_message_and_getreply_ex(sickld_t *sick,
 		e_assert(ret>0, ret);
 		/* Wait for the reply! */
 		ret = sld_recv_message_ex(sick, recv_message, byte_sequence,
-									byte_sequence_length, timeout_value);
-		if ( ret > 0 ) {
+				byte_sequence_length, timeout_value);
+		if (ret > 0) {
 			return E_OK;/* message was found! */
-		}
-		else
-			if ( ret == E_ERROR_TIME_OUT ) {
-				/* Handle a timeout! */
-				/* Check if it was found! */
-				if ( e_check(i==num_tries-1,"Attempted max number of tries w/o failed!\r\n") )
-					return ret;
-				/* Display the number of tries remaining! */
-				DMSG((STDOUT,"%d tries remaining",(int)(num_tries - i - 1)));
-			}
-			else {
+		} else if (ret == E_ERROR_TIME_OUT) {
+			/* Handle a timeout! */
+			/* Check if it was found! */
+			if (e_check(i==num_tries-1,"Attempted max number of tries w/o failed!\r\n"))
 				return ret;
-			}
+			/* Display the number of tries remaining! */
+			DMSG((STDOUT,"%d tries remaining",(int)(num_tries - i - 1)));
+		} else {
+			return ret;
+		}
 	}
 	return ret;
 }
@@ -1510,11 +1363,9 @@ static e_int32 sld_send_message_and_getreply_ex(sickld_t *sick,
  *       object is received.  So, if it fails, it may be due to an unexpected reply.
  */
 static e_int32 sld_send_message_and_getreply(sickld_t *sick,
-		const sick_message_t *send_message, sick_message_t *recv_message)
-{
+		const sick_message_t *send_message, sick_message_t *recv_message) {
 	e_uint8 code;
-	e_uint8 byte_sequence[2] =
-			{ 0 };
+	e_uint8 byte_sequence[2] = { 0 };
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 
@@ -1526,9 +1377,8 @@ static e_int32 sld_send_message_and_getreply(sickld_t *sick,
 	byte_sequence[1] = code;
 
 	/* Send message and get reply using full support method */
-	ret =
-			sld_send_message_and_getreply_ex(sick, send_message, recv_message,
-												byte_sequence, 2, 0, DEFAULT_SICK_MESSAGE_TIMEOUT, 1);
+	ret = sld_send_message_and_getreply_ex(sick, send_message, recv_message,
+			byte_sequence, 2, 0, DEFAULT_SICK_MESSAGE_TIMEOUT, 1);
 	e_assert(ret>0, ret);
 
 	return E_OK;
@@ -1542,38 +1392,35 @@ static e_int32 sld_send_message_and_getreply(sickld_t *sick,
  */
 static e_int32 sld_set_sector_function(sickld_t *sick,
 		const e_uint8 sector_number, const e_uint8 sector_function,
-		const e_float64 sector_stop_angle, const e_bool write_to_flash)
-{
+		const e_float64 sector_stop_angle, const e_bool write_to_flash) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Ensure the device is not measuring */
-	if ( sick->sensor_mode == SICK_SENSOR_MODE_MEASURE )
-	{
+	if (sick->sensor_mode == SICK_SENSOR_MODE_MEASURE) {
 		/* Set the Sick LD to rotate mode */
 		ret = sld_set_sensor_mode_to_rotate(sick);
 		e_assert(ret>0, ret);
 	}
 
 	/* Ensure a valid sector number */
-	if ( e_check(sector_number >= SICK_MAX_NUM_SECTORS,"Invalid sector number!\r\n") )
+	if (e_check(sector_number >= SICK_MAX_NUM_SECTORS,"Invalid sector number!\r\n"))
 		return E_ERROR;
 
 	/* Check that a valid sector_function was given */
-	if ( e_check((sector_function != SICK_CONF_SECTOR_NOT_INITIALIZED &&
+	if (e_check((sector_function != SICK_CONF_SECTOR_NOT_INITIALIZED &&
 					sector_function != SICK_CONF_SECTOR_NO_MEASUREMENT &&
 					sector_function != SICK_CONF_SECTOR_RESERVED &&
 					sector_function != SICK_CONF_SECTOR_NORMAL_MEASUREMENT &&
 					sector_function != SICK_CONF_SECTOR_REFERENCE_MEASUREMENT),
-			"Invalid sector function code!\r\n") )
+			"Invalid sector function code!\r\n"))
 		return E_ERROR;
 
 	/* Check that a valid stop angle was given */
-	if ( e_check(sector_stop_angle>SICK_MAX_SCAN_AREA,"Invalid sector stop angle!\r\n") )
+	if (e_check(sector_stop_angle>SICK_MAX_SCAN_AREA,"Invalid sector stop angle!\r\n"))
 		return E_ERROR;
 
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* A temporary buffer for byte order conversion */
 	e_uint16 temp_buff = 0;
@@ -1599,8 +1446,8 @@ static e_int32 sld_set_sector_function(sickld_t *sick,
 	e_assert(ret>0, ret);
 
 	/* Check the response for an error */
-	if ( e_check((payload_buffer[2] == 0xFF && payload_buffer[3] == 0xFF),
-			"Invalid request!\r\n") )
+	if (e_check((payload_buffer[2] == 0xFF && payload_buffer[3] == 0xFF),
+			"Invalid request!\r\n"))
 		return E_ERROR;
 
 	return E_OK;
@@ -1613,21 +1460,18 @@ static e_int32 sld_set_sector_function(sickld_t *sick,
  * \param &sector_stop The stop angle of the given sector
  */
 static e_int32 sld_get_sector_function(sickld_t *sick, const e_uint8 sector_num,
-		e_uint8 *sector_function, e_float64 *sector_stop_angle)
-{
+		e_uint8 *sector_function, e_float64 *sector_stop_angle) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Ensure the device is not measuring */
-	if ( sick->sensor_mode == SICK_SENSOR_MODE_MEASURE )
-	{
+	if (sick->sensor_mode == SICK_SENSOR_MODE_MEASURE) {
 		/* Set the Sick LD to rotate mode */
 		ret = sld_set_sensor_mode_to_rotate(sick);
 		e_assert(ret>0, ret);
 	}
 
 	/* Declare the message payload buffer */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_CONF_SERV_CODE; // Requested service type
@@ -1646,8 +1490,8 @@ static e_int32 sld_get_sector_function(sickld_t *sick, const e_uint8 sector_num,
 	/* Check to make sure the returned sector number matches
 	 * the requested sector number.
 	 */
-	if ( e_check(temp_buffer != sector_num,
-			"Unexpected sector number returned by Sick LD!\r\n") )
+	if (e_check(temp_buffer != sector_num,
+			"Unexpected sector number returned by Sick LD!\r\n"))
 		return E_ERROR;
 
 	/* Extract the sector function */
@@ -1657,7 +1501,7 @@ static e_int32 sld_get_sector_function(sickld_t *sick, const e_uint8 sector_num,
 	/* Extract the sector stop angle (in ticks) */
 	memcpy(&temp_buffer, &payload_buffer[6], 2);
 	(*sector_stop_angle) = sld_ticks2angle(
-											sick_ld_to_host_byte_order16(temp_buffer));
+			sick_ld_to_host_byte_order16(temp_buffer));
 
 	return E_OK;
 }
@@ -1666,8 +1510,7 @@ static e_int32 sld_get_sector_function(sickld_t *sick, const e_uint8 sector_num,
  * \brief Acquire the Sick LD's current motor speed in Hz
  * \return The Sick LD motor speed
  */
-static e_uint32 sld_get_motor_speed(sickld_t *sick)
-{
+static e_uint32 sld_get_motor_speed(sickld_t *sick) {
 	e_assert(sick&&sick->initialized, E_ERROR);
 	return sick->global_config.sick_motor_speed;
 }
@@ -1687,20 +1530,17 @@ static e_int32 sld_generate_sector_config(
 		const e_float64 * const active_sector_stop_angles,
 		const e_uint32 num_active_sectors, const e_float64 sick_angle_step,
 		e_uint32 * const sector_functions, e_float64 * const sector_stop_angles,
-		e_uint32 * num_sectors)
-{
+		e_uint32 * num_sectors) {
 
 	(*num_sectors) = 0;
 	e_uint32 i;
 
 	/* Generate the sector configuration for multiple sectors */
 	e_float64 final_diff = 0;
-	if ( num_active_sectors > 1 )
-			{
+	if (num_active_sectors > 1) {
 
 		/* Generate the actual sector configuration for the device */
-		for (i = 0; i < num_active_sectors; i++)
-				{
+		for (i = 0; i < num_active_sectors; i++) {
 
 			/* Insert the measurement sector for the active area */
 			sector_functions[(*num_sectors)] =
@@ -1709,11 +1549,10 @@ static e_int32 sld_generate_sector_config(
 			(*num_sectors)++;
 
 			/* Check whether to insert a non-measurement sector */
-			if ( (i < num_active_sectors - 1)
+			if ((i < num_active_sectors - 1)
 					&& (active_sector_start_angles[i + 1]
 							- active_sector_stop_angles[i]
-							>= 2 * sick_angle_step) )
-					{
+							>= 2 * sick_angle_step)) {
 
 				/* Set the next sector function as non-measurement */
 				sector_functions[(*num_sectors)] =
@@ -1727,21 +1566,16 @@ static e_int32 sld_generate_sector_config(
 		}
 
 		/* Compute the difference between the final stop angle and the first start angle*/
-		if ( active_sector_stop_angles[num_active_sectors - 1]
-				< active_sector_start_angles[0] )
-				{
+		if (active_sector_stop_angles[num_active_sectors - 1]
+				< active_sector_start_angles[0]) {
 			final_diff = active_sector_start_angles[0]
 					- active_sector_stop_angles[num_active_sectors - 1];
-		}
-		else
-		{
+		} else {
 			final_diff = active_sector_start_angles[0]
 					+ (360 - active_sector_stop_angles[num_active_sectors - 1]);
 		}
 
-	}
-	else
-	{
+	} else {
 
 		/* Insert the measurement sector for the active area */
 		sector_functions[(*num_sectors)] = SICK_CONF_SECTOR_NORMAL_MEASUREMENT;
@@ -1749,13 +1583,10 @@ static e_int32 sld_generate_sector_config(
 		(*num_sectors)++;
 
 		/* Compute the difference between the final stop angle and the first start angle*/
-		if ( active_sector_stop_angles[0] <= active_sector_start_angles[0] )
-				{
+		if (active_sector_stop_angles[0] <= active_sector_start_angles[0]) {
 			final_diff = active_sector_start_angles[0]
 					- active_sector_stop_angles[num_active_sectors - 1];
-		}
-		else
-		{
+		} else {
 			final_diff = active_sector_start_angles[0]
 					+ (360 - active_sector_stop_angles[num_active_sectors - 1]);
 		}
@@ -1763,8 +1594,7 @@ static e_int32 sld_generate_sector_config(
 	}
 
 	/* Check whether to add a final non-measurement sector */
-	if ( final_diff >= 2 * sick_angle_step )
-			{
+	if (final_diff >= 2 * sick_angle_step) {
 
 		/* Include the final non-measurement sector */
 		sector_functions[(*num_sectors)] = SICK_CONF_SECTOR_NO_MEASUREMENT;
@@ -1776,8 +1606,7 @@ static e_int32 sld_generate_sector_config(
 	}
 
 	/* If necessary insert the non-initialized sector */
-	if ( (*num_sectors) < SICK_MAX_NUM_SECTORS )
-	{
+	if ((*num_sectors) < SICK_MAX_NUM_SECTORS) {
 
 		/* Include the uninitialized sector */
 		sector_functions[(*num_sectors)] = SICK_CONF_SECTOR_NOT_INITIALIZED;
@@ -1791,13 +1620,11 @@ static e_int32 sld_generate_sector_config(
 /**
  * \brief Sets the Sick LD sensor mode to ROTATE
  */
-static e_int32 sld_set_sensor_mode_to_rotate(sickld_t *sick)
-{
+static e_int32 sld_set_sensor_mode_to_rotate(sickld_t *sick) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* If necessary adjust the operating mode of the sensor */
-	if ( sick->sensor_mode != SICK_SENSOR_MODE_ROTATE )
-	{
+	if (sick->sensor_mode != SICK_SENSOR_MODE_ROTATE) {
 		/* Switch the sensor's operating mode to ROTATE */
 		ret = sld_set_sensor_mode(sick, SICK_SENSOR_MODE_ROTATE);
 	}
@@ -1807,13 +1634,11 @@ static e_int32 sld_set_sensor_mode_to_rotate(sickld_t *sick)
 /**
  * \brief Sets the Sick LD sensor mode to ROTATE
  */
-static e_int32 sld_set_sensor_mode_to_measure(sickld_t *sick)
-{
+static e_int32 sld_set_sensor_mode_to_measure(sickld_t *sick) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* If necessary adjust the operating mode of the sensor */
-	if ( sick->sensor_mode != SICK_SENSOR_MODE_MEASURE )
-	{
+	if (sick->sensor_mode != SICK_SENSOR_MODE_MEASURE) {
 		/* Switch the sensor's operating mode to ROTATE */
 		ret = sld_set_sensor_mode(sick, SICK_SENSOR_MODE_MEASURE);
 	}
@@ -1823,13 +1648,11 @@ static e_int32 sld_set_sensor_mode_to_measure(sickld_t *sick)
 /**
  * \brief Sets the Sick LD sensor mode to IDLE
  */
-static e_int32 sld_set_sensor_mode_to_idle(sickld_t *sick)
-{
+static e_int32 sld_set_sensor_mode_to_idle(sickld_t *sick) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* If necessary adjust the operating mode of the sensor */
-	if ( sick->sensor_mode != SICK_SENSOR_MODE_IDLE )
-	{
+	if (sick->sensor_mode != SICK_SENSOR_MODE_IDLE) {
 		/* Switch the sensor's operating mode to IDLE */
 		ret = sld_set_sensor_mode(sick, SICK_SENSOR_MODE_IDLE);
 	}
@@ -1837,16 +1660,13 @@ static e_int32 sld_set_sensor_mode_to_idle(sickld_t *sick)
 	return ret;
 }
 
-
 /**
  * \brief Converts return value from TRANS_MEASURE to a representative string
  * \param return_value The TRANS_MEASURE numeric return code
  * \return The corresponding string
  */
-static e_uint8* sld_trans_measure_return_to_string(const e_uint8 return_value)
-{
-	switch (return_value)
-	{
+static e_uint8* sld_trans_measure_return_to_string(const e_uint8 return_value) {
+	switch (return_value) {
 	case SICK_WORK_SERV_TRANS_MEASURE_RET_OK:
 		return (e_uint8*) ("LD-OEM/LD-LRS Measures");
 	case SICK_WORK_SERV_TRANS_MEASURE_RET_ERR_MAX_PULSE:
@@ -1867,11 +1687,9 @@ static e_uint8* sld_trans_measure_return_to_string(const e_uint8 return_value)
  * \param sick_sensor_mode The sensor mode to be converted
  * \return The corresponding sensor_mode string
  */
-static e_uint8* sld_sensor_mode_to_string(const e_uint8 sick_sensor_mode)
-{
+static e_uint8* sld_sensor_mode_to_string(const e_uint8 sick_sensor_mode) {
 
-	switch (sick_sensor_mode)
-	{
+	switch (sick_sensor_mode) {
 	case SICK_SENSOR_MODE_IDLE:
 		return (e_uint8*) ("IDLE");
 	case SICK_SENSOR_MODE_ROTATE:
@@ -1892,21 +1710,18 @@ static e_uint8* sld_sensor_mode_to_string(const e_uint8 sick_sensor_mode)
  * \param new_sick_sensor_mode The desired sensor mode
  */
 static e_int32 sld_set_sensor_mode(sickld_t *sick,
-		const e_uint8 new_sick_sensor_mode)
-{
+		const e_uint8 new_sick_sensor_mode) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* If the new mode matches the current mode then just return */
-	if ( sick->sensor_mode == new_sick_sensor_mode )
-			{
+	if (sick->sensor_mode == new_sick_sensor_mode) {
 		return E_OK;
 	}
 
 	/* If the current sensor mode is MEASURE and streaming data */
-	if ( (sick->sensor_mode == SICK_SENSOR_MODE_MEASURE)
+	if ((sick->sensor_mode == SICK_SENSOR_MODE_MEASURE)
 			&& (sick->streaming_range_data
-					|| sick->streaming_range_and_echo_data) )
-			{
+					|| sick->streaming_range_and_echo_data)) {
 
 		/* Cancel the current stream */
 		ret = sld_cancel_scan_profiles(sick);
@@ -1914,11 +1729,10 @@ static e_int32 sld_set_sensor_mode(sickld_t *sick,
 	}
 
 	/* The Sick LD must be in rotate mode before: going from IDLE to MEASURE or going from MEASURE to IDLE */
-	if ( (sick->sensor_mode == SICK_SENSOR_MODE_IDLE
+	if ((sick->sensor_mode == SICK_SENSOR_MODE_IDLE
 			&& new_sick_sensor_mode == SICK_SENSOR_MODE_MEASURE)
 			|| (sick->sensor_mode == SICK_SENSOR_MODE_MEASURE
-					&& new_sick_sensor_mode == SICK_SENSOR_MODE_IDLE) )
-			{
+					&& new_sick_sensor_mode == SICK_SENSOR_MODE_IDLE)) {
 
 		/* Set to rotate mode */
 		ret = sld_set_sensor_mode_to_rotate(sick);
@@ -1926,8 +1740,7 @@ static e_int32 sld_set_sensor_mode(sickld_t *sick,
 	}
 
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* The payload length */
 	e_uint32 payload_length = 2;
@@ -1935,15 +1748,14 @@ static e_int32 sld_set_sensor_mode(sickld_t *sick,
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_WORK_SERV_CODE; // Requested service type
 	payload_buffer[1] = sld_sensor_mode_to_work_service_subcode(
-																new_sick_sensor_mode); // Requested service subtype
+			new_sick_sensor_mode); // Requested service subtype
 
 	/* If the target sensor mode is rotate then we add two more bytes
 	 * to the payload length. Doing so adds two zero values to the payload
 	 * which tells it to use the angular step and scan freqeuncy values
 	 * stored in its flash.
 	 */
-	if ( new_sick_sensor_mode == SICK_SENSOR_MODE_ROTATE )
-	{
+	if (new_sick_sensor_mode == SICK_SENSOR_MODE_ROTATE) {
 		payload_length += 2;
 	}
 
@@ -1958,7 +1770,7 @@ static e_int32 sld_set_sensor_mode(sickld_t *sick,
 
 	/* Send the message and get a response */
 	ret = sld_send_message_and_getreply(sick, &send_message, &recv_message);
-	if ( e_failed(ret) )
+	if (e_failed(ret))
 		goto OUT1;
 
 	/* Reset the payload buffer */
@@ -1966,30 +1778,28 @@ static e_int32 sld_set_sensor_mode(sickld_t *sick,
 
 	/* Extract the message payload */
 	ret = skm_get_payload(&recv_message, payload_buffer);
-	if ( e_failed(ret) )
+	if (e_failed(ret))
 		goto OUT1;
 
 	/* Ensure the returned mode matches the requested mode */
-	if ( (sick->sensor_mode = (payload_buffer[5] & 0x0F))
-			!= new_sick_sensor_mode )
-			{
+	if ((sick->sensor_mode = (payload_buffer[5] & 0x0F))
+			!= new_sick_sensor_mode) {
 		/* Check whether there is an error code we can use */
-		if ( new_sick_sensor_mode == SICK_SENSOR_MODE_MEASURE )
-		{
+		if (new_sick_sensor_mode == SICK_SENSOR_MODE_MEASURE) {
 			e_uint16 return_code = 0;
 			memcpy(&return_code, &payload_buffer[6], 2);
 			return_code = sick_ld_to_host_byte_order16(return_code);
 			/* Print the error code associated with the TRANS_MEASURE request */
-			DMSG((STDOUT, "Unexpected sensor mode returned from Sick LD! (TRANS_MEAS Error Code:  %s )", sld_trans_measure_return_to_string(return_code)));
+			DMSG(
+					(STDOUT, "Unexpected sensor mode returned from Sick LD! (TRANS_MEAS Error Code:  %s )", sld_trans_measure_return_to_string(return_code)));
 			ret = E_ERROR;
 			goto OUT1;
 		}
 	}
 
 	/* Make sure the motor is Ok */
-	if ( (sick->motor_mode = ((payload_buffer[5] >> 4) & 0x0F))
-			!= SICK_MOTOR_MODE_OK )
-	{
+	if ((sick->motor_mode = ((payload_buffer[5] >> 4) & 0x0F))
+			!= SICK_MOTOR_MODE_OK) {
 		DMSG((STDOUT,"Unexpected motor mode returned from Sick LD!"));
 		ret = E_ERROR;
 		goto OUT1;
@@ -2006,11 +1816,9 @@ static e_int32 sld_set_sensor_mode(sickld_t *sick,
  * \return The corresponding work service subcode
  */
 static e_uint8 sld_sensor_mode_to_work_service_subcode(
-		const e_uint8 sick_sensor_mode)
-{
+		const e_uint8 sick_sensor_mode) {
 
-	switch (sick_sensor_mode)
-	{
+	switch (sick_sensor_mode) {
 	case SICK_SENSOR_MODE_IDLE:
 		return SICK_WORK_SERV_TRANS_IDLE;
 	case SICK_SENSOR_MODE_ROTATE:
@@ -2026,8 +1834,7 @@ static e_uint8 sld_sensor_mode_to_work_service_subcode(
 /**
  * \brief Kills the current data stream
  */
-static e_int32 sld_cancel_scan_profiles(sickld_t *sick)
-{
+static e_int32 sld_cancel_scan_profiles(sickld_t *sick) {
 	int ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Ensure the device is in measurement mode */
@@ -2036,8 +1843,7 @@ static e_int32 sld_cancel_scan_profiles(sickld_t *sick)
 	e_assert(ret>0, ret);
 
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_MEAS_SERV_CODE; // Requested service type
@@ -2051,21 +1857,18 @@ static e_int32 sld_cancel_scan_profiles(sickld_t *sick)
 	sick->motor_mode = (payload_buffer[5] >> 4) & 0x0F;
 
 	/* Since we just updated them, let's make sure everything s'ok */
-	if ( e_check(sick->sensor_mode == SICK_SENSOR_MODE_ERROR,
-			"Sick LD returned sensor mode ERROR!\r\n") )
+	if (e_check(sick->sensor_mode == SICK_SENSOR_MODE_ERROR,
+			"Sick LD returned sensor mode ERROR!\r\n"))
 		return E_ERROR;
 	/* Check the motor mode */
-	if ( e_check(sick->motor_mode == SICK_MOTOR_MODE_ERROR,
-			"Sick LD returned motor mode ERROR!\r\n") )
+	if (e_check(sick->motor_mode == SICK_MOTOR_MODE_ERROR,
+			"Sick LD returned motor mode ERROR!\r\n"))
 		return E_ERROR;
 
 	/* Set the stream flag for the driver */
-	if ( sick->streaming_range_data )
-	{
+	if (sick->streaming_range_data) {
 		sick->streaming_range_data = false;
-	}
-	else
-	{
+	} else {
 		sick->streaming_range_and_echo_data = false;
 	}
 
@@ -2079,8 +1882,7 @@ static e_int32 sld_cancel_scan_profiles(sickld_t *sick)
  * \param ticks The tick value to be converted
  * \return The corresponding angle value
  */
-static e_float64 sld_ticks2angle(const e_uint16 ticks)
-{
+static e_float64 sld_ticks2angle(const e_uint16 ticks) {
 	return (((e_float64) ticks) / 16);
 }
 
@@ -2093,21 +1895,22 @@ static e_float64 sld_ticks2angle(const e_uint16 ticks)
  *       a multiple of 1/16 degree (which is the resolution of the
  *       encoder)
  */
-static e_uint16 sld_angle2ticks(const e_float64 angle)
-{
+static e_uint16 sld_angle2ticks(const e_float64 angle) {
 	return (e_uint16) (angle * 16);
 }
 
 /**
  * \brief Prints the initialization footer.
  */
-e_int32 sld_print_init_footer(sickld_t *sick)
-{
+e_int32 sld_print_init_footer(sickld_t *sick) {
 	e_assert(sick&&sick->initialized, E_ERROR_INVALID_HANDLER);
 	DMSG((STDOUT,"\t*** Init. complete: Sick LD is online and ready!\r\n"));
-	DMSG((STDOUT,"\tNum. Active Sectors: %u\r\n", sick->sector_config.sick_num_active_sectors ));
-	DMSG((STDOUT,"\tMotor Speed: %u  (Hz)\r\n", sick->global_config.sick_motor_speed));
-	DMSG((STDOUT,"\tScan Resolution: %f (deg) \r\n", sick->global_config.sick_angle_step));
+	DMSG(
+			(STDOUT,"\tNum. Active Sectors: %u\r\n", sick->sector_config.sick_num_active_sectors ));
+	DMSG(
+			(STDOUT,"\tMotor Speed: %u  (Hz)\r\n", sick->global_config.sick_motor_speed));
+	DMSG(
+			(STDOUT,"\tScan Resolution: %f (deg) \r\n", sick->global_config.sick_angle_step));
 	return E_OK;
 }
 
@@ -2116,10 +1919,8 @@ e_int32 sld_print_init_footer(sickld_t *sick)
  * \param sick_sector_function The numeric sector function to be converted
  * \return The corresponding string
  */
-e_uint8* sld_sector_function_to_string(const e_uint16 sick_sector_function)
-{
-	switch (sick_sector_function)
-	{
+e_uint8* sld_sector_function_to_string(const e_uint16 sick_sector_function) {
+	switch (sick_sector_function) {
 	case SICK_CONF_SECTOR_NOT_INITIALIZED:
 		return "NOT INITIALIZED";
 	case SICK_CONF_SECTOR_NO_MEASUREMENT:
@@ -2140,16 +1941,18 @@ e_uint8* sld_sector_function_to_string(const e_uint16 sick_sector_function)
  * \brief Acquire the Sick LD's sector config as a printable string
  * \return The Sick LD Sick LD's config as a well-formatted string
  */
-e_int32 sld_print_sector_config(sickld_t *sick)
-{
+e_int32 sld_print_sector_config(sickld_t *sick) {
 	e_uint32 i;
 	e_assert(sick&&sick->initialized, E_ERROR_INVALID_HANDLER);
 	DMSG((STDOUT, "\t=========== Sick Sector Config =========== \r\n" ));
-	DMSG((STDOUT,"\tNum. Active Sectors: %u\r\n", sick->sector_config.sick_num_active_sectors ));
-	DMSG((STDOUT,"\tNum. Initialized Sectors: %u \r\n", sick->sector_config.sick_num_initialized_sectors ));
+	DMSG(
+			(STDOUT,"\tNum. Active Sectors: %u\r\n", sick->sector_config.sick_num_active_sectors ));
+	DMSG(
+			(STDOUT,"\tNum. Initialized Sectors: %u \r\n", sick->sector_config.sick_num_initialized_sectors ));
 	DMSG((STDOUT,"\tSector Configs:\r\n"));
 	for (i = 0; i < sick->sector_config.sick_num_initialized_sectors; i++)
-		DMSG((STDOUT, "\t\t %d [%f,%f] ( %s )\r\n",(int)i, sick->sector_config.sick_sector_start_angles[i], sick->sector_config.sick_sector_stop_angles[i], sld_sector_function_to_string(sick->sector_config.sick_sector_functions[i])));
+		DMSG(
+				(STDOUT, "\t\t %d [%f,%f] ( %s )\r\n",(int)i, sick->sector_config.sick_sector_start_angles[i], sick->sector_config.sick_sector_stop_angles[i], sld_sector_function_to_string(sick->sector_config.sick_sector_functions[i])));
 	DMSG((STDOUT, "\t==========================================\r\n"));
 	return E_OK;
 
@@ -2163,13 +1966,11 @@ e_int32 sld_print_sector_config(sickld_t *sick)
  *       In other words, only the signals flagged in sick_signal_flags will be
  *       set - all others will be off!
  */
-static e_int32 sld_set_signals(sickld_t *sick, const e_uint8 sick_signal_flags)
-{
+static e_int32 sld_set_signals(sickld_t *sick, const e_uint8 sick_signal_flags) {
 	e_int32 ret = E_OK;
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_STAT_SERV_CODE; // Requested service type
@@ -2180,7 +1981,7 @@ static e_int32 sld_set_signals(sickld_t *sick, const e_uint8 sick_signal_flags)
 	ret = sld_quick_request(sick, payload_buffer, 4);
 	e_assert(ret>0, ret);
 	/* Check to see if there was an error */
-	if ( e_check(payload_buffer[2] != 0,"sld_set_signals error.\r\n") )
+	if (e_check(payload_buffer[2] != 0,"sld_set_signals error.\r\n"))
 		return E_ERROR;
 
 	return E_OK;
@@ -2190,8 +1991,7 @@ static e_int32 sld_set_signals(sickld_t *sick, const e_uint8 sick_signal_flags)
  * \brief Gets the Sick LD signal LED's and switching outputs.
  * \param &sick_signal_flags The destination buffer to hold the returned flags.
  */
-static e_int32 sld_get_signals(sickld_t *sick, e_uint8 *sick_signal_flags)
-{
+static e_int32 sld_get_signals(sickld_t *sick, e_uint8 *sick_signal_flags) {
 	e_int32 ret = E_OK;
 
 	/* Ensure the device has been initialized */
@@ -2201,8 +2001,7 @@ static e_int32 sld_get_signals(sickld_t *sick, e_uint8 *sick_signal_flags)
 	(*sick_signal_flags) = 0;
 
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_STAT_SERV_CODE; // Requested service type
@@ -2222,15 +2021,13 @@ static e_int32 sld_get_signals(sickld_t *sick, e_uint8 *sick_signal_flags)
  * \brief Gets the internal clock time of the Sick LD unit.
  * \param &sick_time The sick clock time in milliseconds.
  */
-static e_int32 sld_get_time(sickld_t *sick, e_uint16 *sick_time)
-{
+static e_int32 sld_get_time(sickld_t *sick, e_uint16 *sick_time) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick&&sick->initialized, E_ERROR_INVALID_HANDLER);
 
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_CONF_SERV_CODE; // Requested service type
@@ -2251,23 +2048,20 @@ static e_int32 sld_get_time(sickld_t *sick, e_uint16 *sick_time)
  * \brief Enables/disables nearfield suppression on the Sick LD
  * \param suppress_code Code indicating whether to enable or diable the nearfield suppression
  */
-static e_int32 sld_set_filter(sickld_t *sick, const e_uint8 suppress_code)
-{
+static e_int32 sld_set_filter(sickld_t *sick, const e_uint8 suppress_code) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 
 	/* Ensure the device is not measuring */
-	if ( sick->sensor_mode == SICK_SENSOR_MODE_MEASURE )
-	{
+	if (sick->sensor_mode == SICK_SENSOR_MODE_MEASURE) {
 		/* Set the Sick LD to rotate mode */
 		ret = sld_set_sensor_mode_to_rotate(sick);
 		e_assert(ret>0, ret);
 	}
 
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_CONF_SERV_CODE; // Requested service type
@@ -2285,8 +2079,8 @@ static e_int32 sld_set_filter(sickld_t *sick, const e_uint8 suppress_code)
 	filter_item = sick_ld_to_host_byte_order16(filter_item);
 
 	/* Check that the returned filter item matches nearfiled suppression */
-	if ( e_check(filter_item != SICK_CONF_SERV_SET_FILTER_NEARFIELD,
-			"Unexpected filter item returned from Sick LD!\r\n") )
+	if (e_check(filter_item != SICK_CONF_SERV_SET_FILTER_NEARFIELD,
+			"Unexpected filter item returned from Sick LD!\r\n"))
 		return E_ERROR;
 
 	return E_OK;;
@@ -2298,8 +2092,7 @@ static e_int32 sld_set_filter(sickld_t *sick, const e_uint8 suppress_code)
  * NOTE: This method writes this option to the Sick LD's flash, so there is no
  *       need to use it except when configuring the device.
  */
-static e_int32 sld_enable_nearfield_suppression(sickld_t *sick)
-{
+static e_int32 sld_enable_nearfield_suppression(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick&&sick->initialized, E_ERROR_INVALID_HANDLER);
@@ -2320,8 +2113,7 @@ static e_int32 sld_enable_nearfield_suppression(sickld_t *sick)
  * NOTE: This method writes this option to the Sick LD's flash, so there is no
  *       need to use it except when configuring the device.
  */
-static e_int32 sld_disable_nearfield_suppression(sickld_t *sick)
-{
+static e_int32 sld_disable_nearfield_suppression(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick&&sick->initialized, E_ERROR_INVALID_HANDLER);
@@ -2338,8 +2130,7 @@ static e_int32 sld_disable_nearfield_suppression(sickld_t *sick)
 /**
  * \brief Teardown TCP connection to Sick LD
  */
-static e_int32 sld_teardown_connection(sickld_t *sick)
-{
+static e_int32 sld_teardown_connection(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
@@ -2353,14 +2144,12 @@ static e_int32 sld_teardown_connection(sickld_t *sick)
 /**
  * \brief Get the status of the Sick LD
  */
-e_int32 sld_get_status(sickld_t *sick)
-{
+e_int32 sld_get_status(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_STAT_SERV_CODE; // Requested service type
@@ -2379,8 +2168,7 @@ e_int32 sld_get_status(sickld_t *sick)
 }
 
 static e_int32 sld_quick_request(sickld_t *sick,
-		e_uint8 *payload_buffer/*[in,out]*/, e_uint32 recv_len)
-{
+		e_uint8 *payload_buffer/*[in,out]*/, e_uint32 recv_len) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
@@ -2395,7 +2183,7 @@ static e_int32 sld_quick_request(sickld_t *sick,
 
 	/* Send the message and get a response */
 	ret = sld_send_message_and_getreply(sick, &send_message, &recv_message);
-	if ( e_failed(ret) )
+	if (e_failed(ret))
 		goto OUT1;
 
 	/* Reset the payload buffer */
@@ -2403,7 +2191,7 @@ static e_int32 sld_quick_request(sickld_t *sick,
 
 	/* Extract the message payload */
 	ret = skm_get_payload(&recv_message, payload_buffer);
-	if ( e_failed(ret) )
+	if (e_failed(ret))
 		goto OUT1;
 	OUT1: skm_release(&send_message);
 	skm_release(&recv_message);
@@ -2416,14 +2204,12 @@ static e_int32 sld_quick_request(sickld_t *sick,
  * \param &id_return_string A reference to hold the string returned from the Sick LD.x
  */
 e_int32 sld_get_identification_string(sickld_t *sick,
-		const e_uint8 id_request_code, char *id_return_string)
-{
+		const e_uint8 id_request_code, char *id_return_string) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_STAT_SERV_CODE; // Requested service type
@@ -2443,16 +2229,15 @@ e_int32 sld_get_identification_string(sickld_t *sick,
 /**
  * \brief Get the Sick LD's part number
  */
-e_int32 sld_get_sensor_part_number(sickld_t *sick)
-{
+e_int32 sld_get_sensor_part_number(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 
 	/* Query the Sick LD */
 	ret = sld_get_identification_string(sick,
-										SICK_STAT_SERV_GET_ID_SENSOR_PART_NUM,
-										sick->identity.sick_part_number);
+			SICK_STAT_SERV_GET_ID_SENSOR_PART_NUM,
+			sick->identity.sick_part_number);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2461,14 +2246,13 @@ e_int32 sld_get_sensor_part_number(sickld_t *sick)
 /**
  * \brief Get the Sick LD's assigned sensor name
  */
-e_int32 sld_get_sensor_name(sickld_t *sick)
-{
+e_int32 sld_get_sensor_name(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Query the Sick LD */
 	ret = sld_get_identification_string(sick, SICK_STAT_SERV_GET_ID_SENSOR_NAME,
-										sick->identity.sick_name);
+			sick->identity.sick_name);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2478,15 +2262,13 @@ e_int32 sld_get_sensor_name(sickld_t *sick)
 /**
  * \brief Get the Sick LD's sensor version
  */
-e_int32 sld_get_sensor_version(sickld_t *sick)
-{
+e_int32 sld_get_sensor_version(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Query the Sick LD */
-	ret =
-			sld_get_identification_string(sick,
-											SICK_STAT_SERV_GET_ID_SENSOR_VERSION, sick->identity.sick_version);
+	ret = sld_get_identification_string(sick,
+			SICK_STAT_SERV_GET_ID_SENSOR_VERSION, sick->identity.sick_version);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2495,15 +2277,14 @@ e_int32 sld_get_sensor_version(sickld_t *sick)
 /**
  * \brief Get the Sick LD's serial number
  */
-e_int32 sld_get_sensor_serial_number(sickld_t *sick)
-{
+e_int32 sld_get_sensor_serial_number(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Query the Sick LD */
 	ret = sld_get_identification_string(sick,
-										SICK_STAT_SERV_GET_ID_SENSOR_SERIAL_NUM,
-										sick->identity.sick_serial_number);
+			SICK_STAT_SERV_GET_ID_SENSOR_SERIAL_NUM,
+			sick->identity.sick_serial_number);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2512,15 +2293,14 @@ e_int32 sld_get_sensor_serial_number(sickld_t *sick)
 /**
  * \brief Get sensor EDM serial number
  */
-e_int32 sld_get_sensor_edm_serial_number(sickld_t *sick)
-{
+e_int32 sld_get_sensor_edm_serial_number(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Query the Sick LD */
 	ret = sld_get_identification_string(sick,
-										SICK_STAT_SERV_GET_ID_SENSOR_EDM_SERIAL_NUM,
-										sick->identity.sick_edm_serial_number);
+			SICK_STAT_SERV_GET_ID_SENSOR_EDM_SERIAL_NUM,
+			sick->identity.sick_edm_serial_number);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2529,15 +2309,14 @@ e_int32 sld_get_sensor_edm_serial_number(sickld_t *sick)
 /**
  * \brief Get firmware part number
  */
-e_int32 sld_get_firmware_part_number(sickld_t *sick)
-{
+e_int32 sld_get_firmware_part_number(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Query the Sick LD */
 	ret = sld_get_identification_string(sick,
-										SICK_STAT_SERV_GET_ID_FIRMWARE_PART_NUM,
-										sick->identity.sick_firmware_part_number);
+			SICK_STAT_SERV_GET_ID_FIRMWARE_PART_NUM,
+			sick->identity.sick_firmware_part_number);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2546,15 +2325,14 @@ e_int32 sld_get_firmware_part_number(sickld_t *sick)
 /**
  * \brief Get firmware name
  */
-e_int32 sld_get_firmware_name(sickld_t *sick)
-{
+e_int32 sld_get_firmware_name(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Query the Sick LD */
 	ret = sld_get_identification_string(sick,
-										SICK_STAT_SERV_GET_ID_FIRMWARE_NAME,
-										sick->identity.sick_firmware_name);
+			SICK_STAT_SERV_GET_ID_FIRMWARE_NAME,
+			sick->identity.sick_firmware_name);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2563,15 +2341,14 @@ e_int32 sld_get_firmware_name(sickld_t *sick)
 /**
  * \brief Get firmware version number
  */
-e_int32 sld_get_firmware_version(sickld_t *sick)
-{
+e_int32 sld_get_firmware_version(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Query the Sick LD */
 	ret = sld_get_identification_string(sick,
-										SICK_STAT_SERV_GET_ID_FIRMWARE_VERSION,
-										sick->identity.sick_firmware_version);
+			SICK_STAT_SERV_GET_ID_FIRMWARE_VERSION,
+			sick->identity.sick_firmware_version);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2580,16 +2357,14 @@ e_int32 sld_get_firmware_version(sickld_t *sick)
 /**
  * \brief Get application software part number
  */
-e_int32 sld_get_application_software_part_number(sickld_t *sick)
-{
+e_int32 sld_get_application_software_part_number(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Query the Sick LD */
-	ret =
-			sld_get_identification_string(sick,
-											SICK_STAT_SERV_GET_ID_APP_PART_NUM,
-											sick->identity.sick_application_software_part_number);
+	ret = sld_get_identification_string(sick,
+			SICK_STAT_SERV_GET_ID_APP_PART_NUM,
+			sick->identity.sick_application_software_part_number);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2598,14 +2373,13 @@ e_int32 sld_get_application_software_part_number(sickld_t *sick)
 /**
  * \brief Get application software name
  */
-e_int32 sld_get_application_software_name(sickld_t *sick)
-{
+e_int32 sld_get_application_software_name(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Query the Sick LD */
 	ret = sld_get_identification_string(sick, SICK_STAT_SERV_GET_ID_APP_NAME,
-										sick->identity.sick_application_software_name);
+			sick->identity.sick_application_software_name);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2614,14 +2388,13 @@ e_int32 sld_get_application_software_name(sickld_t *sick)
 /**
  * \brief Get application software part number
  */
-e_int32 sld_get_application_software_version(sickld_t *sick)
-{
+e_int32 sld_get_application_software_version(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Query the Sick LD */
 	ret = sld_get_identification_string(sick, SICK_STAT_SERV_GET_ID_APP_VERSION,
-										sick->identity.sick_application_software_version);
+			sick->identity.sick_application_software_version);
 
 	e_assert(ret>0, ret);
 	return E_OK;
@@ -2630,8 +2403,7 @@ e_int32 sld_get_application_software_version(sickld_t *sick)
 /**
  * \brief Get the parameters that define the Sick LD's identity
  */
-static e_int32 sld_get_identity(sickld_t *sick)
-{
+static e_int32 sld_get_identity(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
@@ -2665,8 +2437,7 @@ static e_int32 sld_get_identity(sickld_t *sick)
 /**
  * \brief Get the Sick LD's Ethernet configuration.
  */
-e_int32 sld_get_ethernet_config(sickld_t *sick)
-{
+e_int32 sld_get_ethernet_config(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
@@ -2675,8 +2446,7 @@ e_int32 sld_get_ethernet_config(sickld_t *sick)
 	e_assert(ret>0, ret);
 
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_CONF_SERV_CODE; // Requested service type
@@ -2695,12 +2465,11 @@ e_int32 sld_get_ethernet_config(sickld_t *sick)
 
 	/* A quick sanity check */
 
-	if ( e_check(temp_buffer != SICK_CONF_KEY_ETHERNET,
-			"Unexpected message contents!\r\n") )
+	if (e_check(temp_buffer != SICK_CONF_KEY_ETHERNET,
+			"Unexpected message contents!\r\n"))
 		return E_ERROR;
 	/* Extract the IP address of the Sick LD */
-	for (i = 0; i < 4; i++, data_offset += 2)
-			{
+	for (i = 0; i < 4; i++, data_offset += 2) {
 		memcpy(&sick->ethernet_config.sick_ip_address[i],
 				&payload_buffer[data_offset], 2);
 		sick->ethernet_config.sick_ip_address[i] = sick_ld_to_host_byte_order16(
@@ -2708,8 +2477,7 @@ e_int32 sld_get_ethernet_config(sickld_t *sick)
 	}
 
 	/* Extract the associated subnet mask */
-	for (i = 0; i < 4; i++, data_offset += 2)
-			{
+	for (i = 0; i < 4; i++, data_offset += 2) {
 		memcpy(&sick->ethernet_config.sick_subnet_mask[i],
 				&payload_buffer[data_offset], 2);
 		sick->ethernet_config.sick_subnet_mask[i] =
@@ -2718,8 +2486,7 @@ e_int32 sld_get_ethernet_config(sickld_t *sick)
 	}
 
 	/* Extract the default gateway */
-	for (i = 0; i < 4; i++, data_offset += 2)
-			{
+	for (i = 0; i < 4; i++, data_offset += 2) {
 		memcpy(&sick->ethernet_config.sick_gateway_ip_address[i],
 				&payload_buffer[data_offset], 2);
 		sick->ethernet_config.sick_gateway_ip_address[i] =
@@ -2762,8 +2529,7 @@ e_int32 sld_get_ethernet_config(sickld_t *sick)
  *        of the caller function to do error checking beforehand.
  */
 e_int32 sld_set_global_config(sickld_t *sick, const e_uint8 sick_sensor_id,
-		const e_uint8 sick_motor_speed, const e_float64 sick_angle_step)
-{
+		const e_uint8 sick_motor_speed, const e_float64 sick_angle_step) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
@@ -2772,8 +2538,7 @@ e_int32 sld_set_global_config(sickld_t *sick, const e_uint8 sick_sensor_id,
 	e_assert(ret>0, ret);
 
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_CONF_SERV_CODE; // Requested service type
@@ -2795,8 +2560,8 @@ e_int32 sld_set_global_config(sickld_t *sick, const e_uint8 sick_sensor_id,
 	e_assert(ret>0, ret);
 
 	/* Check to make sure there wasn't an error */
-	if ( e_check(payload_buffer[2] != 0 || payload_buffer[3] != 0,
-			"Configuration setting was NOT sucessful!\r\n") )
+	if (e_check(payload_buffer[2] != 0 || payload_buffer[3] != 0,
+			"Configuration setting was NOT sucessful!\r\n"))
 		return E_ERROR_IO;
 	/* Update the device driver with the new values */
 	sick->global_config.sick_sensor_id = sick_sensor_id;
@@ -2806,9 +2571,8 @@ e_int32 sld_set_global_config(sickld_t *sick, const e_uint8 sick_sensor_id,
 	return E_OK;
 }
 
-
-e_int32 sld_set_interlace_config(sickld_t *sick, const e_uint8 sick_interlace_mode)
-{
+e_int32 sld_set_interlace_config(sickld_t *sick,
+		const e_uint8 sick_interlace_mode) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
@@ -2817,26 +2581,24 @@ e_int32 sld_set_interlace_config(sickld_t *sick, const e_uint8 sick_interlace_mo
 	e_assert(ret>0, ret);
 
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_CONF_SERV_CODE; // Requested service type
 	payload_buffer[1] = SICK_CONF_SERV_SET_CONFIGURATION; // Requested service subtype
 
 	/* Set the configuration key */
-	payload_buffer[3] = SICK_CONF_KEY_GLOBAL; // Use the global configuration key
+	payload_buffer[3] = SICK_CONF_KEY_INTERLACE; // Use the global configuration key
 
 	/* Set the message parameters */
 	payload_buffer[5] = sick_interlace_mode;
-
 
 	ret = sld_quick_request(sick, payload_buffer, 6);
 	e_assert(ret>0, ret);
 
 	/* Check to make sure there wasn't an error */
-	if ( e_check(payload_buffer[2] != 0 || payload_buffer[3] != 0,
-			"Configuration setting was NOT sucessful!\r\n") )
+	if (e_check(payload_buffer[2] != 0 || payload_buffer[3] != 0,
+			"Configuration setting was NOT sucessful!\r\n"))
 		return E_ERROR_IO;
 	/* Update the device driver with the new values */
 	sick->global_config.sick_interlace_mode = sick_interlace_mode;
@@ -2847,8 +2609,7 @@ e_int32 sld_set_interlace_config(sickld_t *sick, const e_uint8 sick_interlace_mo
 /**
  * \brief Get the global configuration of the Sick LD.
  */
-e_int32 sld_get_global_config(sickld_t *sick)
-{
+e_int32 sld_get_global_config(sickld_t *sick) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
@@ -2857,8 +2618,7 @@ e_int32 sld_get_global_config(sickld_t *sick)
 	e_assert(ret>0, ret);
 
 	/* Allocate a single buffer for payload contents */
-	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
 
 	/* Set the service IDs */
 	payload_buffer[0] = SICK_CONF_SERV_CODE; // Requested service type
@@ -2876,7 +2636,7 @@ e_int32 sld_get_global_config(sickld_t *sick)
 	data_offset += 2;
 
 	/* A quick sanity check */
-	if ( e_check(temp_buffer != SICK_CONF_KEY_GLOBAL,"Unexpected message contents!\r\n") )
+	if (e_check(temp_buffer != SICK_CONF_KEY_GLOBAL,"Unexpected message contents!\r\n"))
 		return E_ERROR_IO;
 
 	/* Extract the global sensor ID */
@@ -2895,9 +2655,8 @@ e_int32 sld_get_global_config(sickld_t *sick)
 
 	/* Extract the angular step */
 	memcpy(&temp_buffer, &payload_buffer[data_offset], 2);
-	sick->global_config.sick_angle_step =
-			sld_ticks2angle(
-							sick_ld_to_host_byte_order16(temp_buffer));
+	sick->global_config.sick_angle_step = sld_ticks2angle(
+			sick_ld_to_host_byte_order16(temp_buffer));
 
 	return E_OK;
 }
@@ -2910,41 +2669,36 @@ e_int32 sld_get_global_config(sickld_t *sick)
  * \param active_sector_stop_angles Angles marking the end of each desired active sector/area
  * \param num_active_sectors The number of active sectors
  */
-e_int32 sld_set_global_params_and_scan_areas(sickld_t *sick,
+static e_int32 sld_set_global_params_and_scan_areas_Not_0_0625(sickld_t *sick,
 		const e_uint32 sick_motor_speed, const e_float64 sick_angle_step,
 		const e_float64 * const active_sector_start_angles,
 		const e_float64 * const active_sector_stop_angles,
-		const e_uint32 num_active_sectors)
-{
+		const e_uint32 num_active_sectors) {
 	e_int32 ret = E_OK;
 	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Define buffers to hold the device-ready configuration */
 	e_uint32 num_sectors = 0;
-	e_uint32 sector_functions[SICK_MAX_NUM_SECTORS] =
-			{ 0 };
-	e_float64 sector_stop_angles[SICK_MAX_NUM_SECTORS] =
-			{ 0 };
+	e_uint32 sector_functions[SICK_MAX_NUM_SECTORS] = { 0 };
+	e_float64 sector_stop_angles[SICK_MAX_NUM_SECTORS] = { 0 };
 
 	/* A few dummy buffers */
-	e_float64 sorted_active_sector_start_angles[SICK_MAX_NUM_SECTORS] =
-			{ 0 };
-	e_float64 sorted_active_sector_stop_angles[SICK_MAX_NUM_SECTORS] =
-			{ 0 };
+	e_float64 sorted_active_sector_start_angles[SICK_MAX_NUM_SECTORS] = { 0 };
+	e_float64 sorted_active_sector_stop_angles[SICK_MAX_NUM_SECTORS] = { 0 };
 
 	/* Begin by checking the num of active sectors */
-	if ( e_check(num_active_sectors > SICK_MAX_NUM_SECTORS / 2,
-			"Invalid number of active scan sectors!\r\n") )
+	if (e_check(num_active_sectors > SICK_MAX_NUM_SECTORS / 2,
+			"Invalid number of active scan sectors!\r\n"))
 		return E_ERROR_INVALID_PARAMETER;
 	/* Ensure the given motor speed is valid (within proper bounds, etc...) */
 	ret = sld_valid_motor_speed(sick_motor_speed);
-	if ( e_check(ret<=0,"Invalid motor speed!\r\n") )
+	if (e_check(ret<=0,"Invalid motor speed!\r\n"))
 		return E_ERROR_INVALID_PARAMETER;
 
 	/* Ensure the scan resolution is valid (within proper bounds, etc...) */
 	ret = sld_valid_scan_resolution(sick_angle_step, active_sector_start_angles,
-									active_sector_stop_angles, num_active_sectors);
-	if ( e_check(ret<=0," Invalid scan resolution!\r\n") )
+			active_sector_stop_angles, num_active_sectors);
+	if (e_check(ret<=0," Invalid scan resolution!\r\n"))
 		return E_ERROR_INVALID_PARAMETER;
 	/* Copy the input arguments */
 	memcpy(sorted_active_sector_start_angles, active_sector_start_angles,
@@ -2954,34 +2708,32 @@ e_int32 sld_set_global_params_and_scan_areas(sickld_t *sick,
 
 	/* Ensure a proper ordering of the given sector angle sets */
 	ret = sld_sort_scan_areas(sorted_active_sector_start_angles,
-								sorted_active_sector_stop_angles, num_active_sectors);
+			sorted_active_sector_stop_angles, num_active_sectors);
 	e_assert(ret>0, ret);
 
 	/* Check for an invalid configuration */
 	ret = sld_valid_active_sectors(sorted_active_sector_start_angles,
-									sorted_active_sector_stop_angles, num_active_sectors);
-	if ( e_failed(ret,"Invalid sector configuration!\r\n") )
+			sorted_active_sector_stop_angles, num_active_sectors);
+	if (e_failed(ret,"Invalid sector configuration!\r\n"))
 		return E_ERROR_INVALID_PARAMETER;
 
 	/* Ensure the resulting pulse frequency is valid for the device */
-	ret =
-			sld_valid_pulse_frequency_ex(sick_motor_speed, sick_angle_step,
-											sorted_active_sector_start_angles, sorted_active_sector_stop_angles,
-											num_active_sectors);
-	if ( e_failed(ret," Invalid pulse frequency!\r\n") )
+	ret = sld_valid_pulse_frequency_ex(sick_motor_speed, sick_angle_step,
+			sorted_active_sector_start_angles, sorted_active_sector_stop_angles,
+			num_active_sectors);
+	if (e_failed(ret," Invalid pulse frequency!\r\n"))
 		return E_ERROR_INVALID_PARAMETER;
 
 	/* Generate the corresponding device-ready sector config */
-	ret =
-			sld_generate_sector_config(sorted_active_sector_start_angles,
-										sorted_active_sector_stop_angles, num_active_sectors,
-										sick_angle_step, sector_functions, sector_stop_angles,
-										&num_sectors);
+	ret = sld_generate_sector_config(sorted_active_sector_start_angles,
+			sorted_active_sector_stop_angles, num_active_sectors,
+			sick_angle_step, sector_functions, sector_stop_angles,
+			&num_sectors);
 	e_assert(ret>0, ret);
 
 	/* Set the new sector configuration */
 	ret = sld_set_sector_config(sick, sector_functions, sector_stop_angles,
-								num_sectors, false);
+			num_sectors, false);
 	e_assert(ret>0, ret);
 
 	/* Assign the new configuration in the flash
@@ -2991,15 +2743,81 @@ e_int32 sld_set_global_params_and_scan_areas(sickld_t *sick,
 	 *       Why this is the case isn't exactly clear as the manual does not explain.
 	 */
 	ret = sld_set_global_config(sick, sick->global_config.sick_sensor_id,
-								sick_motor_speed, sick_angle_step);
+			sick_motor_speed, sick_angle_step);
 	e_assert(ret>0, ret);
 
 	return E_OK;
 }
 
+e_int32 sld_set_global_params_and_scan_areas(sickld_t *sick,
+		const e_uint32 sick_motor_speed, const e_float64 sick_angle_step,
+		const e_float64 * const active_sector_start_angles,
+		const e_float64 * const active_sector_stop_angles,
+		const e_uint32 num_active_sectors) {
+	e_int32 ret;
+	ret = sld_set_interlace_config(sick, 0);
+	e_assert(ret>0, ret);
+
+	if (sick_angle_step != 0.0625) {
+		return sld_set_global_params_and_scan_areas_Not_0_0625(sick,
+				sick_motor_speed, sick_angle_step, active_sector_start_angles,
+				active_sector_stop_angles, num_active_sectors);
+	} else {
+
+#if 0
+		ret = sld_set_global_params_and_scan_areas_Not_0_0625(sick, 5, 0.25,
+				active_sector_start_angles, active_sector_stop_angles,num_active_sectors);
+		e_assert(ret>0, ret);
+		ret = sld_set_interlace_config(sick, 3);
+		e_assert(ret>0, ret);
+#else
+		ret = sld_set_global_config(sick, sick->global_config.sick_sensor_id, 5,
+				0.25);
+		e_assert(ret>0, ret);
+		ret = sld_set_interlace_config(sick, 3);
+		e_assert(ret>0, ret);
+		ret = sld_set_global_params_and_scan_areas_Not_0_0625(sick, 5, 0.25,
+				active_sector_start_angles, active_sector_stop_angles,
+				num_active_sectors);
+		e_assert(ret>0, ret);
+#endif
+		ret = sld_set_global_config(sick, sick->global_config.sick_sensor_id, 5,
+				0.0625);
+		e_assert(ret>0, ret);
+	}
+	return E_OK;
+}
+
+e_int32 sld_set_global_params_and_scan_areas_interlace(sickld_t *sick,
+		const e_uint32 sick_motor_speed, const e_float64 sick_angle_step,
+		const e_uint32 interlace,
+		const e_float64 * const active_sector_start_angles,
+		const e_float64 * const active_sector_stop_angles,
+		const e_uint32 num_active_sectors) {
+	e_int32 ret;
+	ret = sld_set_interlace_config(sick, 0);
+	e_assert(ret>0, ret);
+
+	if (!interlace) {
+		return sld_set_global_params_and_scan_areas_Not_0_0625(sick,
+				sick_motor_speed, sick_angle_step, active_sector_start_angles,
+				active_sector_stop_angles, num_active_sectors);
+	} else {
+		ret = sld_set_global_params_and_scan_areas_Not_0_0625(sick,
+				sick_motor_speed, sick_angle_step, active_sector_start_angles,
+				active_sector_stop_angles, num_active_sectors);
+		e_assert(ret>0, ret);
+		ret = sld_set_interlace_config(sick, interlace);
+		e_assert(ret>0, ret);
+		ret = sld_set_global_config(sick, sick->global_config.sick_sensor_id,
+				sick_motor_speed, sick_angle_step / (interlace + 1));
+		e_assert(ret>0, ret);
+	}
+	return E_OK;
+}
+
 static e_int32 sld_read_bytes(sickld_t *sick, e_uint8 * const dest_buffer,
-		const int num_bytes_to_read, const e_uint32 timeout_value)
-{
+		const int num_bytes_to_read, const e_uint32 timeout_value) {
 
 	/* Some helpful variables */
 	int total_num_bytes_read = 0;
@@ -3008,14 +2826,13 @@ static e_int32 sld_read_bytes(sickld_t *sick, e_uint8 * const dest_buffer,
 //	DMSG((STDOUT,"+++++++++++sld_read_bytes total_num_bytes_read=%d num_bytes_to_read=%d",
 //			total_num_bytes_read, num_bytes_to_read));
 	/* Attempt to fetch the bytes */
-	while (total_num_bytes_read < num_bytes_to_read)
-	{
+	while (total_num_bytes_read < num_bytes_to_read) {
 
 		/* Wait for the OS to tell us that data is waiting! */
 		ret = sc_select(&sick->sick_connect, E_READ, timeout_value);
 		//DMSG((STDOUT,"+++++++++++sld_read_bytes select"));
 		/* Figure out what to do based on the output of select */
-		if ( ret == E_ERROR_TIME_OUT )
+		if (ret == E_ERROR_TIME_OUT)
 			return E_ERROR_TIME_OUT;
 		e_assert((ret > 0), E_ERROR_IO);
 
@@ -3029,7 +2846,7 @@ static e_int32 sld_read_bytes(sickld_t *sick, e_uint8 * const dest_buffer,
 		 */
 #if FAST_SICK_RECV
 		ret = sc_recv(&sick->sick_connect, &dest_buffer[total_num_bytes_read],
-						num_bytes_to_read - total_num_bytes_read);
+				num_bytes_to_read - total_num_bytes_read);
 		e_assert((ret >0), E_ERROR_IO);
 		total_num_bytes_read += ret;
 #else
@@ -3051,8 +2868,7 @@ static e_int32 sld_read_bytes(sickld_t *sick, e_uint8 * const dest_buffer,
  * \param &sick_message The returned message object
  */
 e_int32 sld_get_next_message_from_datastream(sickld_t *sick,
-		sick_message_t *sick_message)
-{
+		sick_message_t *sick_message) {
 	e_int32 ret;
 	e_uint32 i;
 	/* Flush the input buffer */
@@ -3063,30 +2879,24 @@ e_int32 sld_get_next_message_from_datastream(sickld_t *sick,
 //	DMSG((STDOUT,"+++++++++++sld_get_next_message_from_datastream"));
 
 	/* A buffer to hold the current byte out of the stream */
-	const e_uint8 sick_response_header[4] =
-			{ 0x02, 'U', 'S', 'P' };
+	const e_uint8 sick_response_header[4] = { 0x02, 'U', 'S', 'P' };
 
 	e_uint8 checksum = 0;
-	e_uint8 message_buffer[MESSAGE_MAX_LENGTH] =
-			{ 0 };
+	e_uint8 message_buffer[MESSAGE_MAX_LENGTH] = { 0 };
 	e_uint32 payload_length = 0;
 
 	/* Search for the header in the byte stream */
-	for (i = 0; i < sizeof(sick_response_header);)
-			{
+	for (i = 0; i < sizeof(sick_response_header);) {
 		/* Acquire the next byte from the stream */
 		ret = sld_read_bytes(sick, &byte_buffer, 1, DEFAULT_SICK_BYTE_TIMEOUT);
-		if ( ret == E_ERROR_TIME_OUT )
+		if (ret == E_ERROR_TIME_OUT)
 			return E_ERROR_TIME_OUT;
 		e_assert((ret>0), ret);
 
 		/* Check if the current byte matches the expected header byte */
-		if ( byte_buffer == sick_response_header[i] )
-				{
+		if (byte_buffer == sick_response_header[i]) {
 			i++;
-		}
-		else
-		{
+		} else {
 			i = 0;
 		}
 	}
@@ -3096,7 +2906,7 @@ e_int32 sld_get_next_message_from_datastream(sickld_t *sick,
 
 	/* Acquire the payload length! */
 	ret = sld_read_bytes(sick, &message_buffer[4], 4,
-							DEFAULT_SICK_BYTE_TIMEOUT);
+			DEFAULT_SICK_BYTE_TIMEOUT);
 	e_assert((ret>0), ret);
 
 	/* Extract the payload size and adjust the byte order */
@@ -3105,7 +2915,7 @@ e_int32 sld_get_next_message_from_datastream(sickld_t *sick,
 
 	/* Read the packet payload */
 	ret = sld_read_bytes(sick, &message_buffer[8], payload_length,
-							DEFAULT_SICK_BYTE_TIMEOUT);
+			DEFAULT_SICK_BYTE_TIMEOUT);
 	e_assert((ret>0), ret);
 
 	/* Read the checksum */
@@ -3123,14 +2933,15 @@ e_int32 sld_get_next_message_from_datastream(sickld_t *sick,
 	 *       we are using TCP.  However, its safer this way.
 	 */
 	ret = skm_build_message(sick_message,
-							&message_buffer[MESSAGE_HEADER_LENGTH], payload_length);
+			&message_buffer[MESSAGE_HEADER_LENGTH], payload_length);
 	e_assert((ret>0), ret);
 
 	/* Verify the checksum is correct (this is probably unnecessary since we are using TCP/IP) */
 	ret = skm_get_checksum(sick_message);
 
-	if ( ret != checksum ) {
-		DMSG((STDOUT,"checksum error:ret = %d,checksum = %d\n",ret,checksum));
+	if (ret != checksum) {
+		DMSG(
+				(STDOUT,"checksum error:ret = %d,checksum = %d\n",(int)ret,checksum));
 	}
 
 	//e_assert((ret==checksum), E_ERROR_IO);

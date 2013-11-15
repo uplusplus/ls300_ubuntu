@@ -44,18 +44,23 @@ int main() {
 	sj_set_data_dir(job, "/sdcard/ls300/data/point_cloud",
 			"/sdcard/ls300/data/image", "/data/data/com.hdsy.ls300/files");
 #endif
-
 	/*
-	 * time		resolotion		speed_h		speed_v		width			height
-			288		0.125			200					5			1441			1081
-			144		0.25			100					5			721				541
-			72		0.375			50					7			505				361
-			72		0.5				50					5			361				271
-	 * */
+	time(s)		resolotion		speed_h		speed_v		width		height
+		576			0.0625			400				5				2881		2161
+		288							200				10
+
+		288			0.125			200				5				1441		1081
+		144			0.25			100				5				721			541
+		72			0.375			50				7				505			361
+		72			0.5				50				5				361			271
+	*/
+
 //	ret =  sj_config(job, 50, 0, 360, 5, 0.5, -45, 90);
-	ret =  sj_config(job, 50, 0, 360, 7, 0.375, -45, 90);
+//	ret =  sj_config(job, 50, 0, 360, 7, 0.375, -45, 90);
 //	ret =  sj_config(job, 100, 0, 360, 5, 0.25, -45, 90);
 //	ret =  sj_config(job, 200, 0, 360, 5, 0.125, -45, 90);
+//	ret =  sj_config(job, 400, 0, 360, 5, 0.0625, -45, 90);
+	ret =  sj_config(job, 200, 0, 360, 10, 0.0625, -45, 90);
 
 	e_assert(ret>0, ret);
 

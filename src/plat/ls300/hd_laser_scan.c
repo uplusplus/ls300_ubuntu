@@ -30,6 +30,7 @@ struct scan_job_t {
 	//配置参数记录
 	//垂直方向
 	e_uint32 speed_v; // hz
+	e_uint32 interlace_v; //交错采集
 	e_float64 resolution_v;
 	e_float64 start_angle_v; //垂直起始角度，这里暂时固定分为两个扇区
 	e_float64 end_angle_v; //垂直终止角度
@@ -77,8 +78,7 @@ e_int32 sj_create(scan_job_t** sj_ret, char*dev, int baudrate, char* ip,
 		baudrate = 38400;
 	}
 	ret = hl_open(sj->control, dev, baudrate); //(char*) "/dev/ttyUSB0", 38400);
-	if (e_failed(ret))
-	{
+	if (e_failed(ret)) {
 		hl_close(sj->control);
 		free(sj->control);
 		goto FAILED;
@@ -86,7 +86,8 @@ e_int32 sj_create(scan_job_t** sj_ret, char*dev, int baudrate, char* ip,
 
 	ret = sld_create(&sj->sick, ip, port);
 	if (e_failed(ret)) {
-		DMSG((STDOUT,"connect to sick scanner failed!\nplease check that you'v set the correct IP address.\n"));
+		DMSG(
+				(STDOUT,"connect to sick scanner failed!\nplease check that you'v set the correct IP address.\n"));
 		hl_close(sj->control);
 		free(sj->control);
 		sld_release(&sj->sick);
@@ -174,7 +175,14 @@ e_int32 sj_config(scan_job_t* sj, e_uint32 speed_h,
 			active_sector_stop_angle, resolution_v);
 	e_assert(ret>0, ret);
 	sj->speed_v = speed_v;
-	sj->resolution_v = resolution_v;
+
+	if (resolution_v == 0.0625) {
+		sj->resolution_v = 0.25;
+		sj->interlace_v = 3;
+	} else {
+		sj->resolution_v = resolution_v;
+		sj->interlace_v = 0;
+	}
 
 	return E_OK;
 }
@@ -194,6 +202,7 @@ static e_int32 on_status_change(void* thiz, int state) {
 //		sj->state = STATE_WORK;
 		DMSG((STDOUT, "on_status_change:scan job routine started.\r\n"));
 	}
+	return E_OK;
 }
 
 e_int32 sj_scan_photo(scan_job_t* sj) {
@@ -219,7 +228,7 @@ e_int32 sj_scan_point(scan_job_t* sj) {
 	e_assert(ret>0, ret);
 	ret = ls_scan(sj->sick_work, sj->data_dir, sj->gray_dir, sj->files_dir,
 			sj->speed_h, sj->start_angle_h, sj->end_angle_h, sj->speed_v,
-			sj->resolution_v, sj->start_angle_v, sj->end_angle_v);
+			sj->resolution_v, sj->interlace_v,sj->start_angle_v, sj->end_angle_v);
 	e_assert(ret>0, ret);
 	return E_OK;
 }
@@ -312,8 +321,7 @@ e_int32 sj_search_zero(scan_job_t* sj) {
 }
 
 //硬件信息
-e_int32 sj_get_info(scan_job_t* sj, e_uint32 idx, e_uint8* buffer,
-		e_int32 blen) {
+e_int32 sj_get_info(scan_job_t* sj, e_uint32 idx, e_uint8* buffer, e_int32 blen) {
 	e_assert(sj&&sj->state, E_ERROR_INVALID_HANDLER);
 	return hl_get_info(sj->control, idx, buffer, blen);
 }

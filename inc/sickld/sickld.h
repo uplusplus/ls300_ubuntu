@@ -75,6 +75,13 @@ e_int32 DEV_EXPORT sld_set_global_params_and_scan_areas(sickld_t *sick,
 		const e_float64 * const active_sector_stop_angles,
 		const e_uint32 num_active_sectors);
 
+e_int32 DEV_EXPORT sld_set_global_params_and_scan_areas_interlace(sickld_t *sick,
+		const e_uint32 sick_motor_speed, const e_float64 sick_angle_step,
+		const e_uint32 interlace,
+		const e_float64 * const active_sector_start_angles,
+		const e_float64 * const active_sector_stop_angles,
+		const e_uint32 num_active_sectors);
+
 /** Acquires measurements and related data for all active sectors */
 e_int32 DEV_EXPORT sld_get_measurements(sickld_t *sick,
 		e_float64 * const range_measurements,

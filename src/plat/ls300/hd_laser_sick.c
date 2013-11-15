@@ -30,6 +30,7 @@ struct laser_sick_t {
 	//垂直方向
 	e_uint32 height;
 	e_uint32 speed_v; // hz
+	e_uint32 interlace_v;
 	e_float64 resolution_v;
 	e_float64 start_angle_v[2]; //垂直起始角度，这里暂时固定分为两个扇区
 	e_float64 end_angle_v[2]; //垂直终止角度
@@ -125,8 +126,8 @@ e_int32 ls_uninit(laser_sick_t *ls) {
 e_int32 ls_scan(laser_sick_t *ls, char* ptDir, char *grayDir, char *files_dir,
 		e_uint32 speed_h_delay, const e_float64 start_angle_h,
 		const e_float64 end_angle_h, e_uint32 speed_v_hz,
-		e_float64 resolution_v, const e_float64 start_angle_v,
-		const e_float64 end_angle_v) {
+		e_float64 resolution_v, const e_uint32 interlace_v,
+		const e_float64 start_angle_v, const e_float64 end_angle_v) {
 	e_int32 ret;
 	e_assert(ls && ls->state == STATE_IDLE, E_ERROR_INVALID_STATUS);
 
@@ -135,7 +136,7 @@ e_int32 ls_scan(laser_sick_t *ls, char* ptDir, char *grayDir, char *files_dir,
 	ls->on_status_change(ls->ctx, ls->state);
 
 	ret = ls_phrase_config(ls, speed_h_delay, start_angle_h, end_angle_h,
-			speed_v_hz, resolution_v, start_angle_v, end_angle_v);
+			speed_v_hz, resolution_v, interlace_v, start_angle_v, end_angle_v);
 	if (ret <= 0) {
 		DMSG((STDOUT, "ls_phrase_config failed!\r\n"));
 		ls->state = STATE_IDLE;
@@ -202,10 +203,12 @@ static e_int32 thread_scan_func(laser_sick_t *ls) {
 	void* result;
 	ret = inter_ls_scan(ls);
 
-	DMSG((STDOUT,"sick main thread try wait sub thread....\n"));
-	//等待子线程
-	pthread_join(ls->thread_write->thread_id, &result);
-	pthread_join(ls->thread_read->thread_id, &result);
+	if (ret > 0) {
+		DMSG((STDOUT,"sick main thread try wait sub thread....\n"));
+		//等待子线程
+		pthread_join(ls->thread_write->thread_id, &result);
+		pthread_join(ls->thread_read->thread_id, &result);
+	}
 
 	DMSG(
 			(STDOUT,"sick main thread all sub thread quit,try stop devices....\n"));
@@ -229,14 +232,16 @@ static e_int32 inter_ls_scan(laser_sick_t *ls) {
 	e_int32 ret;
 
 	//提交配置到控制板
+//	ret = hl_turntable_config(ls->control, ls->speed_h, ls->start_angle_h,
+//			ls->end_angle_h + ls->pre_scan_angle);
 	ret = hl_turntable_config(ls->control, ls->speed_h, ls->start_angle_h,
 			ls->end_angle_h + ls->pre_scan_angle);
 	e_assert(ret>0, ret);
 
-
 	//开始真正数据采集前的准备工作,快速转动转台到0点
-	ret = hl_search_zero(ls->control);
-	e_assert(ret>0 && should_continue, ret);
+//	ret = hl_search_zero(ls->control);
+//	e_assert(ret>0 && should_continue, ret);
+//	Delay(100);
 
 	//开始真正数据采集前的准备工作,快速转动转台到需要的启始位置
 	ret = hl_turntable_prepare(ls->control, ls->pre_scan_angle);
@@ -246,8 +251,9 @@ static e_int32 inter_ls_scan(laser_sick_t *ls) {
 	ret = sld_initialize(ls->sick);
 	e_assert(ret>0 && should_continue, ret);
 
-	ret = sld_set_global_params_and_scan_areas(ls->sick, ls->speed_v,
-			ls->resolution_v, ls->start_angle_v, ls->end_angle_v,
+	ret = sld_set_global_params_and_scan_areas_interlace(ls->sick, ls->speed_v,
+			ls->resolution_v, ls->interlace_v, ls->start_angle_v,
+			ls->end_angle_v,
 			ls->active_sectors.left + ls->active_sectors.right);
 	e_assert(ret>0 && should_continue, ret);
 
@@ -296,7 +302,7 @@ static e_int32 inter_ls_scan(laser_sick_t *ls) {
  */
 e_int32 ls_phrase_config(laser_sick_t *ls, e_uint32 speed_h,
 		const e_float64 start_angle_h, const e_float64 end_angle_h,
-		e_uint32 speed_v, e_float64 resolution_v,
+		e_uint32 speed_v, e_float64 resolution_v, e_uint32 interlace_v,
 		const e_float64 active_sector_start_angle,
 		const e_float64 active_sector_stop_angle) {
 
@@ -314,6 +320,7 @@ e_int32 ls_phrase_config(laser_sick_t *ls, e_uint32 speed_h,
 	ls->end_angle_h = end_angle_h;
 	ls->speed_v = speed_v;
 	ls->resolution_v = resolution_v;
+	ls->interlace_v = interlace_v;
 	ls->speed_h = speed_h;
 
 	//挖个坑,先把第二个角度记下
@@ -374,6 +381,8 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 	e_int32 ret, flag = 1;
 	e_float32 angle_dif, started_angle; //记录起始位置，保证180度是对齐的
 	scan_data_t sdata = { 0 };
+
+
 	DMSG((STDOUT,"scan job:write_data_routine start.\r\n"));
 
 	angle_dif = ls->angle_dif_per_cloumn;
@@ -436,7 +445,8 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 
 //		DMSG((STDOUT,"\rWRITE TO FILE: %f end: %f\n",sdata.h_angle,ls->end_angle_h));
 		ret = pool_write(&ls->pool, &sdata);
-		if(e_failed(ret)) break;
+		if (e_failed(ret))
+			break;
 
 	}
 
@@ -557,7 +567,7 @@ static e_int32 one_slip(laser_sick_t* ls, scan_data_t * pdata, e_int32 data_idx,
 
 #if HACK_SLIP_IDX
 	cidx = ls->width * (pdata->h_angle - ls->start_angle_h)
-			/ (ls->end_angle_h - ls->start_angle_h)+0.5f;
+	/ (ls->end_angle_h - ls->start_angle_h)+0.5f;
 #else
 	cidx = ls->slip_idx;
 #endif

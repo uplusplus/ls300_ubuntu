@@ -244,7 +244,8 @@ e_int32 hl_turntable_start(laser_control_t *lc) {
 
 	//开始工作前，由速度和总步数结合得到该具体发送的命令,认为只要消息发送成功便是启动成功
 	sprintf(buf, MOTO_MSG_F,
-			(int) lc->real_steps + ANGLE_TO_STEP(lc->angle_pre) + 500,
+//			(int) lc->real_steps + ANGLE_TO_STEP(lc->angle_pre) + 500,
+			(int) lc->real_steps + ANGLE_TO_STEP(360),
 			(int) lc->plus_delay); //冗余处理
 	DMSG((STDOUT,"REQUEST turn:%s",buf));
 
