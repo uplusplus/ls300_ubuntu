@@ -381,14 +381,14 @@ e_int32 ls_phrase_config(laser_sick_t *ls, e_uint32 speed_h,
 }
 
 static void write_pool_data_routine(laser_sick_t *ls) {
-	e_int32 ret, flag = 1;
+	e_int32 ret, flag = 1,delay;
 	e_float32 angle_dif, started_angle; //记录起始位置，保证180度是对齐的
 	scan_data_t sdata = { 0 };
 
 
 	DMSG((STDOUT,"scan job:write_data_routine start.\r\n"));
-
 	angle_dif = ls->angle_dif_per_cloumn;
+	delay = ANGLE_TO_STEP(angle_dif) * PULSE_SPEED_TO_STEP_TIME(ls->speed_h) / 1e3;
 
 	ret = sld_set_sensor_mode_to_rotate(ls->sick);
 	e_assert(ret>0);
@@ -400,7 +400,7 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 				+ ls->start_angle_h;
 		DMSG((STDOUT,"control trun to start angle left  %f\n",sdata.h_angle));
 //		ret = sld_flush(ls->sick);
-		if (sdata.h_angle > ls->start_angle_h) {
+		if (sdata.h_angle > ls->start_angle_h - angle_dif) {
 //		if (sdata.h_angle > ls->start_angle_h + angle_dif*5) {
 //			if (ret > 0) {
 //				DMSG((STDOUT,"sld_get_measurements sick is in target position!\r\n Start to get data.\r\n"));
@@ -410,8 +410,10 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 //			started_angle = sdata.h_angle;
 			break;
 		}
+		Delay(delay);
 	} while (ls->state == STATE_WORK);
 
+	Delay(delay-100);
 	ret = sld_set_sensor_mode_to_measure(ls->sick);
 	e_assert(ret>0);
 
@@ -451,7 +453,7 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 			break;
 		}
 
-//		DMSG((STDOUT,"\rWRITE TO FILE: %f end: %f\n",sdata.h_angle,ls->end_angle_h));
+		DMSG((STDOUT,"\rWRITE TO FILE: %f end: %f\n",sdata.h_angle,ls->end_angle_h));
 		ret = pool_write(&ls->pool, &sdata);
 		if (e_failed(ret))
 			break;

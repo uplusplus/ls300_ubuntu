@@ -1,2 +1,5 @@
 *.pyc
 *.~*
+/*.jpg
+/*.pcd
+/Excute
