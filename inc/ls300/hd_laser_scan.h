@@ -18,21 +18,19 @@
 #include <arch/hd_plat_base.h>
 #include <ls300/hd_laser_control.h>
 
-
 /*结构体定义*/
 typedef struct scan_job_t scan_job_t;
 
 /*接口定义*/
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /************************************************************************
  * 与扫描仪建立连接，并初始化扫描参数信息
  ************************************************************************/
-e_int32 DEV_EXPORT sj_create(scan_job_t** sj_ret, char*dev,
-		int baudrate, char* ip, int port);
+e_int32 DEV_EXPORT sj_create(scan_job_t** sj_ret, char*dev, int baudrate,
+		char* ip, int port);
 
 e_int32 DEV_EXPORT sj_check_devices(scan_job_t* sj);
 /************************************************************************
@@ -63,14 +61,19 @@ e_int32 DEV_EXPORT sj_cancel(scan_job_t* sj);
  ************************************************************************/
 e_int32 DEV_EXPORT sj_config(scan_job_t* sj, e_uint32 speed_h_delay,
 		const e_float64 start_angle_h, const e_float64 end_angle_h,
-		e_uint32 speed_v_hz, e_float64 resolution_v, const e_float64 start_angle_v,
-		const e_float64 end_angle_v);
+		e_uint32 speed_v_hz, e_float64 resolution_v,
+		const e_float64 start_angle_v, const e_float64 end_angle_v);
+
+e_int32 DEV_EXPORT sj_config_ex(scan_job_t* sj, e_uint32 speed_h_delay,
+		const e_float64 start_angle_h, const e_float64 end_angle_h,
+		e_uint32 speed_v_hz, e_float64 resolution_v, e_uint32 interlace_v,
+		const e_float64 start_angle_v, const e_float64 end_angle_v);
 
 /************************************************************************
  * 设置点云数据存储目录,灰度图存储目录
  ************************************************************************/
-e_int32 DEV_EXPORT sj_set_data_dir(scan_job_t* sj, char* ptDir,
-		char *grayDir,char *filesDir);
+e_int32 DEV_EXPORT sj_set_data_dir(scan_job_t* sj, char* ptDir, char *grayDir,
+		char *filesDir);
 
 e_int32 DEV_EXPORT sj_get_state(scan_job_t* sj);
 
@@ -92,8 +95,8 @@ e_int32 sj_led(scan_job_t* sj, int status);
 e_int32 DEV_EXPORT sj_search_zero(scan_job_t* sj);
 
 //硬件信息
-e_int32 DEV_EXPORT sj_get_info(scan_job_t* sj, e_uint32 idx,
-		e_uint8* buffer, e_int32 blen);
+e_int32 DEV_EXPORT sj_get_info(scan_job_t* sj, e_uint32 idx, e_uint8* buffer,
+		e_int32 blen);
 
 #ifdef __cplusplus
 }

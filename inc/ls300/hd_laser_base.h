@@ -24,7 +24,7 @@
 //量纲转换
 //1度 = 100步,每转180度
 #define ANGLE_TO_STEP(_angle_) ((int)((_angle_)*100))
-#define STEP_TO_ANGLE(_step_) ((((float)(_step_))/100))
+#define STEP_TO_ANGLE(_step_) ((((double)(_step_))/100))
 #define PULSE_SPEED_TO_STEP_TIME(_speed_) ((_speed_)*2*40)   //in us
 //通过电压值获得倾角
 #define VOLTATE_TO_DIP(_value_) (asin(((double)_value_ - 1024.0) / 1638.0) * 180.0 / M_PI)

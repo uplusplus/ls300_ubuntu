@@ -89,10 +89,8 @@ static void server_loop(void* vs) {
 			}
 		}
 
-		if (ret <= 0)
-			sc_close(&connect);
+		sc_close(&connect);
 		DMSG((STDOUT,"server_loop disconnected,reset.\n"));
-
 	}
 	DMSG((STDOUT, "socket video server loop routine stoped...\r\n"));
 }

@@ -29,8 +29,8 @@ typedef struct point_xyz_t {
 
 typedef struct point_polar_t {
 	e_float64 distance;
-	e_float32 angle_h;
-	e_float32 angle_v;
+	e_float64 angle_h;
+	e_float64 angle_v;
 	e_uint16 intensity;
 } point_polar_t;
 

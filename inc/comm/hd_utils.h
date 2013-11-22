@@ -41,7 +41,7 @@ extern "C" {
 e_uint8 DEV_EXPORT hd_compute_xor(const e_uint8 * const data,
 		const e_uint32 length);
 void DEV_EXPORT hd_polar2xyz(float *x, float *y, float *z, double distance,
-		float angle_h, float angle_v);
+		double angle_h, double angle_v);
 int DEV_EXPORT hd_soft_stretch(e_uint8* src, int s_x, int s_y, int s_w, int s_h,
 		e_uint8* dst, int d_x, int d_y, int d_w, int d_h, int bpp);
 e_uint8* DEV_EXPORT hd_image_stretch(int screen_w, int screen_h, int bpp,

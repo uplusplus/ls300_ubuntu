@@ -79,7 +79,7 @@ e_int32 DEV_EXPORT sld_set_sensor_mode_to_measure(sickld_t *sick);
 e_int32 DEV_EXPORT sld_set_sensor_mode_to_idle(sickld_t *sick);
 
 
-e_int32 DEV_EXPORT sld_set_temp_scan_areas(sickld_t *sick,
+e_int32 DEV_EXPORT sld_set_scan_areas(sickld_t *sick,
 		const e_float64 * active_sector_start_angles,
 		const e_float64 * active_sector_stop_angles,
 		const e_uint32 num_active_sectors);
@@ -110,6 +110,8 @@ e_int32 DEV_EXPORT sld_get_measurements(sickld_t *sick,
 		e_float64 * const sector_stop_angles,
 		e_uint32 * const sector_start_timestamps,
 		e_uint32 * const sector_stop_timestamps);
+
+e_int32 DEV_EXPORT sld_get_measurements_ex(sickld_t *sick,scan_data_t *pdata);
 
 e_int32 DEV_EXPORT sld_get_status(sickld_t *sick);
 

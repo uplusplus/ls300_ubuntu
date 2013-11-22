@@ -22,18 +22,6 @@
 #define DATA_BUFFER_MAX_NUM		1000
 #define POOL_SLEEP_TIMEOUT 		(1e5)
 /*结构体定义*/
-//返回给上层的数据格式
-typedef struct scan_data_t {
-	e_float32 h_angle; //水平转台当前角度,不需要双精度
-	e_uint32 num_values[SICK_MAX_NUM_SECTORS]; //对应的每个扇区的点个数，这里暂时扇区数固定为2
-	e_uint32 sector_ids[SICK_MAX_NUM_SECTORS];
-	e_uint32 data_offsets[SICK_MAX_NUM_SECTORS]; //对应的每个扇区的点偏移
-	e_uint32 echo_values[SICK_MAX_NUM_MEASUREMENTS]; //扫描仪扫描一圈的回波信息
-	e_float64 range_values[SICK_MAX_NUM_MEASUREMENTS]; //扫描仪扫描一圈的距离信息
-	e_float64 scan_angles[SICK_MAX_NUM_MEASUREMENTS]; //扫描仪扫描一圈的角度信息
-	e_uint32 sector_start_timestamps; //每一圈开始时间
-	e_uint32 sector_stop_timestamps; //每一圈结束时间
-} scan_data_t;
 
 typedef struct {
 	struct list_head list_node;

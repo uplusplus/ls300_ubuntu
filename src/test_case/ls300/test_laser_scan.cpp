@@ -21,6 +21,7 @@ scan_job_t* job;
 void sig_handler(int sig) {
 	if (sig == SIGINT) {
 		sj_cancel(job);
+		getchar();
 		sj_destroy(job);
 		exit(0);
 	}
@@ -46,8 +47,8 @@ int main() {
 #endif
 	/*
 	time(s)		resolotion		speed_h		speed_v		width		height
-		576			0.0625			400				5				2881		2161
-		288							200				10
+		1800				0.0625		1250			7			2884		2164
+		1224							850				10
 
 		288			0.125			200				5				1441		1081
 		144			0.25			100				5				721			541
@@ -55,12 +56,15 @@ int main() {
 		72			0.5				50				5				361			271
 	*/
 
-	ret =  sj_config(job, 50, 0, 360, 5, 0.5, -45, 90);
+//	ret =  sj_config(job, 50, 0, 360, 5, 0.5, -45, 90);
 //	ret =  sj_config(job, 50, 0, 360, 7, 0.375, -45, 90);
-//	ret =  sj_config(job, 100, 0, 360, 5, 0.25, -45, 90);
+	ret =  sj_config(job, 100, 0, 360, 5, 0.25, -45, 90);
 //	ret =  sj_config(job, 200, 0, 360, 5, 0.125, -45, 90);
-//	ret =  sj_config(job, 400, 0, 360, 5, 0.0625, -45, 90);
-//	ret =  sj_config(job, 200, 0, 360, 10, 0.0625, -45, 90);
+//	ret =  sj_config(job, 850, 0, 360, 10, 0.0625, -45, 90);
+//	ret =  sj_config(job, 1250, 0, 360, 7, 0.0625, -45, 90);
+
+//	ret =  sj_config(job, 400, 160, 200, 7, 0.0625, -45, 90);
+//	ret =  sj_config(job, 200, 0, 360, 7, 0.0625, -45, 90);
 
 	e_assert(ret>0, ret);
 

@@ -24,7 +24,7 @@
 #define DEFAULT_SICK_TCP_PORT       (49152)  ///< Default TCP port
 #define DEFAULT_SICK_MESSAGE_TIMEOUT (e_uint32)(5e6)  ///< The max time to wait for a message reply (usecs)
 #define DEFAULT_SICK_CONNECT_TIMEOUT (e_uint32)(1e6)  ///< The max time to wait before considering a connection attempt as failed (usecs)
-#define DEFAULT_SICK_BYTE_TIMEOUT         (35000 * 2)  ///< Max allowable time between consecutive bytes
+#define DEFAULT_SICK_BYTE_TIMEOUT         (35000 * 5)  ///< Max allowable time between consecutive bytes
 #define DEFAULT_SICK_MSG_RECV_SLEEP (1000) //1 MS
 #define DEFAULT_SICK_NUM_SCAN_PROFILES  (0)  ///< Setting this value to 0 will tell the Sick LD to stream measurements when measurement data is requested (NOTE: A profile is a single scans worth of range measurements)
 #define DEFAULT_SICK_SIGNAL_SET         (0)  ///< Default Sick signal configuration
@@ -42,13 +42,13 @@
 /* Some constants for the developer/end-user */
 #define SICK_MAX_NUM_MEASUREMENTS (e_uint16)(2881) ///< Maximum number of measurements per sector
 #define SICK_MAX_NUM_SECTORS        (e_uint16)(8)        ///< Maximum number of scan sectors (NOTE: This value must be even)
-#define SICK_MAX_NUM_MEASURING_SECTORS ((e_uint16)4)                           ///< Maximum number of active/measuring scan sectors
+#define SICK_MAX_NUM_MEASURING_SECTORS ((e_uint16)4)     ///< Maximum number of active/measuring scan sectors
 #define	SICK_MAX_SCAN_AREA	((e_uint16)360)         ///< Maximum area that can be covered in a single scan (deg)
 #define	SICK_MIN_MOTOR_SPEED	((e_uint16)5)         ///< Minimum motor speed in Hz
 #define	SICK_MAX_MOTOR_SPEED	((e_uint16)20)        ///< Maximum motor speed in Hz
 #define	SICK_MIN_VALID_SENSOR_ID	((e_uint16)1)     ///< The lowest value the Sick will accept as a Sensor ID
 #define	SICK_MAX_VALID_SENSOR_ID	((e_uint16)254)   ///< The largest value the Sick will accept as a Sensor ID
-#define	SICK_MAX_MEAN_PULSE_FREQUENCY	((e_uint16)10800)                        ///< Max mean pulse frequence of the current device configuration (in Hz) (see page 22 of the operator's manual)
+#define	SICK_MAX_MEAN_PULSE_FREQUENCY	((e_uint16)10800)   ///< Max mean pulse frequence of the current device configuration (in Hz) (see page 22 of the operator's manual)
 #define	SICK_MAX_PULSE_FREQUENCY	((e_uint16)14400) ///< Max pulse frequency of the device (in Hz) (see page 22 of the operator's manual)
 #define	SICK_NUM_TICKS_PER_MOTOR_REV	((e_uint16)5760)                          ///< Odometer ticks per revolution of the Sick LD scan head
 static const e_float64 SICK_MAX_SCAN_ANGULAR_RESOLUTION = 0.125; ///< Minimum valid separation between laser pulses in active scan ares (deg)
@@ -62,8 +62,8 @@ static const e_float64 SICK_DEGREES_PER_MOTOR_STEP = 0.0625; ///< Each odometer 
 #define	SICK_SENSOR_MODE_UNKNOWN	((e_uint8)0xFF)   ///< The Sick LD is in an unknown state
 /* Sick LD motor modes */
 #define	SICK_MOTOR_MODE_OK	((e_uint8)0x00)         ///< Motor is functioning properly
-#define	SICK_MOTOR_MODE_SPIN_TOO_HIGH	((e_uint8)0x09)                          ///< Motor spin too low (i.e. rotational velocity too low)
-#define	SICK_MOTOR_MODE_SPIN_TOO_LOW	((e_uint8)0x04)                           ///< Motor spin too high (i.e. rotational velocity too fast)
+#define	SICK_MOTOR_MODE_SPIN_TOO_HIGH	((e_uint8)0x09)   ///< Motor spin too low (i.e. rotational velocity too low)
+#define	SICK_MOTOR_MODE_SPIN_TOO_LOW	((e_uint8)0x04)   ///< Motor spin too high (i.e. rotational velocity too fast)
 #define	SICK_MOTOR_MODE_ERROR	((e_uint8)0x0B)      ///< Motor stops or coder error
 #define	SICK_MOTOR_MODE_UNKNOWN	((e_uint8)0xFF)    ///< Motor is in an unknown state
 /* Sick LD service codes */
@@ -176,7 +176,7 @@ static const e_float64 SICK_DEGREES_PER_MOTOR_STEP = 0.0625; ///< Each odometer 
  */
 
 /* Sick LD profile formats */
-#define	SICK_SCAN_PROFILE_RANGE_AND_ECHO	((e_uint16)0x3FFF)  //((e_uint16)0x3DFF)                    ///< Request sector scan data w/ echo data
+#define	SICK_SCAN_PROFILE_RANGE_AND_ECHO	((e_uint16)0x2737)  //((e_uint16)0x3FFF)  //((e_uint16)0x3DFF)                    ///< Request sector scan data w/ echo data
 /*
  * SICK_SCAN_PROFILE_RANGE format (0x3DFF) interpretation:
  * (See page 32 of telegram listing for fieldname definitions)
@@ -341,5 +341,23 @@ typedef struct sick_ld_scan_profile_tag
 	e_uint32 num_sectors; ///< The number of sectors returned in the profile
 	sick_ld_sector_data_t sector_data[SICK_MAX_NUM_SECTORS]; ///< The sectors associated with the scan profile
 } sick_ld_scan_profile_t;
+
+
+///
+//返回给上层的数据格式
+typedef struct scan_data_t {
+	e_float64 h_angle; //水平转台当前角度
+	e_uint32 profile_number; ///< The number of profiles sent to the host (i.e. the current profile number)
+	e_uint32 profile_counter; ///< The number of profiles gathered by the Sick LD
+	e_uint32 layer_num; ///< The layer number associated with a scan (this will always be 0)
+	e_uint32 num_measurements[SICK_MAX_NUM_SECTORS]; //对应的每个扇区的点个数，这里暂时扇区数固定为2
+//	e_uint32 sector_ids[SICK_MAX_NUM_SECTORS];
+	e_uint32 sector_data_offsets[SICK_MAX_NUM_SECTORS]; //对应的每个扇区的点偏移
+	e_uint32 echo_measurements[SICK_MAX_NUM_MEASUREMENTS]; //扫描仪扫描一圈的回波信息
+	e_float64 range_measurements[SICK_MAX_NUM_MEASUREMENTS]; //扫描仪扫描一圈的距离信息
+	e_float64 angle_measurements[SICK_MAX_NUM_MEASUREMENTS]; //扫描仪扫描一圈的角度信息
+//	e_uint32 sector_start_timestamps; //每一圈开始时间
+//	e_uint32 sector_stop_timestamps; //每一圈结束时间
+} scan_data_t;
 
 #endif /* SICK_LD_BASE_H */

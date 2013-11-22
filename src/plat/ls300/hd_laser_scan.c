@@ -161,6 +161,18 @@ e_int32 sj_config(scan_job_t* sj, e_uint32 speed_h,
 		e_uint32 speed_v, e_float64 resolution_v,
 		const e_float64 active_sector_start_angle,
 		const e_float64 active_sector_stop_angle) {
+	e_uint32 interlace_v;
+	interlace_v = (resolution_v == 0.0625) ? 4 : 1;
+	return sj_config_ex(sj, speed_h, start_angle_h, end_angle_h, speed_v,
+			resolution_v, interlace_v, active_sector_start_angle,
+			active_sector_stop_angle);
+}
+
+e_int32 sj_config_ex(scan_job_t* sj, e_uint32 speed_h,
+		const e_float64 start_angle_h, const e_float64 end_angle_h,
+		e_uint32 speed_v, e_float64 resolution_v, e_uint32 interlace_v,
+		const e_float64 active_sector_start_angle,
+		const e_float64 active_sector_stop_angle) {
 	int ret;
 	e_assert(sj&&sj->state==STATE_IDLE, E_ERROR_INVALID_HANDLER);
 	e_assert(
@@ -170,19 +182,13 @@ e_int32 sj_config(scan_job_t* sj, e_uint32 speed_h,
 	sj->start_angle_h = start_angle_h;
 	sj->end_angle_h = end_angle_h;
 	sj->speed_h = speed_h;
+	sj->interlace_v = interlace_v;
 
 	ret = sj_assign_boundaries(sj, active_sector_start_angle,
-			active_sector_stop_angle, resolution_v);
+			active_sector_stop_angle, resolution_v * sj->interlace_v);
 	e_assert(ret>0, ret);
 	sj->speed_v = speed_v;
-
-	if (resolution_v == 0.0625) {
-		sj->resolution_v = 0.25;
-		sj->interlace_v = 3;
-	} else {
-		sj->resolution_v = resolution_v;
-		sj->interlace_v = 0;
-	}
+	sj->resolution_v = resolution_v;
 
 	return E_OK;
 }
@@ -228,7 +234,8 @@ e_int32 sj_scan_point(scan_job_t* sj) {
 	e_assert(ret>0, ret);
 	ret = ls_scan(sj->sick_work, sj->data_dir, sj->gray_dir, sj->files_dir,
 			sj->speed_h, sj->start_angle_h, sj->end_angle_h, sj->speed_v,
-			sj->resolution_v, sj->interlace_v,sj->start_angle_v, sj->end_angle_v);
+			sj->resolution_v, sj->interlace_v, sj->start_angle_v,
+			sj->end_angle_v);
 	e_assert(ret>0, ret);
 	return E_OK;
 }
