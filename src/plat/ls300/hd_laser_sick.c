@@ -54,7 +54,7 @@ struct laser_sick_t {
 	e_float64 angle_dif_per_degree;
 	e_uint32 slip_idx;
 	e_uint32 slip_tick;
-	e_float32 pre_scan_angle;
+	e_float64 pre_scan_angle;
 
 	e_float32 h_w; //图像真实高宽比
 
@@ -92,6 +92,9 @@ static e_int32 filter_data(laser_sick_t *ls, scan_data_t * pdata);
 static void write_pool_data_routine(laser_sick_t *ls);
 static void read_pool_data_routine(laser_sick_t *ls);
 static void print_config(laser_sick_t* ls);
+
+static int f2r(int speed);
+static int r2f(int speed);
 
 e_int32 ls_init(laser_sick_t **lsp, laser_control_t *lc, sickld_t *sick,
 		e_int32 (*on_status_change)(void*, int), void* ctx) {
@@ -243,7 +246,7 @@ static e_int32 inter_ls_scan(laser_sick_t *ls) {
 	//提交配置到控制板
 //	ret = hl_turntable_config(ls->control, ls->speed_h, ls->start_angle_h,
 //			ls->end_angle_h + ls->pre_scan_angle);
-	ret = hl_turntable_config(ls->control, ls->speed_h, ls->start_angle_h,
+	ret = hl_turntable_config(ls->control, r2f(ls->speed_h), ls->start_angle_h,
 			ls->end_angle_h + ls->pre_scan_angle);
 	e_assert(ret>0, ret);
 
@@ -330,7 +333,7 @@ e_int32 ls_phrase_config(laser_sick_t *ls, e_uint32 speed_h,
 	ls->speed_v = speed_v;
 	ls->resolution_v = resolution_v;
 	ls->interlace_v = interlace_v;
-	ls->speed_h = speed_h;
+	ls->speed_h = f2r(speed_h);
 
 	//挖个坑,先把第二个角度记下
 	ls->start_angle_v[1] = 360 - ls->end_angle_v[0];
@@ -395,14 +398,16 @@ e_int32 ls_phrase_config(laser_sick_t *ls, e_uint32 speed_h,
 }
 
 static void print_sdata(laser_sick_t *ls, scan_data_t *sdata) {
-	int i, idx = 0,dof;
+	int i, idx = 0, dof;
 
-	DMSG((STDOUT,"{profile_number=%u, layer_num=%u}\n",sdata->profile_number,sdata->layer_num));
+	DMSG(
+			(STDOUT,"{profile_number=%u, layer_num=%u}\n",sdata->profile_number,sdata->layer_num));
 	if (ls->active_sectors.left) {
 		DMSG((STDOUT,"[sector=%d]\n",idx));
 		dof = sdata->sector_data_offsets[idx];
 		for (i = 0; i < sdata->num_measurements[idx]; i++) {
-			DMSG((STDOUT,"\t[%d] %f, %f, %u]\n",i, sdata->range_measurements[dof+i],sdata->angle_measurements[dof+i],(unsigned int)sdata->echo_measurements[dof+i]));
+			DMSG(
+					(STDOUT,"\t[%d] %f, %f, %u]\n",i, sdata->range_measurements[dof+i],sdata->angle_measurements[dof+i],(unsigned int)sdata->echo_measurements[dof+i]));
 		}
 		idx++;
 	}
@@ -410,7 +415,8 @@ static void print_sdata(laser_sick_t *ls, scan_data_t *sdata) {
 		DMSG((STDOUT,"[sector=%d]\n",idx));
 		dof = sdata->sector_data_offsets[idx];
 		for (i = 0; i < sdata->num_measurements[idx]; i++) {
-			DMSG((STDOUT,"\t[%d] %f, %f, %u]\n",i, sdata->range_measurements[dof+i],sdata->angle_measurements[dof+i],(unsigned int)sdata->echo_measurements[dof+i]));
+			DMSG(
+					(STDOUT,"\t[%d] %f, %f, %u]\n",i, sdata->range_measurements[dof+i],sdata->angle_measurements[dof+i],(unsigned int)sdata->echo_measurements[dof+i]));
 		}
 		idx++;
 	}
@@ -418,13 +424,15 @@ static void print_sdata(laser_sick_t *ls, scan_data_t *sdata) {
 
 static void write_pool_data_routine(laser_sick_t *ls) {
 	e_int32 ret, first_time = 1, delay, layer_num, profile_number;
-	e_float32 angle_dif, started_angle; //记录起始位置，保证180度是对齐的
+	e_float64 angle_dif, started_angle, before_angle; //记录起始位置，保证180度是对齐的
 	scan_data_t sdata = { 0 };
 
 	DMSG((STDOUT,"scan job:write_data_routine start.\r\n"));
 	angle_dif = ls->angle_dif_per_cloumn;
 	delay = ANGLE_TO_STEP(angle_dif) * PULSE_SPEED_TO_STEP_TIME(ls->speed_h)
 			/ 1e3;
+	before_angle =
+			STEP_TO_ANGLE((630000.0/PULSE_SPEED_TO_STEP_TIME(ls->speed_h)));
 
 	ret = sld_set_sensor_mode_to_rotate(ls->sick);
 	e_assert(ret>0);
@@ -436,10 +444,10 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 //				(STDOUT,"sld_get_measurements sick is not in target position: delay and retry. angle_dif_per_cloumn=%f\r\n",angle_dif));
 		sdata.h_angle = hl_turntable_get_angle(ls->control) - ls->pre_scan_angle
 				+ ls->start_angle_h;
-//		DMSG((STDOUT,"control trun to start angle:  %f\n",sdata.h_angle));
+		DMSG(
+				(STDOUT,"control trun to start angle:  %f %f\n",sdata.h_angle,before_angle));
 //		ret = sld_flush(ls->sick);
-		if (sdata.h_angle > ls->start_angle_h - angle_dif) {
-//		if (sdata.h_angle > ls->start_angle_h + angle_dif*5) {
+		if (sdata.h_angle > ls->start_angle_h - before_angle) {
 //			if (ret > 0) {
 //				DMSG((STDOUT,"sld_get_measurements sick is in target position!\r\n Start to get data.\r\n"));
 //				DMSG((STDOUT,"\rWRITE TO FILE: %f end: %f\n",sdata.h_angle,ls->end_angle_h));
@@ -453,8 +461,7 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 
 	DMSG((STDOUT,"control now on start angle.start to get data...\n"));
 
-	Delay(delay);
-	ret = sld_set_sensor_mode_to_measure(ls->sick);
+	ret = sld_set_sensor_mode_to_measure_ex(ls->sick);
 	e_assert(ret>0);
 
 	while (ls->state == STATE_WORK) {
@@ -478,7 +485,7 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 		}
 
 		ret = sld_get_measurements_ex(ls->sick, &sdata);
-
+//		DMSG((STDOUT,"profile_counter=%d profile_number=%d\n",sdata.profile_counter,sdata.profile_number));
 		if (!first_time) {
 			if (layer_num != sdata.layer_num
 					|| profile_number != sdata.profile_number)
@@ -501,12 +508,11 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 		}
 
 //		print_sdata(ls,&sdata);
-
-//		DMSG((STDOUT,"\rWRITE TO FILE: %f end: %f\n",sdata.h_angle,ls->end_angle_h));
 		ret = pool_write(&ls->pool, &sdata);
 		if (e_failed(ret))
 			break;
-
+		DMSG(
+				(STDOUT,"\r[%d] %f end: %f\n",sdata.profile_number, sdata.h_angle,ls->end_angle_h));
 		first_time = 0;
 	}
 	sld_set_sensor_mode_to_idle(ls->sick);
@@ -648,11 +654,11 @@ static e_int32 one_slip(laser_sick_t* ls, e_int32 tick_idx, scan_data_t * pdata,
 }
 
 static scan_data_t* add_slip_tick(laser_sick_t* ls, scan_data_t * pdata_in) {
-	int idx=0,dof,i;
+	int idx = 0, dof, i;
 	e_float64 dif;
 #if HACK_SLIP_ANGLE
 	pdata_in->h_angle = ls->slip_tick * ls->angle_dif_per_cloumn
-			+ ls->start_angle_h;
+	+ ls->start_angle_h;
 #endif
 
 	ls->slip_tick++; //1..4
@@ -693,9 +699,11 @@ static scan_data_t* add_slip_tick(laser_sick_t* ls, scan_data_t * pdata_in) {
 					+ pdata_in->num_measurements[idx] - 1] = 0;
 
 			dof = pdata_in->sector_data_offsets[idx];
-			dif = ls->start_angle_v[idx] + ls->resolution_v * pdata_in->layer_num - pdata_in->angle_measurements[dof+0];
+			dif = ls->start_angle_v[idx]
+					+ ls->resolution_v * pdata_in->layer_num
+					- pdata_in->angle_measurements[dof + 0];
 			for (i = 0; i < pdata_in->num_measurements[idx]; i++) {
-				pdata_in->angle_measurements[dof+i] += dif;
+				pdata_in->angle_measurements[dof + i] += dif;
 //				DMSG((STDOUT,"\t[%d] %f, %f, %u]\n",i, pdata_in->range_measurements[dof+i],
 //						pdata_in->angle_measurements[dof+i],(unsigned int)pdata_in->echo_measurements[dof+i]));
 			}
@@ -728,12 +736,6 @@ static e_int32 filter_data(laser_sick_t* ls, scan_data_t * pdata_in) {
 
 	if (!(pdata_buf = add_slip_tick(ls, pdata_in)))
 		return E_OK;
-
-	if (ls->slip_idx >= ls->width) {
-		ls->state = STATE_DONE;
-		DMSG((STDOUT,"ls_filter_data I'm full...\n"));
-		return E_ERROR;
-	}
 
 //	DMSG((STDOUT,"ls->slip_idx == %d/%d pdata->h_angle=%f \n", ls->slip_idx+1, ls->width, pdata->h_angle ));
 	if (ls->active_sectors.left) {
@@ -790,4 +792,64 @@ static void print_config(laser_sick_t* ls) {
 	DMSG(
 			(STDOUT,"\t======================================================\n"));
 }
+/*50	49.6
+ 100	99.8
+ 150	150.2
+ 200	199.7
+ 250	250.4
+ 400	406.9
+ 700	800.3
+ 850	965.4
+ 1250	1374.5
+ 2500	2836.4*/
+static int f2r(int speed) {
+	switch (speed) {
+//	case 50:
+//		return 49.6;
+//	case 100:
+//		return 99.8;
+//	case 150:
+//		return 150.2;
+//	case 200:
+//		return 199.7;
+//	case 250:
+//		return 250.4;
+	case 400:
+		return 407;
+	case 700:
+		return 800;
+	case 850:
+		return 965;
+	case 1250:
+		return 1375;
+	case 2500:
+		return 2836;
+	}
+	return speed;
+}
 
+static int r2f(int speed) {
+	switch (speed) {
+//	case 50:
+//		return 49.6;
+//	case 100:
+//		return 99.8;
+//	case 150:
+//		return 150.2;
+//	case 200:
+//		return 199.7;
+//	case 250:
+//		return 250.4;
+	case 407:
+		return 400;
+	case 800:
+		return 700;
+	case 965:
+		return 850;
+	case 1375:
+		return 1250;
+	case 2836:
+		return 2500;
+	}
+	return speed;
+}

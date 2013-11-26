@@ -51,7 +51,7 @@ typedef enum CONTROL_REQUEST {
 //------------------------------------------------------------------
 //inter function
 static e_int32 inter_take_photo(laser_control_t *lc);
-static e_int32 inter_turn(laser_control_t *lc, e_uint32 speed, float angle,
+static e_int32 inter_turn(laser_control_t *lc, e_uint32 speed, e_float64 angle,
 		int sync);
 static e_int32 inter_turn_by_step(laser_control_t *lc, e_uint32 speed, int step,
 		int sync);
@@ -221,7 +221,7 @@ e_int32 hl_close(laser_control_t *lc) {
 }
 
 //开始工作
-e_int32 hl_turntable_prepare(laser_control_t *lc, e_float32 pre_start_angle) {
+e_int32 hl_turntable_prepare(laser_control_t *lc, e_float64 pre_start_angle) {
 	int ret;
 	ret = hl_push_state(lc, CONTROL_REQUEST_WORK_TURN);
 	e_assert(ret, E_ERROR_INVALID_STATUS);
@@ -245,8 +245,7 @@ e_int32 hl_turntable_start(laser_control_t *lc) {
 	//开始工作前，由速度和总步数结合得到该具体发送的命令,认为只要消息发送成功便是启动成功
 	sprintf(buf, MOTO_MSG_F,
 //			(int) lc->real_steps + ANGLE_TO_STEP(lc->angle_pre) + 500,
-			(int) lc->real_steps + ANGLE_TO_STEP(360),
-			(int) lc->plus_delay); //冗余处理
+			(int) lc->real_steps + ANGLE_TO_STEP(360), (int) lc->plus_delay); //冗余处理
 	DMSG((STDOUT,"REQUEST turn:%s",buf));
 
 	//不检测超时,基于转台工作时间较长,采用异步
@@ -320,8 +319,7 @@ static e_int32 inter_turn_by_step(laser_control_t *lc, e_uint32 speed, int step,
 	DMSG((STDOUT,"REQUEST turn:%s\r\n",bufSend));
 
 	//计算理论的运行时间
-	timeout = PULSE_SPEED_TO_STEP_TIME(speed)
-			* step_abs + TIMEOUT_TURNTABLE;
+	timeout = PULSE_SPEED_TO_STEP_TIME(speed) * step_abs + TIMEOUT_TURNTABLE;
 
 	if (sync) {
 		ret = fsocket_command(lc->fs_turntable, bufSend, strlen(bufSend),
@@ -332,7 +330,7 @@ static e_int32 inter_turn_by_step(laser_control_t *lc, e_uint32 speed, int step,
 	return ret;
 }
 
-static e_int32 inter_turn(laser_control_t *lc, e_uint32 speed, float angle,
+static e_int32 inter_turn(laser_control_t *lc, e_uint32 speed, e_float64 angle,
 		int sync) {
 	return inter_turn_by_step(lc, speed, (int) ANGLE_TO_STEP(angle), sync);
 }
@@ -349,7 +347,7 @@ e_int32 hl_turntable_turn(laser_control_t *lc, e_float64 angle) {
 	return ret;
 }
 
-//根据实际传过来的水平旋转角度，调整水平台，以较快速度转到实际水平台的起始角度/转台回到起始原点
+//异步转动
 e_int32 hl_turntable_turn_async(laser_control_t *lc, e_float64 angle) {
 	e_int32 ret;
 	ret = hl_push_state(lc, CONTROL_REQUEST_WORK_TURN);
@@ -406,30 +404,52 @@ e_int32 hl_camera_take_photo(laser_control_t *lc) {
 	return ret;
 }
 
-static e_int32 inter_get_angle(laser_control_t *lc, float *angle) {
+//static e_int32 inter_get_angle(laser_control_t *lc, double *angle) {
+//	e_int32 ret;
+//	int step = EINT_MIN;
+//	e_uint8 buf[MSG_MAX_LEN] = { 0 };
+//	ret = fsocket_request_failed(lc->fs_turntable, GET_STEP, sizeof(GET_STEP),
+//			buf, sizeof(buf), GET_ERROR, sizeof(GET_ERROR), TIMEOUT_STEP);
+//	e_assert(ret>0, ret);
+//
+//	sscanf(buf, MSG_RET_STEP, &step);
+////	DMSG((STDOUT,"\tCURRENT STEP %d\n",step));
+//	(*angle) = STEP_TO_ANGLE(step) / ANGEL_PARAM; //水平角度补偿后，要求返回角度值不变
+//	return E_OK;
+//}
+
+static e_int32 inter_get_step(laser_control_t *lc, int *step) {
 	e_int32 ret;
-	int step = EINT_MIN;
 	e_uint8 buf[MSG_MAX_LEN] = { 0 };
 	ret = fsocket_request_failed(lc->fs_turntable, GET_STEP, sizeof(GET_STEP),
 			buf, sizeof(buf), GET_ERROR, sizeof(GET_ERROR), TIMEOUT_STEP);
 	e_assert(ret>0, ret);
-
-	sscanf(buf, MSG_RET_STEP, &step);
-//	DMSG((STDOUT,"\tCURRENT ANGLE %f\n",STEP_TO_ANGLE(step)));
-	(*angle) = STEP_TO_ANGLE(step) / ANGEL_PARAM; //水平角度补偿后，要求返回角度值不变
+	sscanf(buf, MSG_RET_STEP, step);
+//	DMSG((STDOUT,"\tCURRENT STEP %d\n",step));
 	return E_OK;
 }
 
 //获取当前水平转台的角度
-e_float64 hl_turntable_get_angle(laser_control_t *lc) {
-	float angle = 0;
+e_int32 hl_turntable_get_step(laser_control_t *lc) {
+	int step = EINT_MIN;
 	e_int32 ret;
 	ret = hl_push_state(lc, CONTROL_REQUEST_COMMAND_ANGLE);
 	e_assert(ret, E_ERROR_INVALID_STATUS);
-	ret = inter_get_angle(lc, &angle);
+	ret = inter_get_step(lc, &step);
 	hl_pop_state(lc, CONTROL_REQUEST_COMMAND_ANGLE);
 	e_assert(ret>0, E_ERROR);
-	lc->current_angle = angle - lc->angle_pre;
+	return step;
+}
+
+e_float64 hl_turntable_get_angle(laser_control_t *lc) {
+	int step = 0;
+	e_int32 ret;
+	ret = hl_push_state(lc, CONTROL_REQUEST_COMMAND_ANGLE);
+	e_assert(ret, E_ERROR_INVALID_STATUS);
+	ret = inter_get_step(lc, &step);
+	hl_pop_state(lc, CONTROL_REQUEST_COMMAND_ANGLE);
+	e_assert(ret>0, E_ERROR);
+	lc->current_angle = STEP_TO_ANGLE(step) / ANGEL_PARAM - lc->angle_pre;
 	return lc->current_angle;
 }
 
@@ -566,7 +586,7 @@ e_int32 hl_led_off(laser_control_t *lc) {
 static e_int32 inter_searchzero(laser_control_t *lc) {
 	e_int32 ret;
 	e_uint8 buf[MSG_MAX_LEN] = { 0 };
-	ret = inter_turn_by_step(lc,FAST_SPEED,300,1);
+	ret = inter_turn_by_step(lc, FAST_SPEED, 300, 1);
 	e_assert(ret>0, ret);
 	ret = fsocket_request_success(lc->fs_turntable, SEARCH_ZERO,
 			sizeof(SEARCH_ZERO), buf, sizeof(buf), SEARCH_SUCCESS,

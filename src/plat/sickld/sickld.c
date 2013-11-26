@@ -340,6 +340,23 @@ e_int32 sld_get_scan_profiles(sickld_t *sick, const e_uint16 profile_format,
 	ret = sld_set_sensor_mode_to_measure(sick);
 	e_assert(ret>0, ret);
 
+	ret = sld_get_scan_profiles_ex(sick, profile_format, num_profiles);
+	e_assert(ret>0, ret);
+
+	return E_OK;
+}
+
+/**
+ * \brief Request n scan profiles from the Sick LD unit
+ * \param profile_format The format for the requested scan profiles
+ * \param num_profiles The number of profiles to request from Sick LD. (Default: 0)
+ *                     (NOTE: When num_profiles = 0, the Sick LD continuously streams profile data)
+ */
+e_int32 sld_get_scan_profiles_ex(sickld_t *sick, const e_uint16 profile_format,
+		const e_uint16 num_profiles) {
+	int ret = E_OK;
+	e_assert(sick, E_ERROR_INVALID_HANDLER);
+
 	/* A quick check to ensure the requested format is supported by the driver */
 	ret = sld_supported_scan_profile_format(profile_format);
 	if (e_failed(ret,"Unsupported profile format!\r\n"))
@@ -399,7 +416,6 @@ e_int32 sld_get_scan_profiles(sickld_t *sick, const e_uint16 profile_format,
 
 	return E_OK;
 }
-
 /**
  * \brief Parses a well-formed sequence of bytes into a corresponding scan profile
  * \param *src_buffer The source data buffer
@@ -1754,6 +1770,20 @@ e_int32 sld_set_sensor_mode_to_measure(sickld_t *sick) {
 	return ret;
 }
 
+e_int32 sld_set_sensor_mode_to_measure_ex(sickld_t *sick) {
+	int ret = E_OK;
+	e_assert(sick, E_ERROR_INVALID_HANDLER);
+	/* If necessary adjust the operating mode of the sensor */
+	if (sick->sensor_mode != SICK_SENSOR_MODE_MEASURE) {
+		/* Switch the sensor's operating mode to ROTATE */
+		ret = sld_set_sensor_mode(sick, SICK_SENSOR_MODE_MEASURE);
+	}
+
+	ret = sld_get_scan_profiles(sick, SICK_SCAN_PROFILE_RANGE_AND_ECHO, 0);
+	e_assert(ret>0, ret);
+	return ret;
+}
+
 /**
  * \brief Sets the Sick LD sensor mode to IDLE
  */
@@ -2715,6 +2745,36 @@ e_int32 sld_set_interlace_config(sickld_t *sick,
 	return E_OK;
 }
 
+e_int32 sld_reset_work(sickld_t *sick) {
+	e_int32 ret = E_OK;
+	/* Ensure the device has been initialized */
+	e_assert(sick, E_ERROR_INVALID_HANDLER);
+
+	ret = sld_set_sensor_mode_to_idle(sick);
+	e_assert(ret>0, ret);
+
+	/* Allocate a single buffer for payload contents */
+	e_uint8 payload_buffer[MESSAGE_PAYLOAD_MAX_LENGTH] = { 0 };
+
+	/* Set the service IDs */
+	payload_buffer[0] = SICK_WORK_SERV_CODE; // Requested service type
+	payload_buffer[1] = SICK_WORK_SERV_RESET; // Requested service subtype
+
+	sick_message_t send_message;
+	ret = skm_create(&send_message);
+	if (e_failed(ret))
+		goto OUT1;
+	ret = skm_build_message(&send_message, payload_buffer, 2);
+	if (e_failed(ret))
+		goto OUT1;
+
+	/* Send the message and get a response */
+	ret = sld_send_message(sick, &send_message, 0);
+
+	OUT1: skm_release(&send_message);
+	return ret;
+}
+
 /**
  * \brief Get the global configuration of the Sick LD.
  */
@@ -2896,31 +2956,6 @@ e_int32 sld_set_global_params_and_scan_areas_interlace(sickld_t *sick,
 	ret = sld_set_interlace_config(sick, 0);
 	e_assert(ret>0, ret);
 
-#if 1
-	if (1 == interlace) {
-		ret = sld_set_global_params_and_scan_areas_Not_0_0625(sick,
-				sick_motor_speed, sick_angle_step * interlace,
-				active_sector_start_angles, active_sector_stop_angles,
-				num_active_sectors);
-		e_assert(ret>0, ret);
-	} else {
-		ret = sld_set_global_config(sick, sick->global_config.sick_sensor_id,
-				sick_motor_speed, sick_angle_step * interlace);
-		e_assert(ret>0, ret);
-		ret = sld_set_interlace_config(sick, interlace - 1); //interlace值定义不同
-		e_assert(ret>0, ret);
-		ret = sld_set_scan_areas(sick, active_sector_start_angles,
-				active_sector_stop_angles, num_active_sectors);
-		e_assert(ret>0, ret);
-		ret = sld_set_global_config(sick, sick->global_config.sick_sensor_id,
-				sick_motor_speed, sick_angle_step);
-		e_assert(ret>0, ret);
-		/* Ok, lets sync the driver with the Sick */
-		ret = sld_sync_driver_with_sick(sick);
-		e_assert(ret>0, ret);
-		sld_print_init_footer(sick);
-	}
-#else
 	ret = sld_set_global_params_and_scan_areas_Not_0_0625(sick,
 			sick_motor_speed, sick_angle_step * interlace,
 			active_sector_start_angles, active_sector_stop_angles,
@@ -2937,7 +2972,7 @@ e_int32 sld_set_global_params_and_scan_areas_interlace(sickld_t *sick,
 		e_assert(ret>0, ret);
 		sld_print_init_footer(sick);
 	}
-#endif
+
 	return E_OK;
 }
 
