@@ -18,6 +18,7 @@
 #include <arch/hd_plat_base.h>
 #include <ls300/hd_laser_control.h>
 
+
 /*结构体定义*/
 typedef struct scan_job_t scan_job_t;
 
@@ -72,8 +73,8 @@ e_int32 DEV_EXPORT sj_config_ex(scan_job_t* sj, e_uint32 speed_h_delay,
 /************************************************************************
  * 设置点云数据存储目录,灰度图存储目录
  ************************************************************************/
-e_int32 DEV_EXPORT sj_set_data_dir(scan_job_t* sj, char* ptDir, char *grayDir,
-		char *filesDir);
+e_int32 DEV_EXPORT sj_set_data_dir(scan_job_t* sj, char* ptDir,
+		char *grayDir,char *filesDir);
 
 e_int32 DEV_EXPORT sj_get_state(scan_job_t* sj);
 

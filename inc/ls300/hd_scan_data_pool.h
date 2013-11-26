@@ -21,7 +21,6 @@
 
 #define DATA_BUFFER_MAX_NUM		1000
 #define POOL_SLEEP_TIMEOUT 		(1e5)
-/*结构体定义*/
 
 typedef struct {
 	struct list_head list_node;
