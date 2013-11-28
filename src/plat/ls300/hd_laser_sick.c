@@ -318,7 +318,7 @@ e_int32 ls_phrase_config(laser_sick_t *ls, e_uint32 speed_h,
 		const e_float64 active_sector_start_angle,
 		const e_float64 active_sector_stop_angle) {
 
-	e_assert(ls&&ls->state, E_ERROR_INVALID_HANDLER);
+	e_assert(ls, E_ERROR_INVALID_HANDLER);
 
 	e_assert(
 			active_sector_start_angle<=90 && active_sector_start_angle>=-45 && active_sector_stop_angle<=90 && active_sector_stop_angle>=-45 && active_sector_stop_angle > active_sector_start_angle,
@@ -379,8 +379,8 @@ e_int32 ls_phrase_config(laser_sick_t *ls, e_uint32 speed_h,
 
 	ls->height = (ls->end_angle_v[0] - ls->start_angle_v[0]) / ls->resolution_v
 			+ ls->interlace_v;
-	ls->width = (ANGLE_TO_STEP( ls->end_angle_h - ls->start_angle_h )
-			* PULSE_SPEED_TO_STEP_TIME(ls->speed_h) * ls->speed_v / 1E6)
+	ls->width = ANGLE_TO_STEP( ls->end_angle_h - ls->start_angle_h )
+			* PULSE_SPEED_TO_STEP_TIME(ls->speed_h) * ls->speed_v / 1E6
 			/ ls->interlace_v + 1;
 	ls->pre_scan_angle =
 			STEP_TO_ANGLE(PRE_SCAN_WAIT_TIME / PULSE_SPEED_TO_STEP_TIME(ls->speed_h));

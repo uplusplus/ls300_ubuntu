@@ -10,6 +10,7 @@
  * All rights reserved.
  *
  */
+/**/
 
 #include "../hd_test_config.h"
 #if TEST_SCAN_CONFIG
@@ -22,14 +23,14 @@ int main() {
 	laser_sick_t *ls;
 	DMSG((STDOUT,"scan test config.\r\n"));
 
-	ret = hl_open(&control, "/dev/ttyUSB0", 38400); //(char*) "/dev/ttyUSB0", 38400);
-	if (e_failed(ret)) {
-		return 1;
-	}
-	ret = sld_create(&sick, "192.168.1.10", 49152);
-	if (e_failed(ret)) {
-		return 1;
-	}
+//	ret = hl_open(&control, "/dev/ttyUSB0", 38400); //(char*) "/dev/ttyUSB0", 38400);
+//	if (e_failed(ret)) {
+//		return 1;
+//	}
+//	ret = sld_create(&sick, "192.168.1.10", 49152);
+//	if (e_failed(ret)) {
+//		return 1;
+//	}
 
 	/*ret.add(new ScanConfig("Panoramic-Low", -45, 90, 0, 360,
 	 Precision.PRECISION_LEVEL_LOW));
@@ -45,12 +46,13 @@ int main() {
 	 new precision(5f, 0.125f, 400, 2880, 2880, 576),
 	 new precision(2.5f, 0.0625f, 2500, 9000, 5760, 3600), };
 	 */
-	ret = ls_init(&ls, &control, &sick, NULL, NULL);
+	ret = ls_init(&ls, (void*)1, (void*)1, NULL, NULL);
 
-	ret = ls_phrase_config(ls, 50, 0, 360, 5, 0.5, -45, 90);
-	ret = ls_phrase_config(ls, 50, 0, 360, 5, 0.375, -45, 90);
-	ret = ls_phrase_config(ls, 50, 0, 360, 8, 0.25, -45, 90);
-	ret = ls_phrase_config(ls, 150, 0, 360, 5, 0.125, -45, 90);
+	ret = ls_phrase_config(ls, 50, 0, 360, 5, 0.5, 1, -45, 90);
+	ret = ls_phrase_config(ls, 50, 0, 360, 7, 0.375, 1, -45, 90);
+	ret = ls_phrase_config(ls, 100, 0, 360, 5, 0.25, 1, -45, 90);
+	ret = ls_phrase_config(ls, 200, 0, 360, 5, 0.125, 1, -45, 90);
+	ret = ls_phrase_config(ls, 850, 0, 360, 10, 0.0625, 4, -45, 90);
 
 	e_assert(ret>0, ret);
 
