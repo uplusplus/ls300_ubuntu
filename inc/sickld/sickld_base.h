@@ -24,7 +24,7 @@
 #define DEFAULT_SICK_TCP_PORT       (49152)  ///< Default TCP port
 #define DEFAULT_SICK_MESSAGE_TIMEOUT (e_uint32)(5e6)  ///< The max time to wait for a message reply (usecs)
 #define DEFAULT_SICK_CONNECT_TIMEOUT (e_uint32)(1e6)  ///< The max time to wait before considering a connection attempt as failed (usecs)
-#define DEFAULT_SICK_BYTE_TIMEOUT         (35000 * 5)  ///< Max allowable time between consecutive bytes
+#define DEFAULT_SICK_BYTE_TIMEOUT        (5e5)// (35000)  ///< Max allowable time between consecutive bytes
 #define DEFAULT_SICK_MSG_RECV_SLEEP (1000) //1 MS
 #define DEFAULT_SICK_NUM_SCAN_PROFILES  (0)  ///< Setting this value to 0 will tell the Sick LD to stream measurements when measurement data is requested (NOTE: A profile is a single scans worth of range measurements)
 #define DEFAULT_SICK_SIGNAL_SET         (0)  ///< Default Sick signal configuration

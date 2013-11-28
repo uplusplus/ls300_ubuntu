@@ -15,7 +15,7 @@
 #include <sickld/sickld.h>
 #include <arch/hd_timer_api.h>
 
-#define FAST_SICK_RECV 1
+#define FAST_SICK_RECV 0
 
 static e_int32 sld_get_next_message_from_datastream(sickld_t *sick,
 		sick_message_t *sick_message);
@@ -2986,27 +2986,22 @@ static e_int32 sld_read_bytes(sickld_t *sick, e_uint8 * const dest_buffer,
 //	DMSG((STDOUT,"+++++++++++sld_read_bytes total_num_bytes_read=%d num_bytes_to_read=%d\n",	total_num_bytes_read, num_bytes_to_read));
 	/* Attempt to fetch the bytes */
 	while (total_num_bytes_read < num_bytes_to_read) {
-//		DMSG((STDOUT,"+++++++++++sld_read_bytes try read\n"));
-		/* Wait for the OS to tell us that data is waiting! */
+#if FAST_SICK_RECV
 		ret = sc_select(&sick->sick_connect, E_READ, timeout_value);
 		//DMSG((STDOUT,"+++++++++++sld_read_bytes select"));
 		/* Figure out what to do based on the output of select */
 		if (ret == E_ERROR_TIME_OUT)
-			return E_ERROR_TIME_OUT;
+		return E_ERROR_TIME_OUT;
 		e_assert((ret > 0), E_ERROR_IO);
-
-//		DMSG((STDOUT,"+++++++++++sld_read_bytes CAN read %d\n",ret));
-
-		/* A file is ready for reading!
-		 *
-		 * NOTE: The following conditional is just a sanity check. Since
-		 *       the file descriptor set only contains the sick device fd,
-		 *       it likely unnecessary to use FD_ISSET
-		 */
-#if FAST_SICK_RECV
 		ret = sc_recv(&sick->sick_connect, &dest_buffer[total_num_bytes_read],
 				num_bytes_to_read - total_num_bytes_read);
-		e_assert((ret >0), E_ERROR_IO);
+		if (ret == E_ERROR_RETRY) //数据未就绪，等待
+		{
+			DMSG((STDOUT,"+++++++++++sld_read_bytes retry\n"));
+			continue;
+		}
+		else if (ret <= 0)
+		return E_ERROR;
 
 //		DMSG((STDOUT,"+++++++++++sld_read_bytes read %d\n",ret));
 
@@ -3014,8 +3009,19 @@ static e_int32 sld_read_bytes(sickld_t *sick, e_uint8 * const dest_buffer,
 #else
 		ret = sc_recv(&sick->sick_connect, &dest_buffer[total_num_bytes_read],
 				1);
-		e_assert((ret == 1), E_ERROR_IO);
-
+		if (ret == E_ERROR_RETRY) //数据未就绪，等待
+				{
+			ret = sc_select(&sick->sick_connect, E_READ, timeout_value);
+			/* Figure out what to do based on the output of select */
+			if (ret == E_ERROR_TIME_OUT)
+			{
+//				DMSG((STDOUT,"sld_read_bytes timeout\n"));
+				return E_ERROR_TIME_OUT;
+			}
+			e_assert((ret > 0), E_ERROR_IO);
+			continue;
+		} else if (ret <= 0)
+			return E_ERROR;
 		total_num_bytes_read++;
 #endif
 	}
@@ -3102,8 +3108,7 @@ e_int32 sld_get_next_message_from_datastream(sickld_t *sick,
 	ret = skm_get_checksum(sick_message);
 
 	if (ret != checksum) {
-		DMSG(
-				(STDOUT,"checksum error:ret = %d,checksum = %d\n",(int)ret,checksum));
+		DMSG((STDOUT,"checksum error:ret = %d,checksum = %d\n",(int)ret,checksum));
 	}
 
 	//e_assert((ret==checksum), E_ERROR_IO);

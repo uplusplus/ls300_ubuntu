@@ -306,8 +306,7 @@ e_int32 fsocket_command(fsocket_t *fs, e_uint8 *msg, e_uint32 mlen,
 	if (!strncmp(buf, success_reply, rlen)) {
 		return E_OK;
 	} else {
-		DMSG(
-				(STDOUT, "FAKE SOCKET [%s:%u:%u] error replay:%5s\n",fs->name, (unsigned int) fs->id, (unsigned int)fs->rq_id,buf));
+		DMSG((STDOUT, "FAKE SOCKET [%s:%u:%u] error replay:%5s\n",fs->name, (unsigned int) fs->id, (unsigned int)fs->rq_id,buf));
 	}
 
 	return E_ERROR;

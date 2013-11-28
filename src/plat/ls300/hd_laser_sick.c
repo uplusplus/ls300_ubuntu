@@ -318,7 +318,7 @@ e_int32 ls_phrase_config(laser_sick_t *ls, e_uint32 speed_h,
 		const e_float64 active_sector_start_angle,
 		const e_float64 active_sector_stop_angle) {
 
-	e_assert(ls&&ls->state, E_ERROR_INVALID_HANDLER);
+	e_assert(ls, E_ERROR_INVALID_HANDLER);
 
 	e_assert(
 			active_sector_start_angle<=90 && active_sector_start_angle>=-45 && active_sector_stop_angle<=90 && active_sector_stop_angle>=-45 && active_sector_stop_angle > active_sector_start_angle,
@@ -379,8 +379,11 @@ e_int32 ls_phrase_config(laser_sick_t *ls, e_uint32 speed_h,
 
 	ls->height = (ls->end_angle_v[0] - ls->start_angle_v[0]) / ls->resolution_v
 			+ ls->interlace_v;
-	ls->width = (ANGLE_TO_STEP( ls->end_angle_h - ls->start_angle_h )
-			* PULSE_SPEED_TO_STEP_TIME(ls->speed_h) * ls->speed_v / 1E6)
+//	ls->width = (ANGLE_TO_STEP( ls->end_angle_h - ls->start_angle_h )
+//			* PULSE_SPEED_TO_STEP_TIME(ls->speed_h) * ls->speed_v / 1E6)
+//			/ ls->interlace_v + 1;
+	ls->width = (ANGLE_TO_STEP( ls->end_angle_h - ls->start_angle_h ) / 1e2
+			* PULSE_SPEED_TO_STEP_TIME(ls->speed_h) * ls->speed_v / 1E4)
 			/ ls->interlace_v + 1;
 	ls->pre_scan_angle =
 			STEP_TO_ANGLE(PRE_SCAN_WAIT_TIME / PULSE_SPEED_TO_STEP_TIME(ls->speed_h));
@@ -423,7 +426,7 @@ static void print_sdata(laser_sick_t *ls, scan_data_t *sdata) {
 }
 
 static void write_pool_data_routine(laser_sick_t *ls) {
-	e_int32 ret, first_time = 1, delay, layer_num, profile_number;
+	e_int32 ret, first_time = 1, delay, profile_number;
 	e_float64 angle_dif, started_angle, before_angle; //记录起始位置，保证180度是对齐的
 	scan_data_t sdata = { 0 };
 
@@ -487,14 +490,9 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 		ret = sld_get_measurements_ex(ls->sick, &sdata);
 //		DMSG((STDOUT,"profile_counter=%d profile_number=%d\n",sdata.profile_counter,sdata.profile_number));
 		if (!first_time) {
-			if (layer_num != sdata.layer_num
-					|| profile_number != sdata.profile_number)
-				DMSG(
-						(STDOUT,"lost a data layer_num=%d profile_number=%d\n",layer_num,profile_number));
+			if (profile_number != sdata.profile_number)
+				DMSG((STDOUT,"lost a data layer_num=%d profile_number=%d\n",sdata.layer_num,profile_number));
 		}
-		layer_num = sdata.layer_num + 1;
-		if (layer_num == ls->interlace_v)
-			layer_num = 0;
 		profile_number = sdata.profile_number + 1;
 
 		if (ret == E_ERROR_TIME_OUT) {
@@ -511,8 +509,7 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 		ret = pool_write(&ls->pool, &sdata);
 		if (e_failed(ret))
 			break;
-		DMSG(
-				(STDOUT,"\r[%d] %f end: %f\n",sdata.profile_number, sdata.h_angle,ls->end_angle_h));
+		DMSG((STDOUT,"\r[%d] %f end: %f\n",sdata.profile_number, sdata.h_angle,ls->end_angle_h));
 		first_time = 0;
 	}
 	sld_set_sensor_mode_to_idle(ls->sick);
