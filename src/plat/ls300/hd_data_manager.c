@@ -22,7 +22,7 @@ char EGL_NODE[100] = "test.sprite";
 //#undef DMSG
 //#define DMSG
 //#endif
-
+#define START_VIDEO_SERVER 0
 #define DANUM 2
 //2个输出点：一个点云输出点，一个灰度图输出点
 
@@ -88,9 +88,12 @@ dm_alloc(char* ptDir, char *grayDir, char *files_dir, int width, int height,
 	}
 
 	if (dm->num > 0) {
+#if START_VIDEO_SERVER
 		socket_video_server_start("127.0.0.1", 9090, E_SOCKET_TCP);
+#endif
 		dm->state = 1;
 	}
+
 	return dm;
 }
 
@@ -101,7 +104,9 @@ e_int32 dm_free(data_manager_t *dm, int save) {
 
 	DMSG((STDOUT,"dm_free close file save?%d\n",save));
 
+#if START_VIDEO_SERVER
 	socket_video_server_stop();
+#endif
 
 	if (display.buf)
 		gray_to_jpeg_file(dm->gray_file, display.buf, display.w, display.h);

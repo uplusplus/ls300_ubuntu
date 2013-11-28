@@ -7,64 +7,51 @@
 #include <unistd.h>
 #include <termios.h>
 #include <string.h>
+#include <errno.h>
+#include <stddef.h>
 
-static char serials[30][16] =
-		{ "/dev/ttyS0", "/dev/ttyS1", "/dev/ttyS2", "/dev/ttyS3", "/dev/ttyS4",
-				"/dev/ttyS5", "/dev/ttyS6", "/dev/ttyS7", "/dev/ttyS8", "/dev/ttyS9",
-				"/dev/ttyS10", "/dev/ttyS11", "/dev/ttyS12", "/dev/ttyS13",
-				"/dev/ttyS14", "/dev/ttyS15", "/dev/ttyUSB0", "/dev/ttyUSB1",
-				"/dev/ttyUSB2", "/dev/ttyUSB3", "/dev/ttyUSB4", "/dev/ttyUSB5",
-				"/dev/ttyAMA0", "/dev/ttyAMA1", "/dev/ttyACM0", "/dev/ttyACM1",
-				"/dev/rfcomm0", "/dev/rfcomm1", "/dev/ircomm0", "/dev/ircomm1" };
+static char serials[30][16] = { "/dev/ttyS0", "/dev/ttyS1", "/dev/ttyS2",
+		"/dev/ttyS3", "/dev/ttyS4", "/dev/ttyS5", "/dev/ttyS6", "/dev/ttyS7",
+		"/dev/ttyS8", "/dev/ttyS9", "/dev/ttyS10", "/dev/ttyS11", "/dev/ttyS12",
+		"/dev/ttyS13", "/dev/ttyS14", "/dev/ttyS15", "/dev/ttyUSB0",
+		"/dev/ttyUSB1", "/dev/ttyUSB2", "/dev/ttyUSB3", "/dev/ttyUSB4",
+		"/dev/ttyUSB5", "/dev/ttyAMA0", "/dev/ttyAMA1", "/dev/ttyACM0",
+		"/dev/ttyACM1", "/dev/rfcomm0", "/dev/rfcomm1", "/dev/ircomm0",
+		"/dev/ircomm1" };
 
-struct serial_handle_t
-{
+struct serial_handle_t {
 	e_int32 port_handle;
 	struct termios options;
 };
 
-typedef struct
-{
+typedef struct {
 	speed_t baudOut;
 	e_int32 baudIn;
 } baudSelect_t;
 
-static const baudSelect_t baudSelect[] =
-		{
-				{ B50, 50 },
-				{ B75, 75 },
-				{ B110, 110 },
-				{ B134, 134 },
-				{ B150, 150 },
-				{ B200, 200 },
-				{ B300, 300 },
-				{ B600, 600 },
-				{ B1200, 1200 },
-				{ B1800, 1800 },
-				{ B2400, 2400 },
-				{ B4800, 4800 },
-				{ B9600, 9600 },
-				{ B19200, 19200 },
-				{ B38400, 38400 },
-				{ B57600, 57600 },
-				{ B115200, 115200 } };
+static const baudSelect_t baudSelect[] = { { B50, 50 }, { B75, 75 },
+		{ B110, 110 }, { B134, 134 }, { B150, 150 }, { B200, 200 },
+		{ B300, 300 }, { B600, 600 }, { B1200, 1200 }, { B1800, 1800 }, { B2400,
+				2400 }, { B4800, 4800 }, { B9600, 9600 }, { B19200, 19200 }, {
+				B38400, 38400 }, { B57600, 57600 }, { B115200, 115200 } };
 
-e_int32 Serial_Open(serial_t *port, char *name)
-{
+e_int32 Serial_Open(serial_t *port, char *name) {
 	e_int32 fd;
 	e_assert(port, E_ERROR_INVALID_PARAMETER);
 
 	/* open port */
 	fd = open(name, O_RDWR | O_NOCTTY);
 	/* failed to open */
-	if (fd == -1)
-			{
+	if (fd == -1) {
 		return E_ERROR;
 	}
 
 	port->priv = (struct serial_handle_t*) malloc(
-														sizeof(struct serial_handle_t));
+			sizeof(struct serial_handle_t));
 	e_assert(port->priv, E_ERROR_BAD_ALLOCATE);
+
+	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK); //设置为非阻塞模式
+
 	/* return handle to port */
 	port->priv->port_handle = fd;
 	/* get current options */
@@ -75,18 +62,15 @@ e_int32 Serial_Open(serial_t *port, char *name)
 	return E_OK;
 }
 
-e_int32 Serial_Close(serial_t *port)
-{
+e_int32 Serial_Close(serial_t *port) {
 	e_assert(port&&port->state, E_ERROR_INVALID_PARAMETER);
 
-	if (port->priv)
-	{
+	if (port->priv) {
 		/* restore the options to their original state */
 		tcsetattr(port->priv->port_handle, TCSANOW, &(port->priv->options));
 
 		/* close the port */
-		if (close(port->priv->port_handle) == -1)
-				{
+		if (close(port->priv->port_handle) == -1) {
 			return E_ERROR;
 		}
 		free(port->priv);
@@ -96,8 +80,7 @@ e_int32 Serial_Close(serial_t *port)
 }
 
 e_int32 Serial_Settings(serial_t *port, e_uint32 baud, char parity,
-		e_uint8 dataBits, e_uint8 stopBits, e_int32 timeout_tenths)
-{
+		e_uint8 dataBits, e_uint8 stopBits, e_int32 timeout_tenths) {
 	static struct termios options;
 	speed_t actual_baud;
 	e_int32 numBaud;
@@ -111,16 +94,13 @@ e_int32 Serial_Settings(serial_t *port, e_uint32 baud, char parity,
 	port->speed = baud;
 	/* check baud is valid */
 	numBaud = sizeof(baudSelect) / sizeof(baudSelect_t);
-	for (i = 0; i < numBaud; i++)
-			{
-		if (baud == baudSelect[i].baudIn)
-				{
+	for (i = 0; i < numBaud; i++) {
+		if (baud == baudSelect[i].baudIn) {
 			actual_baud = baudSelect[i].baudOut;
 			break;
 		}
 	}
-	if (i == numBaud)
-			{
+	if (i == numBaud) {
 		return E_ERROR_INVALID_PARAMETER;
 	}
 
@@ -129,21 +109,20 @@ e_int32 Serial_Settings(serial_t *port, e_uint32 baud, char parity,
 	cfsetospeed(&options, actual_baud);
 
 	/* check and set parity */
-	switch (parity)
-	{
+	switch (parity) {
 	case 'n':
-		case 'N':
+	case 'N':
 		options.c_cflag &= ~PARENB;
 		break;
 
 	case 'o':
-		case 'O':
+	case 'O':
 		options.c_cflag |= PARENB;
 		options.c_cflag |= PARODD;
 		break;
 
 	case 'e':
-		case 'E':
+	case 'E':
 		options.c_cflag |= PARENB;
 		options.c_cflag &= ~PARODD;
 		break;
@@ -154,8 +133,7 @@ e_int32 Serial_Settings(serial_t *port, e_uint32 baud, char parity,
 
 	/* check and set data bits */
 	options.c_cflag &= ~CSIZE;
-	switch (dataBits)
-	{
+	switch (dataBits) {
 	case 5:
 		options.c_cflag |= CS5;
 		break;
@@ -177,8 +155,7 @@ e_int32 Serial_Settings(serial_t *port, e_uint32 baud, char parity,
 	}
 
 	/* check and set stop bits */
-	switch (stopBits)
-	{
+	switch (stopBits) {
 	case 1:
 		options.c_cflag &= ~CSTOPB;
 		break;
@@ -198,8 +175,7 @@ e_int32 Serial_Settings(serial_t *port, e_uint32 baud, char parity,
 	options.c_cflag |= CLOCAL | CREAD;
 
 	/* set options for port */
-	if (tcsetattr(port->priv->port_handle, TCSAFLUSH, &options) != 0)
-			{
+	if (tcsetattr(port->priv->port_handle, TCSAFLUSH, &options) != 0) {
 		return E_ERROR;
 	}
 
@@ -207,16 +183,14 @@ e_int32 Serial_Settings(serial_t *port, e_uint32 baud, char parity,
 }
 
 e_int32 Serial_Timeouts(serial_t *port, int readTimeout_usec,
-		int writeTimeout_usec)
-{
+		int writeTimeout_usec) {
 	e_assert(port&&port->state, E_ERROR_INVALID_PARAMETER);
 	port->read_timeout_usec = readTimeout_usec;
 	port->write_timeout_usec = writeTimeout_usec;
 	return E_OK;
 }
 
-e_int32 Serial_Select(serial_t *port, e_int32 type, e_int32 timeout_usec)
-{
+e_int32 Serial_Select(serial_t *port, e_int32 type, e_int32 timeout_usec) {
 	int fd, ret;
 	fd_set inputs, checkfds;
 	struct timeval timeout;
@@ -240,36 +214,27 @@ e_int32 Serial_Select(serial_t *port, e_int32 type, e_int32 timeout_usec)
 	 EINVAL 参数n 为负值。
 	 ENOMEM 核心内存不足
 	 */
-	switch (type)
-	{
+	switch (type) {
 	case E_READ:
 		//DMSG(( STDOUT,"Com_Select FD=%d timeout=%dus",fd, timeout_usec));
-		if (timeout_usec > 0)
-				{
+		if (timeout_usec > 0) {
 			timeout.tv_sec = (long) (timeout_usec / ((1000 * 1000)));
 			timeout.tv_usec = (long) (timeout_usec % ((1000 * 1000)));
 			ret = select(fd + 1, &checkfds, (fd_set *) 0, (fd_set *) 0,
-							&timeout);
-		}
-		else
-		{
-			ret = select(fd + 1, &checkfds, (fd_set *) 0, (fd_set *) 0,
-							NULL);
+					&timeout);
+		} else {
+			ret = select(fd + 1, &checkfds, (fd_set *) 0, (fd_set *) 0, NULL);
 		}
 		//DMSG((STDOUT,"Com_Select %d socket can read/write",ret));
 		break;
 	case E_WRITE:
-		if (timeout_usec > 0)
-				{
+		if (timeout_usec > 0) {
 			timeout.tv_sec = (long) (timeout_usec / ((1000 * 1000)));
 			timeout.tv_usec = (long) (timeout_usec % ((1000 * 1000)));
 			ret = select(fd + 1, (fd_set *) 0, &checkfds, (fd_set *) 0,
-							&timeout);
-		}
-		else
-		{
-			ret = select(fd + 1, (fd_set *) 0, &checkfds, (fd_set *) 0,
-							NULL);
+					&timeout);
+		} else {
+			ret = select(fd + 1, (fd_set *) 0, &checkfds, (fd_set *) 0, NULL);
 		}
 		break;
 	default:
@@ -277,17 +242,14 @@ e_int32 Serial_Select(serial_t *port, e_int32 type, e_int32 timeout_usec)
 	}
 
 	//if (e_check(ret==0,"Serial select time out."))
-	if (ret == 0)
-			{
+	if (ret == 0) {
 		return E_ERROR_TIME_OUT;
 	}
-	if (e_check(ret==-1,"Serial select error."))
-	{
+	if (e_check(ret==-1,"Serial select error.")) {
 		return E_ERROR_IO;
 	}
 
-	switch (type)
-	{
+	switch (type) {
 	case E_READ:
 		ret = FD_ISSET(fd, &checkfds);
 		e_assert(ret, E_ERROR_IO);
@@ -306,67 +268,65 @@ e_int32 Serial_Select(serial_t *port, e_int32 type, e_int32 timeout_usec)
 	return E_ERROR;
 }
 
-e_int32 Serial_Read(serial_t *port, e_uint8 *data, e_int32 size)
-{
+e_int32 Serial_Read(serial_t *port, e_uint8 *data, e_int32 size) {
 	e_int32 readCount = 0, bytesRead = 0;
 
 	e_assert(port&&port->state, E_ERROR);
 
 	bytesRead = 0;
 	//简单实现全局读超时设置，待优化
-	if (port->read_timeout_usec > 0)
-			{
+	if (port->read_timeout_usec > 0) {
 		Serial_Select(port, E_READ, port->read_timeout_usec);
 	}
 
 	/* loop reading bytes from port until all bytes are read or there is a timeout*/
-	while (bytesRead != size)
-	{
+	while (bytesRead != size) {
 		/* get bytes from port */
 		readCount = read(port->priv->port_handle, data + bytesRead,
-							size - bytesRead);
-		bytesRead += readCount;
-
+				size - bytesRead);
 		/* if no bytes read timeout has occured */
-		if (readCount == 0)
-				{
-			break;
+		if (readCount <= 0) {
+			//串口不符合标准，read返回0表示数据还未到达
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN || readCount==0)
+				return E_ERROR_RETRY;
+			else
+				return E_ERROR_INVALID_CALL;
 		}
+
+		bytesRead += readCount;
 	}
 
 	return bytesRead;
 }
 
-e_int32 Serial_Write(serial_t *port, e_uint8 *data, e_int32 size)
-{
+e_int32 Serial_Write(serial_t *port, e_uint8 *data, e_int32 size) {
 	e_int32 bytesWritten = 0, writeCount = 0;
 	e_assert(port&&port->state, E_ERROR);
 	//简单实现全局写超时设置，待优化
-	if (port->write_timeout_usec > 0)
-			{
+	if (port->write_timeout_usec > 0) {
 		Serial_Select(port, E_WRITE, port->write_timeout_usec);
 	}
 
 	/* loop reading bytes from port until all bytes are read or there is a timeout*/
-	while (bytesWritten != size)
-	{
+	while (bytesWritten != size) {
 		/* get bytes from port */
 		writeCount = write(port->priv->port_handle, data + bytesWritten,
-							size - bytesWritten);
-		bytesWritten += writeCount;
+				size - bytesWritten);
 
-		/* if no bytes read timeout has occured */
-		if (writeCount == 0)
-				{
-			break;
+		if (writeCount <= 0) {
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+				return E_ERROR_RETRY;
+			else
+				return E_ERROR_INVALID_CALL;
 		}
+
+		bytesWritten += writeCount;
 	}
 
 	return bytesWritten;
 }
 
-e_int32 SerialEnumerate(void)
-{
+e_int32 SerialEnumerate(void) {
 	return E_ERROR;
 }
 

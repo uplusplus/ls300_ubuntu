@@ -29,6 +29,8 @@
 
 static struct sigaction sa_old = { };
 
+#define RETRY()  (errno == EAGAIN)
+
 static volatile int is_inited = 0;
 static int make_unix_domain_addr(const char* name, struct sockaddr_un* pAddr,
 		socklen_t* pSockLen);
@@ -101,6 +103,8 @@ e_int32 Socket_Open(socket_t **socket_ptr, const char *socket_addr,
 		skt->send_max_size = snd_size;
 	}
 
+	//默认是非阻塞通讯
+	fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK);
 	/*存储附加信息*/
 	skt->priv = (void *) sockfd;
 	if (socket_addr != NULL)
@@ -255,10 +259,10 @@ e_int32 Socket_Bind(socket_t *socket) {
 			e_assert(ret, E_ERROR_INVALID_ADDRESS);
 		}
 
+		peer_address.sin_family = AF_INET;
 		peer_address.sin_port = htons(socket->port);
 		ret = bind(sockfd, (struct sockaddr *) &peer_address,
 				sizeof(struct sockaddr_in));
-		peer_address.sin_family = AF_INET;
 		break;
 	case E_SOCKET_NAME:
 		if (!make_unix_domain_addr(socket->ip_address, &sockAddr, &sockLen))
@@ -293,8 +297,8 @@ e_int32 Socket_Connect(socket_t *socket) {
 	e_assert((socket && socket->state), E_ERROR);
 	sockfd = (int) socket->priv;
 
-	ret = ioctl(sockfd, FIONBIO, &ul); //设置为非阻塞模式
-	e_assert(ret==0, E_ERROR_INVALID_CALL);
+//	ret = ioctl(sockfd, FIONBIO, &ul); //设置为非阻塞模式
+//	e_assert(ret==0, E_ERROR_INVALID_CALL);
 
 	switch (socket->type) {
 	case E_SOCKET_TCP:
@@ -335,8 +339,8 @@ e_int32 Socket_Connect(socket_t *socket) {
 	} else
 		ret = E_OK;
 
-	ul = 0;
-	ioctl(sockfd, FIONBIO, &ul); //设置为阻塞模式
+//	ul = 0;
+//	ioctl(sockfd, FIONBIO, &ul); //设置为阻塞模式
 
 	DMSG(
 			(STDOUT,"Socket_Connect  address=%s sockfd=%d ret=%d\n",socket->ip_address,sockfd,ret));
@@ -372,7 +376,12 @@ e_int32 Socket_Accept(socket_t *socket, socket_t **socket_c) {
 	sockfd = (int) socket->priv;
 	//接受连接
 	ret = accept(sockfd, (struct sockaddr *) &peer_address, &addr_len);
-	e_assert((ret != SOCKET_ERROR), E_ERROR_IO);
+	if (ret < 0) {
+		if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+			return E_ERROR_RETRY;
+		else
+			return E_ERROR_INVALID_CALL;
+	}
 
 	/*创建客户会话*/
 	skt = (socket_t *) malloc(sizeof(socket_t));
@@ -386,13 +395,15 @@ e_int32 Socket_Accept(socket_t *socket, socket_t **socket_c) {
 	strncpy(skt->ip_address, ip_address, sizeof(skt->ip_address));
 	skt->port = ntohs(peer_address.sin_port);
 	skt->type = socket->type;
+	skt->send_max_size = socket->send_max_size;
 	skt->state = E_OK;
 	(*socket_c) = skt;
 	return E_OK;
 }
 
 //  read/write socket data
-e_int32 Socket_Recv(socket_t *socket, e_uint8 *buffer, e_uint32 blen) {
+//没读到预定的长度的数据，视为调用失败！！！
+e_int32 Socket_Recv(socket_t *socket, e_uint8 *buffer, e_uint32 bytes_to_read) {
 	int sockfd;
 	int byteRecvied = 0, byteCount = 0;
 	e_assert((socket && socket->state), E_ERROR);
@@ -416,32 +427,31 @@ e_int32 Socket_Recv(socket_t *socket, e_uint8 *buffer, e_uint32 blen) {
 	 注意：在Unix系统下，如果recv函数在等待协议接收数据时网络断开了，那么调用
 	 recv的进程会接收到一个SIGPIPE信号，进程对该信号的默认处理是进程终止。
 	 */
-
 	//接收信息
-#if 1
-	byteRecvied = recv(sockfd, buffer, blen, 0);
+#if 0
+	byteRecvied = recv(sockfd, buffer, bytes_to_read, 0);
 #else
-	while (byteRecvied != blen)
-	{
+	while (byteRecvied != bytes_to_read) {
 		/* get bytes from port */
-		byteCount = recv(sockfd, buffer + byteRecvied, blen - byteRecvied, 0);
-		if (byteCount <= 0)
-		break;
-		byteRecvied += byteCount;
+		byteCount = recv(sockfd, buffer + byteRecvied,
+				bytes_to_read - byteRecvied, 0);
 
-		/* if no bytes read timeout return byteRecvied */
-		if (byteCount == 0)
-		{
-			break;
+		if (byteCount <= 0) {
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+				return E_ERROR_RETRY;
+			else
+				return E_ERROR_INVALID_CALL;
 		}
+
+		byteRecvied += byteCount;
 	}
 #endif
 	return byteRecvied;
 }
 
-e_int32 Socket_Send(socket_t *socket, e_uint8 *buffer, e_uint32 blen) {
+e_int32 Socket_Send(socket_t *socket, e_uint8 *buffer, e_uint32 bytes_to_send) {
 	int sockfd;
-	int byteSend = 0, byteCount = 0,pice=0;
+	int byteSend = 0, byteCount = 0, pice = 0;
 	e_assert((socket && socket->state), E_ERROR);
 	sockfd = (int) socket->priv;
 	/*
@@ -470,27 +480,29 @@ e_int32 Socket_Send(socket_t *socket, e_uint8 *buffer, e_uint32 blen) {
 	//发送信息
 #if 0
 
-	byteSend = send(sockfd, buffer, blen, 0);
+	byteSend = send(sockfd, buffer, bytes_to_send, 0);
 
 #else
-	while (byteSend != blen) {
+	while (byteSend != bytes_to_send) {
 		/* get bytes from port */
-		pice = blen - byteSend;
-		if(pice > socket->send_max_size) pice = socket->send_max_size;
+		pice = bytes_to_send - byteSend;
+		if (pice > socket->send_max_size)
+			pice = socket->send_max_size;
 		byteCount = send(sockfd, buffer + byteSend, pice, 0);
-		if (byteCount <= 0)
-			break;
-		byteSend += byteCount;
-
-		/* if no bytes send return byteSend */
-		if (byteCount == 0) {
-			break;
+		if (byteCount <= 0) {
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+				return E_ERROR_RETRY;
+			else
+				return E_ERROR_INVALID_CALL;
 		}
+
+		byteSend += byteCount;
 	}
 #endif
 
 	if (byteSend <= 0)
-		DMSG((STDOUT,"Socket_Send fd:%d [%d,%p] byteSend=%d errno=%d\n",sockfd,blen,buffer,byteSend,errno));
+		DMSG(
+				(STDOUT,"Socket_Send fd:%d [%d,%p] byteSend=%d errno=%d\n",sockfd,bytes_to_send,buffer,byteSend,errno));
 
 	return byteSend;
 }

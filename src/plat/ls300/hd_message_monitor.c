@@ -60,8 +60,7 @@ e_int32 mm_destroy_socket(msg_monitor_t *mm, fsocket_t* fs) {
 	e_assert(fs->id>=0 && fs->id<MAX_CLIENT_SIZE, E_ERROR);
 	fsocket_close(fs);
 	mm->sockets_num--;
-	DMSG(
-			(STDOUT, "MSG_MONITOR remove socket:%s, sockets_num=%u\r\n", fs->name, fs->id));
+	DMSG((STDOUT, "MSG_MONITOR remove socket:%s, sockets_num=%u\r\n", fs->name, fs->id));
 	return E_OK;
 }
 
@@ -91,7 +90,6 @@ e_int32 mm_clean(msg_monitor_t *mm) {
 static e_int32 get_one_msg(msg_monitor_t *mm, e_uint8* buf, int buf_len,
 		e_uint8 *p_msg_id) {
 	e_uint32 read_count = 0;
-	e_uint32 count = 0;
 	e_int32 ret;
 	int iid;
 	e_uint8 c;
@@ -101,38 +99,28 @@ static e_int32 get_one_msg(msg_monitor_t *mm, e_uint8* buf, int buf_len,
 			DMSG((STDOUT, "MSG MONITOR get msg failed:buf_len excude.\r\n"));
 			return read_count;
 		}
-		while (mm->state != STATE_STOP) //不能死等
-		{
-			ret = sc_select(mm->connect, E_READ, MM_SLEEP_TIMEOUT);
-			if (ret > 0)
-				break;
-			if (ret == E_ERROR_INVALID_HANDLER)
-				return ret;
-			Delay(10);
-		}
+
 		if (mm->state == STATE_STOP)
 			break;
 		ret = sc_recv(mm->connect, &c, 1);
-		if (ret <= 0) {
-			//TODO:更详细的错误处理
-			if (count >= MAX_TRY_COUNT) {
-				DMSG(
-						(STDOUT, "MSG MONITOR get_one_msg RET TRY FAILED! END MAIN LOOP!!!\r\n"));
-				return E_ERROR_IO;
+		if (ret == E_ERROR_RETRY) { //数据未就绪，等待
+			while (mm->state != STATE_STOP) //不能死等
+			{
+				ret = sc_select(mm->connect, E_READ, MM_SLEEP_TIMEOUT);
+				if (ret > 0)
+					break;
+				if (ret == E_ERROR_INVALID_HANDLER)
+					return ret;
+				Delay(10);
 			}
-			DMSG(
-					(STDOUT, "MSG MONITOR get_one_msg failed,retry...[%u]\r\n", (unsigned int) count));
-			Delay(10);
-			count++;
 			continue;
-		} else {
-			count = 0;
-		}
+		} else if (ret <= 0)
+			return E_ERROR;
 
-		if (read_count == 0) { //找到头
-			if (c == MSG_START)
+		if (read_count == 0) {//还在找头
+			if (c == MSG_START)//找到头
 				buf[read_count++] = c;
-		} else {
+		} else {//找余下部分
 			if (c == MSG_END) { //找到尾
 				buf[read_count++] = MSG_END;
 				buf[read_count] = 0;
