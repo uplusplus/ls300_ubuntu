@@ -1304,16 +1304,17 @@ static e_int32 sld_send_message(sickld_t *sick,
 	if (byte_interval == 0) {
 
 		/* Write the message to the stream */
-		len = sc_send(&sick->sick_connect, message_buffer, message_length);
+		len = sc_send_ex(&sick->sick_connect, message_buffer, message_length,
+				DEFAULT_SICK_MESSAGE_TIMEOUT, NULL);
 		if (e_check(len!=message_length,"send failed.\r\n"))
 			goto OUT;
 	} else {
 
 		/* Write the message to the unit one byte at a time */
 		for (i = 0; i < message_length; i++) {
-
 			/* Write a single byte to the stream */
-			len = sc_send(&sick->sick_connect, &message_buffer[i], 1);
+			len = sc_send_ex(&sick->sick_connect, &message_buffer[i], 1,
+					DEFAULT_SICK_BYTE_TIMEOUT, NULL);
 			if (e_check(len!=1,"send failed.\r\n"))
 				goto OUT;
 
@@ -3007,21 +3008,11 @@ static e_int32 sld_read_bytes(sickld_t *sick, e_uint8 * const dest_buffer,
 
 		total_num_bytes_read += ret;
 #else
-		ret = sc_recv(&sick->sick_connect, &dest_buffer[total_num_bytes_read],
-				1);
-		if (ret == E_ERROR_RETRY) //数据未就绪，等待
-				{
-			ret = sc_select(&sick->sick_connect, E_READ, timeout_value);
-			/* Figure out what to do based on the output of select */
-			if (ret == E_ERROR_TIME_OUT)
-			{
-//				DMSG((STDOUT,"sld_read_bytes timeout\n"));
-				return E_ERROR_TIME_OUT;
-			}
-			e_assert((ret > 0), E_ERROR_IO);
-			continue;
-		} else if (ret <= 0)
-			return E_ERROR;
+		ret = sc_recv_ex(&sick->sick_connect,
+				&dest_buffer[total_num_bytes_read], 1, timeout_value, NULL);
+		if (ret <= 0)
+			return ret;
+
 		total_num_bytes_read++;
 #endif
 	}
@@ -3042,16 +3033,15 @@ e_int32 sld_get_next_message_from_datastream(sickld_t *sick,
 	/* Flush the input buffer */
 	e_uint8 byte_buffer;
 
-	e_assert(sick&&sick->initialized, E_ERROR_INVALID_PARAMETER);
-
 //	DMSG((STDOUT,"+++++++++++sld_get_next_message_from_datastream"));
-
 	/* A buffer to hold the current byte out of the stream */
 	const e_uint8 sick_response_header[4] = { 0x02, 'U', 'S', 'P' };
 
 	e_uint8 checksum = 0;
 	e_uint8 message_buffer[MESSAGE_MAX_LENGTH] = { 0 };
 	e_uint32 payload_length = 0;
+
+	e_assert(sick&&sick->initialized, E_ERROR_INVALID_PARAMETER);
 
 	/* Search for the header in the byte stream */
 	for (i = 0; i < sizeof(sick_response_header);) {
@@ -3108,7 +3098,8 @@ e_int32 sld_get_next_message_from_datastream(sickld_t *sick,
 	ret = skm_get_checksum(sick_message);
 
 	if (ret != checksum) {
-		DMSG((STDOUT,"checksum error:ret = %d,checksum = %d\n",(int)ret,checksum));
+		DMSG(
+				(STDOUT,"checksum error:ret = %d,checksum = %d payload_length=%d\n", (int)ret,checksum,payload_length));
 	}
 
 	//e_assert((ret==checksum), E_ERROR_IO);

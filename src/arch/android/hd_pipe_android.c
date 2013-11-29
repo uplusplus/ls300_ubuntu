@@ -82,6 +82,12 @@ e_int32 Pipe_Timeouts(pipe_t *pip, int readTimeout_usec, int writeTimeout_usec) 
 	return E_OK;
 }
 
+e_int32 Pipe_Error(pipe_t *pip) {
+	e_int32 err = pip->last_error;
+	pip->last_error = E_OK;
+	return err;
+}
+
 e_int32 Pipe_Select(pipe_t *pip, e_int32 type, e_int32 timeout_usec) {
 	int fd, ret;
 	fd_set inputs, checkfds;
@@ -187,10 +193,13 @@ e_int32 Pipe_Read(pipe_t *pip, e_uint8 *data, e_int32 size) {
 
 		/* if no bytes read timeout has occured */
 		if (readCount <= 0) {
-			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
-				return E_ERROR_RETRY;
-			else
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+				pip->last_error = E_ERROR_RETRY;
+				break;
+			} else {
+				pip->last_error = E_ERROR_INVALID_CALL;
 				return E_ERROR_INVALID_CALL;
+			}
 		}
 
 		bytesRead += readCount;
@@ -214,10 +223,13 @@ e_int32 Pipe_Write(pipe_t *pip, e_uint8 *data, e_int32 size) {
 				size - bytesWritten);
 
 		if (writeCount <= 0) {
-			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
-				return E_ERROR_RETRY;
-			else
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+				pip->last_error = E_ERROR_RETRY;
+				break;
+			} else {
+				pip->last_error = E_ERROR_INVALID_CALL;
 				return E_ERROR_INVALID_CALL;
+			}
 		}
 		bytesWritten += writeCount;
 	}

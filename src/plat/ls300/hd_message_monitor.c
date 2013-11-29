@@ -103,24 +103,22 @@ static e_int32 get_one_msg(msg_monitor_t *mm, e_uint8* buf, int buf_len,
 		if (mm->state == STATE_STOP)
 			break;
 		ret = sc_recv(mm->connect, &c, 1);
-		if (ret == E_ERROR_RETRY) { //数据未就绪，等待
-			while (mm->state != STATE_STOP) //不能死等
-			{
+		if (ret == 0) { //数据未就绪，等待
+			while (mm->state != STATE_STOP) { //不能死等
 				ret = sc_select(mm->connect, E_READ, MM_SLEEP_TIMEOUT);
 				if (ret > 0)
 					break;
 				if (ret == E_ERROR_INVALID_HANDLER)
 					return ret;
-				Delay(10);
 			}
 			continue;
-		} else if (ret <= 0)
+		} else if (ret < 0)
 			return E_ERROR;
 
-		if (read_count == 0) {//还在找头
-			if (c == MSG_START)//找到头
+		if (read_count == 0) { //还在找头
+			if (c == MSG_START) //找到头
 				buf[read_count++] = c;
-		} else {//找余下部分
+		} else { //找余下部分
 			if (c == MSG_END) { //找到尾
 				buf[read_count++] = MSG_END;
 				buf[read_count] = 0;

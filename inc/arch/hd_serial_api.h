@@ -15,6 +15,7 @@ typedef struct
 	e_uint32 state; //	serial state: open or not
 	e_int8 name[16]; //	serial name: com1 ......
 	e_int32 speed;
+	e_int32 last_error;
 } serial_t;
 
 e_int32 DEV_EXPORT Serial_Open(serial_t *port, char *name);
@@ -77,5 +78,6 @@ e_int32 DEV_EXPORT Serial_Select(serial_t *port,e_int32 type,e_int32 timeout_use
 e_int32 DEV_EXPORT Serial_Read(serial_t *port, e_uint8 *data, e_int32 size);
 e_int32 DEV_EXPORT Serial_Write(serial_t *port, e_uint8 *data, e_int32 size);
 e_int32 DEV_EXPORT Serial_Enumerate(void);
+e_int32 DEV_EXPORT Serial_Error(serial_t *port);
 
 #endif /* !HD_SERIAL_H */

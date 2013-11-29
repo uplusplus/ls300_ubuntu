@@ -68,7 +68,7 @@ void server_func(void *data) {
 	for (; run;) {
 		ret = Socket_Accept(connect.socket, &client);
 		if (ret == E_ERROR_RETRY) {
-			Socket_Select(connect.socket, E_READ, 100000);
+			Socket_Select(connect.socket, E_READ, 5e5);
 			continue;
 		} else if (ret < 0) {
 			break;
@@ -77,8 +77,8 @@ void server_func(void *data) {
 		re_len = 0;
 		for (; run;) {
 			ret = Socket_Recv(client, &c, 1);
-			if (ret == E_ERROR_RETRY) {
-				Socket_Select(client, E_READ, 100000);
+			if (ret == 0) {
+				Socket_Select(client, E_READ, 5e5);
 				continue;
 			} else if (ret < 0) {
 				break;
@@ -91,7 +91,7 @@ void server_func(void *data) {
 			} else if (c == '@') {
 				recv_buf[re_len++] = 0;
 				DMSG((STDOUT,"[S]\tGet:%s\n",recv_buf));
-				ret = Socket_Select(client, E_WRITE, 100000);
+				ret = Socket_Select(client, E_WRITE, 5e5);
 				e_assert(ret>0);
 				strncpy(send_buf, recv_buf, 5);
 				ret = Socket_Send(client, send_buf, 8);

@@ -38,9 +38,9 @@ static void test_loop(void* data) {
 		ret = hl_turntable_check(&control);
 		DMSG(( STDOUT, "[%d]\t hl_turntable_check.\t%s\n",idx,strret(ret)));
 
-		//相机拍照
-		ret = hl_camera_take_photo(&control);
-		DMSG(( STDOUT, "[%d]\t hl_camera_take_photo.\t%s\n",idx,strret(ret)));
+//		//相机拍照
+//		ret = hl_camera_take_photo(&control);
+//		DMSG(( STDOUT, "[%d]\t hl_camera_take_photo.\t%s\n",idx,strret(ret)));
 
 		//获取温度
 		fvalue = hl_get_temperature(&control);
@@ -70,6 +70,7 @@ static void test_loop(void* data) {
 		//获取当前水平转台的角度
 		fvalue = hl_turntable_get_angle(&control);
 		DMSG(( STDOUT, "[%d]\t hl_turntable_get_angle :\t %.3f\n",idx,fvalue));
+
 	}
 }
 

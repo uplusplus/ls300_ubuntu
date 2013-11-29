@@ -48,7 +48,7 @@ static const e_uint8 START_WORK[] = { 0x23, 0x4d, 0x4f, 0x54, 0x4f, 0x2c,
 #define TIMEOUT_ANGLE 	(1E6)  	//倾角
 #define TIMEOUT_STEP 	(1E6)  	//水平角度
 #define TIMEOUT_TEMPERATURE (1E6)		//温度
-#define TIMEOUT_CAMERA (1E6*4)	//相机
+#define TIMEOUT_CAMERA (1E6*3)	//相机
 #define TIMEOUT_LED (1E6)			//指示灯
 #define TIMEOUT_INFO (1E6)		//取控制板信息,Battery
 //-----------------------------------------------------------------------------

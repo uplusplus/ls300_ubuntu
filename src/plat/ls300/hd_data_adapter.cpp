@@ -558,9 +558,9 @@ static e_int32 register_file_format(data_adapter_t *da, int i) {
 
 #define PCL_HAS_I 1
 #if PCL_HAS_I
-	#define PCL_PNT_TYPE pcl::PointXYZI
+#define PCL_PNT_TYPE pcl::PointXYZI
 #else
-	#define PCL_PNT_TYPE pcl::PointXYZ
+#define PCL_PNT_TYPE pcl::PointXYZ
 #endif
 
 static e_int32 inter_pcl_open(file_ptr_t *file) {
@@ -605,7 +605,7 @@ static e_int32 inter_pcl_close(file_ptr_t *file, int save) {
 			(pcl::PointCloud<PCL_PNT_TYPE> *) file->handle;
 	if (save && file->info.mode == E_WRITE) {
 //		pcl::io::savePCDFileASCII(file->info.file_name, *cloud);
-		pcl::io::savePCDFileBinary(file->info.file_name,*cloud);
+		pcl::io::savePCDFileBinary(file->info.file_name, *cloud);
 	}
 	delete cloud;
 	return E_OK;
@@ -1345,14 +1345,7 @@ static e_int32 inter_sprite_open(file_ptr_t *file) {
 			return ret;
 		}
 
-		ret = sc_select(&sprite->connect, E_WRITE, 100000);
-		if (e_failed(ret)) {
-			sc_close(&sprite->connect);
-			free(sprite);
-			return ret;
-		}
-
-		ret = sc_send(&sprite->connect, buf, 26);
+		ret = sc_send_ex(&sprite->connect, buf, 26, 1e6, NULL);
 		if (e_failed(ret)) {
 			sc_close(&sprite->connect);
 			free(sprite);
@@ -1481,13 +1474,12 @@ static e_int32 _sprite_insert_frame(file_ptr_t *file) {
 		return 1;
 	}
 
-	ret = sc_select(&sprite->connect, E_WRITE, 1E6);
-	e_assert(ret > 0, ret);
-
 	if (file->info.mode != E_DWRITE)
-		ret = sc_send(&sprite->connect, sprite->buf, sprite->size);
+		ret = sc_send_ex(&sprite->connect, sprite->buf, sprite->size, 1e6,
+				NULL);
 	else
-		ret = sc_send(&sprite->connect, sprite->buf, sprite->size * 2);
+		ret = sc_send_ex(&sprite->connect, sprite->buf, sprite->size * 2, 1e6,
+				NULL);
 	e_assert(ret > 0, ret);
 	return E_OK;
 }
@@ -1569,41 +1561,18 @@ static e_int32 inter_sprite_on_data_change(file_ptr_t *file1,
 ///////////////////////////////////////////////////////////////////////////////
 //memgray
 #include <comm/hd_utils.h>
-
-display_t display = { 0 };
-
 typedef struct memgray_private_t {
 	e_uint32 size;
 	e_uint8 * buf;
 } memgray_private_t;
-
-extern display_t display;
 
 static e_int32 inter_memgray_open(file_ptr_t *file) {
 	//打开缓存
 	memgray_private_t *memgray = (memgray_private_t *) calloc(
 			sizeof(memgray_private_t), 1);
 	int size = file->info.width * file->info.height;
-
-	if (file->is_main) {
-		display.w =
-				file->info.mode == E_DWRITE ?
-						file->info.width * 2 : file->info.width;
-		display.h = file->info.height;
-		DMSG((STDOUT,"Success to create memgray.\n"));
-	}
-
-	if (file->is_main) //主文件用于文件合并
-	{
-		if (file->info.mode == E_WRITE)
-			display.buf = (e_uint8 *) calloc(size, 1);
-		else if (file->info.mode == E_DWRITE)
-			display.buf = (e_uint8 *) calloc(size, 2);
-	}
-
-	display.h_w = file->info.h_w;
-
 	memgray->buf = (e_uint8 *) calloc(size, 1);
+	e_assert(memgray->buf, E_ERROR_BAD_ALLOCATE);
 	memgray->size = size;
 	file->handle = (size_t) memgray;
 	return E_OK;

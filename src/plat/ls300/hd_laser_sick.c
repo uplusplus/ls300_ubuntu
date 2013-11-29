@@ -379,16 +379,11 @@ e_int32 ls_phrase_config(laser_sick_t *ls, e_uint32 speed_h,
 
 	ls->height = (ls->end_angle_v[0] - ls->start_angle_v[0]) / ls->resolution_v
 			+ ls->interlace_v;
-<<<<<<< HEAD
-	ls->width = ANGLE_TO_STEP( ls->end_angle_h - ls->start_angle_h )
-			* PULSE_SPEED_TO_STEP_TIME(ls->speed_h) * ls->speed_v / 1E6
-=======
 //	ls->width = (ANGLE_TO_STEP( ls->end_angle_h - ls->start_angle_h )
 //			* PULSE_SPEED_TO_STEP_TIME(ls->speed_h) * ls->speed_v / 1E6)
 //			/ ls->interlace_v + 1;
 	ls->width = (ANGLE_TO_STEP( ls->end_angle_h - ls->start_angle_h ) / 1e2
 			* PULSE_SPEED_TO_STEP_TIME(ls->speed_h) * ls->speed_v / 1E4)
->>>>>>> Branch2
 			/ ls->interlace_v + 1;
 	ls->pre_scan_angle =
 			STEP_TO_ANGLE(PRE_SCAN_WAIT_TIME / PULSE_SPEED_TO_STEP_TIME(ls->speed_h));
@@ -452,8 +447,7 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 //				(STDOUT,"sld_get_measurements sick is not in target position: delay and retry. angle_dif_per_cloumn=%f\r\n",angle_dif));
 		sdata.h_angle = hl_turntable_get_angle(ls->control) - ls->pre_scan_angle
 				+ ls->start_angle_h;
-		DMSG(
-				(STDOUT,"control trun to start angle:  %f %f\n",sdata.h_angle,before_angle));
+//		DMSG((STDOUT,"control trun to start angle:  %f %f\n",sdata.h_angle,before_angle));
 //		ret = sld_flush(ls->sick);
 		if (sdata.h_angle > ls->start_angle_h - before_angle) {
 //			if (ret > 0) {
@@ -512,9 +506,9 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 
 //		print_sdata(ls,&sdata);
 		ret = pool_write(&ls->pool, &sdata);
-		if (e_failed(ret))
-			break;
-		DMSG((STDOUT,"\r[%d] %f end: %f\n",sdata.profile_number, sdata.h_angle,ls->end_angle_h));
+		if(ret<0)
+			DMSG((STDOUT,"data pool disconnected,write data routine now stop.\n"));
+//		DMSG((STDOUT,"[%d] %f end: %f\n",sdata.profile_number, sdata.h_angle,ls->end_angle_h));
 		first_time = 0;
 	}
 	sld_set_sensor_mode_to_idle(ls->sick);

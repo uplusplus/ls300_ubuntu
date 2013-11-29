@@ -22,7 +22,7 @@ typedef struct socket_t{
 	e_int32 type;
 	e_uint8 ip_address[100];
 	e_uint32 port;
-
+	e_int32 last_error;
 	e_uint32 send_max_size;
 }socket_t;
 //----------------------------------------------------------------------------
@@ -44,6 +44,8 @@ extern "C"
 
 //	socket ioctrl,one type at a time 
 	e_int32 DEV_EXPORT Socket_Ioctrl(socket_t *socket,e_int32 mask);
+
+	e_int32 DEV_EXPORT Socket_Error(socket_t *socket);
 
 //	select/bind/listen/connect/accept socket connection
 /*timeout,单位usec, 1秒 = 1000000微秒*/

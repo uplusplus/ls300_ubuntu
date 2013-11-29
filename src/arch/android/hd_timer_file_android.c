@@ -20,7 +20,7 @@
 
 static void posixtm2emstm(struct tm *posix_tm, system_time_t *tm) {
 	tm->year = (e_uint16) (posix_tm->tm_year + 1900);
-	tm->month = (e_uint16) (posix_tm->tm_mon);
+	tm->month = (e_uint16) (posix_tm->tm_mon + 1);
 	tm->dayofweek = (e_uint16) (posix_tm->tm_wday);
 	tm->day = (e_uint16) (posix_tm->tm_mday);
 	tm->hour = (e_uint16) (posix_tm->tm_hour);

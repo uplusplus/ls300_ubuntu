@@ -100,6 +100,7 @@ e_int32 Socket_Open(socket_t **socket_ptr, const char *socket_addr,
 		DMSG((STDOUT,"获取发送缓冲区大小错误\n"));
 		skt->send_max_size = ~0;
 	} else {
+//		DMSG((STDOUT,"获取发送缓冲区大小:%d\n",snd_size));
 		skt->send_max_size = snd_size;
 	}
 
@@ -113,6 +114,7 @@ e_int32 Socket_Open(socket_t **socket_ptr, const char *socket_addr,
 	skt->port = port;
 	skt->type = type;
 	skt->state = E_OK;
+	skt->last_error = E_OK;
 	(*socket_ptr) = skt;
 	return E_OK;
 }
@@ -128,6 +130,12 @@ void Socket_Close(socket_t **socket) {
 		free(*socket);
 		(*socket) = NULL;
 	}
+}
+
+e_int32 Socket_Error(socket_t *socket) {
+	e_int32 err = socket->last_error;
+	socket->last_error = E_OK;
+	return err;
 }
 
 e_int32 Socket_State(socket_t *socket) {
@@ -342,8 +350,7 @@ e_int32 Socket_Connect(socket_t *socket) {
 //	ul = 0;
 //	ioctl(sockfd, FIONBIO, &ul); //设置为阻塞模式
 
-	DMSG(
-			(STDOUT,"Socket_Connect  address=%s sockfd=%d ret=%d\n",socket->ip_address,sockfd,ret));
+//	DMSG((STDOUT,"Socket_Connect  address=%s sockfd=%d ret=%d\n",socket->ip_address,sockfd,ret));
 
 	return ret;
 }
@@ -397,6 +404,7 @@ e_int32 Socket_Accept(socket_t *socket, socket_t **socket_c) {
 	skt->type = socket->type;
 	skt->send_max_size = socket->send_max_size;
 	skt->state = E_OK;
+	skt->last_error = E_OK;
 	(*socket_c) = skt;
 	return E_OK;
 }
@@ -437,10 +445,13 @@ e_int32 Socket_Recv(socket_t *socket, e_uint8 *buffer, e_uint32 bytes_to_read) {
 				bytes_to_read - byteRecvied, 0);
 
 		if (byteCount <= 0) {
-			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
-				return E_ERROR_RETRY;
-			else
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+				socket->last_error = E_ERROR_RETRY;
+				break;
+			} else {
+				socket->last_error = E_ERROR_INVALID_CALL;
 				return E_ERROR_INVALID_CALL;
+			}
 		}
 
 		byteRecvied += byteCount;
@@ -490,19 +501,21 @@ e_int32 Socket_Send(socket_t *socket, e_uint8 *buffer, e_uint32 bytes_to_send) {
 			pice = socket->send_max_size;
 		byteCount = send(sockfd, buffer + byteSend, pice, 0);
 		if (byteCount <= 0) {
-			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
-				return E_ERROR_RETRY;
-			else
+			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+				socket->last_error = E_ERROR_RETRY;
+				break;
+			} else {
+				socket->last_error = E_ERROR_INVALID_CALL;
 				return E_ERROR_INVALID_CALL;
+			}
 		}
 
 		byteSend += byteCount;
 	}
 #endif
-
-	if (byteSend <= 0)
-		DMSG(
-				(STDOUT,"Socket_Send fd:%d [%d,%p] byteSend=%d errno=%d\n",sockfd,bytes_to_send,buffer,byteSend,errno));
+//
+//	if (byteSend <= 0)
+//		DMSG((STDOUT,"Socket_Send fd:%d [%d,%p] byteSend=%d errno=%d\n",sockfd,bytes_to_send,buffer,byteSend,errno));
 
 	return byteSend;
 }

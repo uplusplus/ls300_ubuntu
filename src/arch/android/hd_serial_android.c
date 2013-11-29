@@ -190,6 +190,12 @@ e_int32 Serial_Timeouts(serial_t *port, int readTimeout_usec,
 	return E_OK;
 }
 
+e_int32 Serial_Error(serial_t *port) {
+	e_int32 err = port->last_error;
+	port->last_error = E_OK;
+	return err;
+}
+
 e_int32 Serial_Select(serial_t *port, e_int32 type, e_int32 timeout_usec) {
 	int fd, ret;
 	fd_set inputs, checkfds;
@@ -287,10 +293,14 @@ e_int32 Serial_Read(serial_t *port, e_uint8 *data, e_int32 size) {
 		/* if no bytes read timeout has occured */
 		if (readCount <= 0) {
 			//串口不符合标准，read返回0表示数据还未到达
-			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN || readCount==0)
-				return E_ERROR_RETRY;
-			else
+			if (readCount
+					== 0|| errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+				port->last_error = E_ERROR_RETRY;
+				break;
+			} else {
+				port->last_error = E_ERROR_INVALID_CALL;
 				return E_ERROR_INVALID_CALL;
+			}
 		}
 
 		bytesRead += readCount;
@@ -314,10 +324,14 @@ e_int32 Serial_Write(serial_t *port, e_uint8 *data, e_int32 size) {
 				size - bytesWritten);
 
 		if (writeCount <= 0) {
-			if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
-				return E_ERROR_RETRY;
-			else
+			if (writeCount
+					== 0||errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+				port->last_error = E_ERROR_RETRY;
+				break;
+			} else {
+				port->last_error = E_ERROR_INVALID_CALL;
 				return E_ERROR_INVALID_CALL;
+			}
 		}
 
 		bytesWritten += writeCount;

@@ -259,8 +259,7 @@ e_int32 fsocket_request(fsocket_t *fs, e_uint8 *msg, e_uint32 mlen,
 			req_id = req_iid & 0xFF;
 			//TODO:无视过时消息?
 			if (req_id < fs->rq_id) {
-				DMSG(
-						(STDOUT, "FAKE SOCKE [%s:%u:%u] 取到过时消息:id=%u \n忽略,继续等待下一个消息\n", fs->name, (unsigned int)fs->id,(unsigned int)fs->rq_id,(unsigned int)req_id));
+				DMSG((STDOUT, "FAKE SOCKE [%s:%u:%u] 取到过时消息:id=%u \n忽略,继续等待下一个消息\n", fs->name, (unsigned int) fs->id, (unsigned int) fs->rq_id, (unsigned int) req_id));
 				continue;
 			} else if (req_id > fs->rq_id) {
 //				DMSG((STDOUT,"出现消息号异常,请检查!\n"));
@@ -269,6 +268,7 @@ e_int32 fsocket_request(fsocket_t *fs, e_uint8 *msg, e_uint32 mlen,
 			}
 			break;
 		}
+		break;
 	}
 
 	END:
@@ -280,8 +280,8 @@ e_int32 fsocket_request(fsocket_t *fs, e_uint8 *msg, e_uint32 mlen,
 
 	elapsed_time = GetTickCount() - beg_time;
 	if (MSG_LEVEL_VERBOSE)
-	DMSG(
-			(STDOUT, "FAKE SOCKET [%s:%u:%u]  request done in %u Ms...\r\n", fs->name, (unsigned int) fs->id, req_id,(int) (elapsed_time / 1000)));
+		DMSG((STDOUT, "FAKE SOCKET [%s:%u:%u]  request done in %u Ms...\r\n", fs->name, (unsigned int) fs->id, req_id, (int) (elapsed_time
+				/ 1000)));
 	return E_OK;
 }
 
@@ -306,7 +306,7 @@ e_int32 fsocket_command(fsocket_t *fs, e_uint8 *msg, e_uint32 mlen,
 	if (!strncmp(buf, success_reply, rlen)) {
 		return E_OK;
 	} else {
-		DMSG((STDOUT, "FAKE SOCKET [%s:%u:%u] error replay:%5s\n",fs->name, (unsigned int) fs->id, (unsigned int)fs->rq_id,buf));
+		DMSG((STDOUT, "FAKE SOCKET [%s:%u:%u] error replay:%5s\n", fs->name, (unsigned int) fs->id, (unsigned int) fs->rq_id, buf));
 	}
 
 	return E_ERROR;
@@ -375,14 +375,12 @@ static e_uint32 send_one_msg(fsocket_t *fs, e_uint8* msg, e_uint32 mlen,
 	e_uint8 buf[MSG_MAX_LEN] = { 0 };
 
 	if (mlen + 6 >= MSG_MAX_LEN) { //消息超长了
-		DMSG(
-				(STDOUT, "FAKE SOCKET [%s:%u:%u] send error:msg is too long...\r\n", fs->name, (unsigned int) fs->id, (unsigned int)fs->rq_id));
+		DMSG((STDOUT, "FAKE SOCKET [%s:%u:%u] send error:msg is too long...\r\n", fs->name, (unsigned int) fs->id, (unsigned int) fs->rq_id));
 		return E_ERROR;
 	}
 
 	if (MSG_LEVEL_VERBOSE)
-		DMSG(
-				(STDOUT, "FAKE SOCKET [%s:%u:%u] try send msg...\r\n", fs->name, (unsigned int) fs->id,(unsigned int)fs->rq_id));
+		DMSG((STDOUT, "FAKE SOCKET [%s:%u:%u] try send msg...\r\n", fs->name, (unsigned int) fs->id, (unsigned int) fs->rq_id));
 
 	/* Acquire the elapsed time since epoch */
 	beg_time = GetTickCount();
@@ -395,24 +393,15 @@ static e_uint32 send_one_msg(fsocket_t *fs, e_uint8* msg, e_uint32 mlen,
 	while (fs->state) {
 		elapsed_time = GetTickCount() - beg_time;
 		if (elapsed_time >= timeout_usec) {
-			DMSG(
-					(STDOUT, "FAKE SOCKET [%s:%u:%u] send timeout...\r\n", fs->name, (unsigned int) fs->id,(unsigned int) fs->rq_id));
+			DMSG((STDOUT, "FAKE SOCKET [%s:%u:%u] send timeout...\r\n", fs->name, (unsigned int) fs->id, (unsigned int) fs->rq_id));
 			return E_ERROR_TIME_OUT;
 		}
-		ret = sc_select(fs->connect, E_WRITE, elapsed_time);
-		//TODO:更细的异常处理
-		if (ret <= 0)
-			continue;
 
 		//发送数据
-		ret = sc_send(fs->connect, buf, strlen(buf));
-		//TODO:更细的异常处理
-		if (ret <= 0)
-			continue;
+		ret = sc_send_ex(fs->connect, buf, strlen(buf), 5e5, &fs->state);
+		e_assert(ret>0,ret);
 
-		DMSG(
-				(STDOUT, "FAKE SOCKET [%s:%u:%u] send_one_msg [ %s ].\r\n", fs->name, (unsigned int) fs->id,(unsigned int) fs->rq_id,buf));
-
+		DMSG((STDOUT, "FAKE SOCKET [%s:%u:%u] send_one_msg [ %s ].\r\n", fs->name, (unsigned int) fs->id, (unsigned int) fs->rq_id, buf));
 		return E_OK;
 	}
 
@@ -422,8 +411,7 @@ static e_uint32 send_one_msg(fsocket_t *fs, e_uint8* msg, e_uint32 mlen,
 static e_uint32 wait_for_reply(fsocket_t *fs, e_uint32 timeout_usec) {
 	e_int32 ret;
 	if (MSG_LEVEL_VERBOSE)
-	DMSG(
-			(STDOUT, "FAKE SOCKET  [%s:%u:%u] wait for reply ...\r\n", fs->name, (unsigned int) fs->id,(unsigned int) fs->rq_id));
+		DMSG((STDOUT, "FAKE SOCKET  [%s:%u:%u] wait for reply ...\r\n", fs->name, (unsigned int) fs->id, (unsigned int) fs->rq_id));
 	//等待消息信号
 	ret = semaphore_timeoutwait(&fs->recv_sem, timeout_usec);
 	e_assert(ret, E_ERROR_TIME_OUT);
@@ -435,8 +423,7 @@ static e_uint32 wait_for_reply(fsocket_t *fs, e_uint32 timeout_usec) {
 static e_uint32 wait_for_reply_forever(fsocket_t *fs) {
 	e_int32 ret;
 	if (MSG_LEVEL_VERBOSE)
-		DMSG(
-				(STDOUT, "FAKE SOCKET  [%s:%u:%u] wait for reply ...\r\n", fs->name, (unsigned int) fs->id,(unsigned int) fs->rq_id));
+		DMSG((STDOUT, "FAKE SOCKET  [%s:%u:%u] wait for reply ...\r\n", fs->name, (unsigned int) fs->id, (unsigned int) fs->rq_id));
 	//等待消息信号
 	ret = semaphore_wait(&fs->recv_sem);
 	e_assert(ret, E_ERROR);

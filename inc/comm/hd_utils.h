@@ -46,6 +46,7 @@ int DEV_EXPORT hd_soft_stretch(e_uint8* src, int s_x, int s_y, int s_w, int s_h,
 		e_uint8* dst, int d_x, int d_y, int d_w, int d_h, int bpp);
 e_uint8* DEV_EXPORT hd_image_stretch(int screen_w, int screen_h, int bpp,
 		e_uint8* src, int s_w, int s_h, int s_h_w, int *d_w, int *d_h);
+void DEV_EXPORT hd_print_image(e_uint8* msg, int w, int h);
 
 int DEV_EXPORT hd_video_set_src(e_uint8 *src, int s_w, int s_h, float s_h_w);
 int DEV_EXPORT hd_video_set_screen(int screen_w, int screen_h, int bpp,
