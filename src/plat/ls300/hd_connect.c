@@ -351,7 +351,7 @@ e_int32 sc_request(hd_connect_t *sc, e_uint8 *send_buffer, e_uint32 slen,
 	read_len = 0;
 	while (elapsed_time < timeout_usec && read_len < rlen) {
 		//接收
-		ret = sc_recv_ex(sc, &c, 1, timeout_usec - elapsed_time, NULL); //收到了，就不要管超不超时，直接返回结果
+		ret = sc_recv_ex(sc, &c, 1, timeout_usec - elapsed_time, NULL);
 		e_assert(ret>0, ret);
 
 		recv_buffer[read_len++] = c;

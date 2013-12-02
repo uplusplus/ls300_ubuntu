@@ -13,6 +13,7 @@
 //#define TEST_ADAPTER 1
 #define TEST_SCAN 1
 //#define TEST_SCAN_CONFIG 1
+//#define TEST_SICKLD 1
 //#define TEST_CONTROL 1
 //#define TEST_WEB 1
 //#define TEST_TUNABLE 1
