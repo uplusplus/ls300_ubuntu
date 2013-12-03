@@ -57,7 +57,6 @@ dm_alloc(char* ptDir, char *grayDir, char *files_dir, int width, int height,
 	int i, ret;
 	data_adapter_t* pda;
 	system_time_t sys_time;
-	char *files[DANUM];
 
 	e_assert(ptDir&&grayDir&&width&&height&& (mode==E_DWRITE||mode==E_WRITE),
 			E_ERROR_INVALID_PARAMETER);
@@ -72,15 +71,12 @@ dm_alloc(char* ptDir, char *grayDir, char *files_dir, int width, int height,
 	dm->height = height;
 
 	GetLocalTime(&sys_time);
-	sprintf(dm->data_file, "%s/%d-%d-%d-%d-%d-%d.pcd", ptDir, sys_time.year,
+	sprintf(dm->data_file, "%s/%d-%d-%d-%d-%d-%d.hls", ptDir, sys_time.year,
 			sys_time.month, sys_time.day, sys_time.hour, sys_time.minute,
 			sys_time.second);
 	sprintf(dm->gray_file, "%s/%d-%d-%d-%d-%d-%d.jpg", grayDir, sys_time.year,
 			sys_time.month, sys_time.day, sys_time.hour, sys_time.minute,
 			sys_time.second);
-
-	files[0] = dm->data_file;
-	files[1] = "test.memgray";
 
 	ret = da_open(&dm->adapters_point_cloud, dm->data_file, width, height, h_w,
 			mode);
@@ -92,7 +88,6 @@ dm_alloc(char* ptDir, char *grayDir, char *files_dir, int width, int height,
 	socket_video_server_start("127.0.0.1", 9090, E_SOCKET_TCP);
 #endif
 	dm->state = 1;
-
 	return dm;
 }
 
@@ -148,13 +143,12 @@ e_int32 dm_alloc_buffer(data_manager_t *dm, int buf_type, point_t **pnt_buf,
 }
 
 e_int32 dm_update(data_manager_t *dm, int c, int file_right) {
-	int i, ret;
+	int ret;
 	e_assert(dm&&dm->state, E_ERROR_INVALID_HANDLER);
-	da_write_column(&dm->adapters_point_cloud, c, dm->points_xyz, file_right);
+	ret = da_write_column(&dm->adapters_point_cloud, c, dm->points_xyz, file_right);
 	e_check(ret<=0);
-	da_write_column(&dm->adapters_gray, c, dm->points_gray, file_right);
+	ret = da_write_column(&dm->adapters_gray, c, dm->points_gray, file_right);
 	e_check(ret<=0);
-
 	return E_OK;
 }
 

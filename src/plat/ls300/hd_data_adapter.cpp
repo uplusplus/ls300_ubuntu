@@ -342,7 +342,7 @@ static e_int32 inter_pcl_write_column(file_ptr_t *file, e_uint32 column_idx,
 	e_uint32 pt_num = file->height;
 
 	while (pt_num--) {
-		pxyz = transfor2xyz(pnts, idx, &xyz);
+		pxyz = transfor2xyz(point, idx, &xyz);
 		fprintf(f1, "%.10g,%.10g,%.10g\n", pxyz->x, pxyz->y, pxyz->z);
 		file->cursor++;
 		idx++;
