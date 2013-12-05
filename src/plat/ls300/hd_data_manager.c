@@ -13,6 +13,7 @@
 
 #include <ls300/hd_data_manager.h>
 #include <arch/hd_timer_api.h>
+#include <arch/hd_file_api.h>
 #include <jpg/hd_jpeg.h>
 #include <comm/hd_utils.h>
 
@@ -30,9 +31,9 @@ display_t display = { 0 };
 struct data_manager_t {
 	e_int32 state;
 	//文件读写
-
 	char data_file[MAX_PATH_LEN];
 	char gray_file[MAX_PATH_LEN];
+	char tunable_file[MAX_PATH_LEN];
 
 	//点云宽度
 	e_uint32 width, height;
@@ -46,6 +47,7 @@ struct data_manager_t {
 
 	data_adapter_t adapters_point_cloud;
 	data_adapter_t adapters_gray;
+	file_t f_tunable;
 };
 
 static e_int32 init_display(int width, int height, float h_w, int mode);
@@ -71,10 +73,13 @@ dm_alloc(char* ptDir, char *grayDir, char *files_dir, int width, int height,
 	dm->height = height;
 
 	GetLocalTime(&sys_time);
-	sprintf(dm->data_file, "%s/%d-%d-%d-%d-%d-%d.hls", ptDir, sys_time.year,
+	sprintf(dm->data_file, "%s/%d-%d-%d-%d-%d-%d.pcd", ptDir, sys_time.year,
 			sys_time.month, sys_time.day, sys_time.hour, sys_time.minute,
 			sys_time.second);
 	sprintf(dm->gray_file, "%s/%d-%d-%d-%d-%d-%d.jpg", grayDir, sys_time.year,
+			sys_time.month, sys_time.day, sys_time.hour, sys_time.minute,
+			sys_time.second);
+	sprintf(dm->tunable_file, "%s/%d-%d-%d-%d-%d-%d.tun", ptDir, sys_time.year,
 			sys_time.month, sys_time.day, sys_time.hour, sys_time.minute,
 			sys_time.second);
 
@@ -83,6 +88,9 @@ dm_alloc(char* ptDir, char *grayDir, char *files_dir, int width, int height,
 	e_check(ret<=0);
 	ret = da_open(&dm->adapters_gray, "test.memgray", width, height, h_w, mode);
 	e_check(ret<=0);
+
+	ret = fi_open(dm->tunable_file, F_WRITE | F_CREATE, &dm->f_tunable);
+	e_check(!ret);
 
 #if START_VIDEO_SERVER
 	socket_video_server_start("127.0.0.1", 9090, E_SOCKET_TCP);
@@ -109,6 +117,8 @@ e_int32 dm_free(data_manager_t *dm, int save) {
 
 	ret = da_close(&dm->adapters_gray, save);
 	e_check(ret<=0);
+
+	fi_close(&dm->f_tunable);
 
 	if (dm->points_xyz)
 		free(dm->points_xyz);
@@ -145,10 +155,23 @@ e_int32 dm_alloc_buffer(data_manager_t *dm, int buf_type, point_t **pnt_buf,
 e_int32 dm_update(data_manager_t *dm, int c, int file_right) {
 	int ret;
 	e_assert(dm&&dm->state, E_ERROR_INVALID_HANDLER);
-	ret = da_write_column(&dm->adapters_point_cloud, c, dm->points_xyz, file_right);
+	ret = da_write_column(&dm->adapters_point_cloud, c, dm->points_xyz,
+			file_right);
 	e_check(ret<=0);
 	ret = da_write_column(&dm->adapters_gray, c, dm->points_gray, file_right);
 	e_check(ret<=0);
+	return E_OK;
+}
+
+e_int32 dm_write_tunable(data_manager_t *dm, e_uint32 usec_timestamp,
+		e_float64 angle) {
+	int ret;
+	char buf[20];
+	e_assert(dm&&dm->state, E_ERROR_INVALID_HANDLER);
+
+	sprintf(buf, "%10d,%8.4f\n", usec_timestamp, angle);
+	ret = fi_write(buf, 21, 1, &dm->f_tunable);
+	e_assert(ret == 1, E_ERROR);
 	return E_OK;
 }
 

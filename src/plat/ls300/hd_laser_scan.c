@@ -17,6 +17,7 @@
 #include <ls300/hd_laser_control.h>
 #include <ls300/hd_laser_photo.h>
 #include <ls300/hd_laser_sick.h>
+#include <ls300/hd_laser_machine.h>
 
 struct scan_job_t {
 	//给子模块用的，统一管理
@@ -94,6 +95,9 @@ e_int32 sj_create(scan_job_t** sj_ret, char*dev, int baudrate, char* ip,
 		goto FAILED;
 	}
 
+	lm_init(sj->control);
+	lm_start_status_monitor();
+
 	sj->state = STATE_IDLE;
 	(*sj_ret) = sj;
 	return E_OK;
@@ -122,6 +126,8 @@ e_int32 sj_check_devices(scan_job_t* sj) {
  */
 e_int32 sj_destroy(scan_job_t* sj) {
 	e_assert(sj&&sj->state==STATE_IDLE, E_ERROR_INVALID_HANDLER);
+
+	lm_uninit();
 	if (sj->photo_work)
 		lp_uninit(sj->photo_work);
 	if (sj->sick_work)
@@ -249,6 +255,7 @@ e_int32 sj_cancel(scan_job_t* sj) {
 	e_assert(sj&&sj->state, E_ERROR_INVALID_HANDLER);
 	int i = 0;
 	DMSG((STDOUT, "scan job routine try stop...\r\n"));
+
 	//check
 	if (sj->photo_work)
 		lp_cancel(sj->photo_work);

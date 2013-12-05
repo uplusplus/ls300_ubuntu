@@ -56,6 +56,7 @@ static e_int32 inter_hls_open(file_ptr_t *file);
 static e_int32 inter_hls_close(file_ptr_t *file, int save);
 static e_int32 inter_hls_write_column(file_ptr_t *file, e_uint32 column_idx,
 		point_t* point, int file_idx);
+
 //memgray
 static e_int32 inter_memgray_open(file_ptr_t *file);
 static e_int32 inter_memgray_close(file_ptr_t *file, int save);

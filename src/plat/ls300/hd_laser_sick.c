@@ -16,6 +16,7 @@
 #include <ls300/hd_laser_scan.h>
 #include <ls300/hd_scan_data_pool.h>
 #include <ls300/hd_data_manager.h>
+#include <ls300/hd_laser_machine.h>
 
 /*结构体定义*/
 struct laser_sick_t {
@@ -78,7 +79,7 @@ static enum {
 #define PRE_SCAN_WAIT_TIME  5000000 //us
 //#define HACK_INVALID_DATA 1
 //#define HACK_PNT_ANGLE_H 1
-//#define HACK_SLIP_ANGLE 1
+#define HACK_SLIP_ANGLE 1
 //#define HACK_SLIP_IDX 1
 #define HACK_SICK_BUGS 1
 
@@ -220,11 +221,10 @@ static e_int32 thread_scan_func(laser_sick_t *ls) {
 		pthread_join(ls->thread_read->thread_id, &result);
 	}
 
-	DMSG(
-			(STDOUT,"sick main thread all sub thread quit,try stop devices....\n"));
+	DMSG((STDOUT,"sick main thread all sub thread quit,try stop devices....\n"));
 
 	//停止转台
-	ret = hl_turntable_stop(ls->control);
+	ret = lm_turntable_stop();
 	e_check(ret<=0);
 	//停止扫描仪
 	ret = sld_uninitialize(ls->sick);
@@ -248,17 +248,17 @@ static e_int32 inter_ls_scan(laser_sick_t *ls) {
 	//提交配置到控制板
 //	ret = hl_turntable_config(ls->control, ls->speed_h, ls->start_angle_h,
 //			ls->end_angle_h + ls->pre_scan_angle);
-	ret = hl_turntable_config(ls->control, r2f(ls->speed_h), ls->start_angle_h,
+	ret = lm_turntable_config( r2f(ls->speed_h), ls->start_angle_h,
 			ls->end_angle_h + ls->pre_scan_angle);
 	e_assert(ret>0, ret);
 
 	//开始真正数据采集前的准备工作,快速转动转台到0点
-//	ret = hl_search_zero(ls->control);
+//	ret = lm_search_zero(ls->control);
 //	e_assert(ret>0 && should_continue, ret);
 //	Delay(100);
 
 	//开始真正数据采集前的准备工作,快速转动转台到需要的启始位置
-	ret = hl_turntable_prepare(ls->control, ls->pre_scan_angle);
+	ret = lm_turntable_prepare(ls->pre_scan_angle);
 	e_assert(ret>0 && should_continue, ret);
 
 	//初始化sick扫描设备
@@ -276,7 +276,7 @@ static e_int32 inter_ls_scan(laser_sick_t *ls) {
 	e_assert(ret>0 && should_continue, ret);
 
 	//让转台开始正常转动
-	ret = hl_turntable_start(ls->control);
+	ret = lm_turntable_start();
 	e_assert(ret>0 && should_continue, ret);
 
 	DMSG((STDOUT, "scan job routine starting write routine...\r\n"));
@@ -427,7 +427,6 @@ static void print_sdata(laser_sick_t *ls, scan_data_t *sdata) {
 	}
 }
 
-
 static void write_pool_data_routine(laser_sick_t *ls) {
 	e_int32 ret, first_time = 1, delay, profile_number;
 	e_float64 angle_dif, started_angle, before_angle; //记录起始位置，保证180度是对齐的
@@ -449,19 +448,9 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 	DMSG((STDOUT,"control trun to start angle...\n"));
 //等待扫描仪就位,会有准备工作开始
 	do {
-//		DMSG(
-//				(STDOUT,"sld_get_measurements sick is not in target position: delay and retry. angle_dif_per_cloumn=%f\r\n",angle_dif));
-		sdata.h_angle = hl_turntable_get_angle(ls->control) - ls->pre_scan_angle
+		sdata.h_angle = lm_turntable_get_angle() - ls->pre_scan_angle
 				+ ls->start_angle_h;
-//		DMSG((STDOUT,"control trun to start angle:  %f %f\n",sdata.h_angle,before_angle));
-//		ret = sld_flush(ls->sick);
 		if (sdata.h_angle > ls->start_angle_h - before_angle) {
-//			if (ret > 0) {
-//				DMSG((STDOUT,"sld_get_measurements sick is in target position!\r\n Start to get data.\r\n"));
-//				DMSG((STDOUT,"\rWRITE TO FILE: %f end: %f\n",sdata.h_angle,ls->end_angle_h));
-//				pool_write(&ls->pool, &sdata);
-//			}
-//			started_angle = sdata.h_angle;
 			break;
 		}
 		Delay(delay);
@@ -472,34 +461,19 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 	ret = sld_set_sensor_mode_to_measure_ex(ls->sick);
 	e_assert(ret>0);
 
+	ret = lm_start_record_angle(ls->writer);
+	e_assert(ret>0);
+
 	while (ls->state == STATE_WORK) {
 #if DEBUG_TIME
-	start_time = GetTickCount();
+		start_time = GetTickCount();
 #endif
-		//1先读取水平方向角度
-		sdata.h_angle = hl_turntable_get_angle(ls->control) - ls->pre_scan_angle
-				+ ls->start_angle_h;
-		if (first_time) {
-			started_angle = sdata.h_angle;
-		}
-
-//		if (sdata.h_angle >= ls->end_angle_h + started_angle + angle_dif) {
-//			DMSG((STDOUT,"sld_get_measurements sick is out of target position again,@%f!\r\n stop get data.\r\n",sdata.h_angle));
-//			//ls->state = STATE_CANCEL;
-//			break;
-//		}
-
-		if (sdata.h_angle < -1e-6) {
-			DMSG((STDOUT,"angle = %f, leave.\n",sdata.h_angle));
-//			pool_disconnect(&ls->pool);
-//			break;
-		}
-
 		ret = sld_get_measurements_ex(ls->sick, &sdata);
 //		DMSG((STDOUT,"profile_counter=%d profile_number=%d\n",sdata.profile_counter,sdata.profile_number));
 		if (!first_time) {
 			if (profile_number != sdata.profile_number)
-				DMSG((STDOUT,"lost a data layer_num=%d profile_number=%d\n",sdata.layer_num,profile_number));
+				DMSG(
+						(STDOUT,"lost a data layer_num=%d profile_number=%d\n",sdata.layer_num,profile_number));
 		}
 		profile_number = sdata.profile_number + 1;
 
@@ -508,7 +482,8 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 			Delay(10);
 			continue;
 		} else if (ret <= 0) {
-			DMSG((STDOUT,"sld_get_measurements sickld is down?ret=%d Out.\r\n",(int)ret));
+			DMSG(
+					(STDOUT,"sld_get_measurements sickld is down?ret=%d Out.\r\n",(int)ret));
 			break;
 		}
 #if DEBUG_TIME
@@ -516,11 +491,13 @@ static void write_pool_data_routine(laser_sick_t *ls) {
 #endif
 //		print_sdata(ls,&sdata);
 		ret = pool_write(&ls->pool, &sdata);
-		if(ret<0)
-			DMSG((STDOUT,"data pool disconnected,write data routine now stop.\n"));
+		if (ret < 0)
+			DMSG(
+					(STDOUT,"data pool disconnected,write data routine now stop.\n"));
 //		DMSG((STDOUT,"[%d] %f end: %f\n",sdata.profile_number, sdata.h_angle,ls->end_angle_h));
 		first_time = 0;
 	}
+	lm_stop_record_angle();
 	sld_set_sensor_mode_to_idle(ls->sick);
 	DMSG((STDOUT,"scan job:write_data_routine done.\n"));
 }
@@ -785,8 +762,7 @@ static e_int32 filter_data(laser_sick_t* ls, scan_data_t * pdata_in) {
 
 static void print_config(laser_sick_t* ls) {
 	e_assert(ls&&ls->state);
-	DMSG(
-			(STDOUT,"\t======================================================\n"));
+	DMSG((STDOUT,"\t======================================================\n"));
 	DMSG((STDOUT,"\tLS300 V2.0 Config\n"));
 	DMSG((STDOUT,"\tTurntable:\n"));
 	DMSG((STDOUT,"\t\tSpeed:%u μs / plus\n",(unsigned int)ls->speed_h));
@@ -805,8 +781,7 @@ static void print_config(laser_sick_t* ls) {
 	DMSG((STDOUT,"\t\tWidth:%d Height:%d\n",ls->width,ls->height));
 	DMSG(
 			(STDOUT,"\t\tangle_dif_per_column:%f angle_dif_per_degree:%f\n", ls->angle_dif_per_cloumn,ls->angle_dif_per_degree));
-	DMSG(
-			(STDOUT,"\t======================================================\n"));
+	DMSG((STDOUT,"\t======================================================\n"));
 }
 /*50	49.6
  100	99.8

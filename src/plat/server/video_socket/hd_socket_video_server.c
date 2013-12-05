@@ -6,19 +6,12 @@
  *    Description:  
  *
  *        Version:  1.0
- *        Created:  2013年06月19日 15时03分25秒
+ *        Created:  2013年11月19日
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  Mei Kang (), meikang9527@163.com
- *        Company:  College of Information Engineering of CDUT
- *
- *        modify:
- *        			Joy.you 20120628  	接口重构,PCL格式重构
- *        			Joy.you 20120629  	添加JPG格式支持
- *        			Joy.you 20120629  	添加GIF格式支持
- *
- *
+ *         Author:  uplusplus
+ *        Company:  zhd-hdsy
  * =====================================================================================
  */
 #include <string.h>

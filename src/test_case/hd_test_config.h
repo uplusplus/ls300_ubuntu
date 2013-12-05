@@ -15,11 +15,13 @@
 //#define TEST_SCAN_CONFIG 1
 //#define TEST_SICKLD 1
 //#define TEST_CONTROL 1
+//#define TEST_CONTROL_TIME 1
 //#define TEST_WEB 1
 //#define TEST_TUNABLE 1
 //#define TEST_EGL 1
 //#define TEST_POOL 1
 //#define TEST_MSG_MONITOR 1
+//#define TEST_LASER_MACHINE 1
 
 
 #endif /* HD_TEST_CONFIG_H_ */
