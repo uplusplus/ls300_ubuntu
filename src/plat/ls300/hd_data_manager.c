@@ -155,8 +155,7 @@ e_int32 dm_alloc_buffer(data_manager_t *dm, int buf_type, point_t **pnt_buf,
 e_int32 dm_update(data_manager_t *dm, int c, int file_right) {
 	int ret;
 	e_assert(dm&&dm->state, E_ERROR_INVALID_HANDLER);
-	ret = da_write_column(&dm->adapters_point_cloud, c, dm->points_xyz,
-			file_right);
+	ret = da_write_column(&dm->adapters_point_cloud, c, dm->points_xyz, file_right);
 	e_check(ret<=0);
 	ret = da_write_column(&dm->adapters_gray, c, dm->points_gray, file_right);
 	e_check(ret<=0);
@@ -166,11 +165,11 @@ e_int32 dm_update(data_manager_t *dm, int c, int file_right) {
 e_int32 dm_write_tunable(data_manager_t *dm, e_uint32 usec_timestamp,
 		e_float64 angle) {
 	int ret;
-	char buf[20];
+	char buf[21];
 	e_assert(dm&&dm->state, E_ERROR_INVALID_HANDLER);
 
-	sprintf(buf, "%10d,%8.4f\n", usec_timestamp, angle);
-	ret = fi_write(buf, 21, 1, &dm->f_tunable);
+	ret = sprintf(buf, "%10u,%8.4f\n", usec_timestamp, angle);
+	ret = fi_write(buf, 20, 1, &dm->f_tunable);
 	e_assert(ret == 1, E_ERROR);
 	return E_OK;
 }
