@@ -54,8 +54,7 @@ static e_int32 init_display(int width, int height, float h_w, int mode);
 static void uninit_display();
 
 data_manager_t*
-dm_alloc(char* ptDir, char *grayDir, char *files_dir, int width, int height,
-		float h_w, int mode) {
+dm_alloc(char* ptDir, char *grayDir, int width, int height, float h_w, int mode) {
 	int i, ret;
 	data_adapter_t* pda;
 	system_time_t sys_time;
@@ -155,7 +154,8 @@ e_int32 dm_alloc_buffer(data_manager_t *dm, int buf_type, point_t **pnt_buf,
 e_int32 dm_update(data_manager_t *dm, int c, int file_right) {
 	int ret;
 	e_assert(dm&&dm->state, E_ERROR_INVALID_HANDLER);
-	ret = da_write_column(&dm->adapters_point_cloud, c, dm->points_xyz, file_right);
+	ret = da_write_column(&dm->adapters_point_cloud, c, dm->points_xyz,
+			file_right);
 	e_check(ret<=0);
 	ret = da_write_column(&dm->adapters_gray, c, dm->points_gray, file_right);
 	e_check(ret<=0);

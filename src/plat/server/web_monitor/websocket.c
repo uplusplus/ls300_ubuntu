@@ -133,7 +133,7 @@ static struct jpg_ctx jctx = { -1, 0, 0 };
 
 void send_jpg(struct mg_connection *conn) {
 
-	if(jctx.hash != display.hash){
+	if (jctx.hash != display.hash) {
 		gray_to_jpeg_mem(display.w, display.h, display.buf, 50, &jctx.jpg_buf,
 				&jctx.jpg_size);
 		jctx.hash = display.hash;
@@ -168,8 +168,11 @@ int websocket_start(char *root_dir) {
 		return 0;
 
 	struct mg_callbacks callbacks;
-	const char *options[] = { "listening_ports", "8080", "document_root",
-			root_dir, NULL };
+	const char *options[] = {
+		"listening_ports", "8080",
+		"document_root", root_dir,
+		NULL
+	};
 
 	memset(&callbacks, 0, sizeof(callbacks));
 	callbacks.websocket_ready = websocket_ready_handler;

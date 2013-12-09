@@ -28,8 +28,8 @@ extern "C" {
 #endif
 ////////////////////////////////////////////////////////////////////////
 //
-data_manager_t* DEV_EXPORT dm_alloc(char* ptDir, char *grayDir, char *files_dir,
-		int width, int height, float h_w, int mode);
+data_manager_t* DEV_EXPORT dm_alloc(char* ptDir, char *grayDir, int width,
+		int height, float h_w, int mode);
 e_int32 DEV_EXPORT dm_free(data_manager_t *da, int save);
 
 e_int32 DEV_EXPORT dm_write_point(data_manager_t *da, int x, int y,

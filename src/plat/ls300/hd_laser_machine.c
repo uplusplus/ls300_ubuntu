@@ -18,7 +18,10 @@
 #include <ls300/hd_laser_machine.h>
 
 enum {
-	STATE_NONE = 0, STATE_PAUSE = 1, STATE_WORK = 2, STATE_CANCEL = 3,
+	STATE_NONE = 0,
+	STATE_PAUSE = 1,
+	STATE_WORK = 2,
+	STATE_CANCEL = 3,
 };
 
 static laser_machine_t laser_machine = { 0 };
@@ -41,7 +44,8 @@ static int pause_loop() {
 }
 
 static void resume_loop(int last_state) {
-	if (lm->state != STATE_PAUSE && last_state != STATE_PAUSE)
+	if (lm->state != STATE_PAUSE
+			&& last_state != STATE_PAUSE)
 		return;
 
 	lm->state = STATE_WORK;
@@ -50,7 +54,8 @@ static void resume_loop(int last_state) {
 }
 
 static int exit_loop() {
-	e_assert(lm->state==STATE_WORK||lm->state==STATE_PAUSE,
+	e_assert(
+			lm->state==STATE_WORK||lm->state==STATE_PAUSE,
 			E_ERROR_INVALID_STATUS);
 	resume_loop(lm->state);
 	lm->state = STATE_CANCEL;
@@ -69,9 +74,11 @@ e_int32 lm_init(laser_control_t *lc) {
 
 	lm->lc = lc;
 
-	DMSG((STDOUT, "laser machine starting main routine...\r\n"));
+	DMSG(
+			(STDOUT, "laser machine starting main routine...\r\n"));
 	//启动sick数据读取线程
-	ret = createthread("laser_machine", (thread_func) &main_loop, lm, NULL,
+	ret = createthread("laser_machine",
+			(thread_func) &main_loop, lm, NULL,
 			&lm->main_thread);
 	e_assert(ret>0, ret);
 
@@ -85,29 +92,33 @@ e_int32 lm_uninit() {
 	exit_loop();
 	killthread(lm->main_thread);
 	semaphore_destroy(&lm->wakeup);
-	memset(lm,0,sizeof(laser_machine_t));
+	memset(lm, 0, sizeof(laser_machine_t));
 }
 
 e_int32 lm_start_record_angle(data_manager_t* dm) {
-	e_assert(lm->state&&dm, E_ERROR_INVALID_PARAMETER);
+	e_assert(lm->state&&dm,
+			E_ERROR_INVALID_PARAMETER);
 	lm->dm = dm;
 	resume_loop(lm->state);
 	return E_OK;
 }
 e_int32 lm_stop_record_angle() {
-	e_assert(lm->state, E_ERROR_INVALID_PARAMETER);
+	e_assert(lm->state,
+			E_ERROR_INVALID_PARAMETER);
 	lm->dm = NULL;
 	return E_OK;
 }
 
 e_int32 lm_start_status_monitor() {
-	e_assert(lm->state, E_ERROR_INVALID_PARAMETER);
+	e_assert(lm->state,
+			E_ERROR_INVALID_PARAMETER);
 	resume_loop(lm->state);
 	return E_OK;
 }
 
 e_int32 lm_stop_status_monitor() {
-	e_assert(lm->state, E_ERROR_INVALID_PARAMETER);
+	e_assert(lm->state,
+			E_ERROR_INVALID_PARAMETER);
 	pause_loop();
 	lm->lc = NULL;
 	return E_OK;
@@ -125,12 +136,16 @@ static int getAngle();
 static const struct {
 	int (*work)();
 	int seq_len;
-} system_timeslice[32] = { ts_getAngle, ts_getAngle, ts_battery, ts_getAngle,
-		ts_getAngle, ts_temperature, ts_getAngle, ts_getAngle, ts_battery,
-		ts_getAngle, ts_getAngle, ts_temperature, ts_getAngle, ts_getAngle,
-		ts_battery, ts_getAngle, ts_getAngle, ts_temperature, ts_getAngle,
-		ts_getAngle, ts_getAngle, ts_getTilt, { }, { }, { }, { }, { }, { }, { },
-		{ }, { }, ts_getAngle };
+} system_timeslice[32] = { ts_getAngle,
+		ts_getAngle, ts_battery, ts_getAngle,
+		ts_getAngle, ts_temperature, ts_getAngle,
+		ts_getAngle, ts_battery, ts_getAngle,
+		ts_getAngle, ts_temperature, ts_getAngle,
+		ts_getAngle, ts_battery, ts_getAngle,
+		ts_getAngle, ts_temperature, ts_getAngle,
+		ts_getAngle, ts_getAngle, ts_getTilt, { },
+		{ }, { }, { }, { }, { }, { }, { }, { },
+		ts_getAngle };
 
 static void main_loop(void* vs) {
 	static int seq = 0;
@@ -138,7 +153,8 @@ static void main_loop(void* vs) {
 		while (lm->state == STATE_WORK) {
 			system_timeslice[seq].work();
 			seq += system_timeslice[seq].seq_len;
-			seq &= 0x11111;
+			seq &= 31;
+//			DMSG((STDOUT,"_%d_",seq));
 		}
 		if (lm->state == STATE_PAUSE) {
 			lm->is_paused = 1;
@@ -152,26 +168,34 @@ static void main_loop(void* vs) {
 
 int getBattery() {
 	lm->battery = hl_get_battery(lm->lc);
+//	DMSG((STDOUT,"battery %8.4f\n",lm->battery));
 }
 int getTemperature() {
 	//获取温度
 	lm->temperature = hl_get_temperature(lm->lc);
+//	DMSG((STDOUT,"temperature %8.4f\n",lm->temperature));
 }
 int getTilt() {
 	hl_get_tilt(lm->lc, &lm->angle);
+//	DMSG((STDOUT,"tilt %8.4f %8.4f\n",lm->tilt.dX,lm->tilt.dY));
 }
 int getAngle() {
 	lm->angle_usec_timestamp = GetTickCount();
 	lm->angle = hl_turntable_get_angle(lm->lc);
 	if (lm->dm)
-		dm_write_tunable(lm->dm, lm->angle_usec_timestamp, lm->angle);
+		dm_write_tunable(lm->dm,
+				lm->angle_usec_timestamp,
+				lm->angle);
+//	DMSG((STDOUT,"angle %8.4f\n",lm->angle));
 }
 
 //开始工作
-e_int32 lm_turntable_prepare(e_float64 pre_start_angle) {
+e_int32 lm_turntable_prepare(
+		e_float64 pre_start_angle) {
 	int ret, state;
 	state = pause_loop();
-	ret = hl_turntable_prepare(lm->lc, pre_start_angle);
+	ret = hl_turntable_prepare(lm->lc,
+			pre_start_angle);
 	resume_loop(state);
 	return ret;
 }
@@ -195,10 +219,12 @@ e_int32 lm_turntable_stop() {
 }
 
 //设置转台参数//设置旋转速度,区域
-e_int32 lm_turntable_config(e_uint32 plus_delay, e_float64 start, e_float64 end) {
+e_int32 lm_turntable_config(e_uint32 plus_delay,
+		e_float64 start, e_float64 end) {
 	int ret, state;
 	state = pause_loop();
-	ret = hl_turntable_config(lm->lc, plus_delay, start, end);
+	ret = hl_turntable_config(lm->lc, plus_delay,
+			start, end);
 	resume_loop(state);
 	return ret;
 }
@@ -327,7 +353,8 @@ e_int32 lm_search_zero() {
 }
 
 //硬件信息
-e_int32 lm_get_info(e_uint32 idx, e_uint8* buffer, e_int32 blen) {
+e_int32 lm_get_info(e_uint32 idx, e_uint8* buffer,
+		e_int32 blen) {
 	int ret, state;
 	state = pause_loop();
 	ret = hl_get_info(lm->lc, idx, buffer, blen);

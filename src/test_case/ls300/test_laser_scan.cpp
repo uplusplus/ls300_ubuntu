@@ -26,6 +26,7 @@ void sig_handler(int sig) {
 		exit(0);
 	}
 }
+extern "C" int webserver_start(char *root_dir);
 
 int main() {
 	signal(SIGINT, sig_handler);
@@ -37,30 +38,32 @@ int main() {
 	ret = sj_check_devices(job);
 	e_assert(ret>0, ret);
 
+	webserver_start("./html/http/");
+
 	DMSG((STDOUT,"LASER scan TEST config.\r\n"));
 
 #if LINUX
-	sj_set_data_dir(job, ".", ".", ".");
+	sj_set_data_dir(job, ".", ".");
 #else
 	sj_set_data_dir(job, "/sdcard/ls300/data/point_cloud",
 			"/sdcard/ls300/data/image", "/data/data/com.hdsy.ls300/files");
 #endif
 	/*
-	time(s)		resolotion		speed_h		speed_v		width		height
-		1800				0.0625		1250			7			2884		2164
-		1224							850				10
+	 time(s)		resolotion		speed_h		speed_v		width		height
+	 1800				0.0625		1250			7			2884		2164
+	 1224							850				10
 
-		288			0.125			200				5				1441		1081
-		144			0.25			100				5				721			541
-		72			0.375			50				7				505			361
-		72			0.5				50				5				361			271
-	*/
+	 288			0.125			200				5				1441		1081
+	 144			0.25			100				5				721			541
+	 72			0.375			50				7				505			361
+	 72			0.5				50				5				361			271
+	 */
 
-	ret =  sj_config(job, 50, 0, 360, 5, 0.5, -45, 90);
+//	ret =  sj_config(job, 50, 0, 360, 5, 0.5, -45, 90);
 //	ret =  sj_config(job, 50, 0, 360, 7, 0.375, -45, 90);
 //	ret =  sj_config(job, 100, 0, 360, 5, 0.25, -45, 90);
 //	ret =  sj_config(job, 850, 0, 360, 10, 0.0625, -45, 90);
-//	ret =  sj_config(job, 1250, 0, 360, 7, 0.0625, -45, 90);
+	ret = sj_config(job, 1250, 0, 360, 7, 0.0625, -45, 90);
 
 //	ret =  sj_config(job, 850, 160, 200, 7, 0.0625, -45, 90);
 //	ret =  sj_config(job, 200, 0, 360, 7, 0.0625, -45, 90);

@@ -18,7 +18,6 @@
 #include <arch/hd_plat_base.h>
 #include <ls300/hd_laser_control.h>
 
-
 /*结构体定义*/
 typedef struct scan_job_t scan_job_t;
 
@@ -30,6 +29,8 @@ extern "C" {
 /************************************************************************
  * 与扫描仪建立连接，并初始化扫描参数信息
  ************************************************************************/
+scan_job_t* DEV_EXPORT sj_global_instance();
+
 e_int32 DEV_EXPORT sj_create(scan_job_t** sj_ret, char*dev, int baudrate,
 		char* ip, int port);
 
@@ -73,8 +74,7 @@ e_int32 DEV_EXPORT sj_config_ex(scan_job_t* sj, e_uint32 speed_h_delay,
 /************************************************************************
  * 设置点云数据存储目录,灰度图存储目录
  ************************************************************************/
-e_int32 DEV_EXPORT sj_set_data_dir(scan_job_t* sj, char* ptDir,
-		char *grayDir,char *filesDir);
+e_int32 DEV_EXPORT sj_set_data_dir(scan_job_t* sj, char* ptDir, char *grayDir);
 
 e_int32 DEV_EXPORT sj_get_state(scan_job_t* sj);
 

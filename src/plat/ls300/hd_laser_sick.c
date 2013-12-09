@@ -83,7 +83,7 @@ static enum {
 //#define HACK_SLIP_IDX 1
 #define HACK_SICK_BUGS 1
 
-#define DEBUG_TIME 1
+//#define DEBUG_TIME 1
 
 ////////////////////////////////////////////////////////////////////////////////
 //local functions
@@ -133,7 +133,7 @@ e_int32 ls_uninit(laser_sick_t *ls) {
 	return E_OK;
 }
 
-e_int32 ls_scan(laser_sick_t *ls, char* ptDir, char *grayDir, char *files_dir,
+e_int32 ls_scan(laser_sick_t *ls, char* ptDir, char *grayDir,
 		e_uint32 speed_h_delay, const e_float64 start_angle_h,
 		const e_float64 end_angle_h, e_uint32 speed_v_hz,
 		e_float64 resolution_v, const e_uint32 interlace_v,
@@ -154,7 +154,7 @@ e_int32 ls_scan(laser_sick_t *ls, char* ptDir, char *grayDir, char *files_dir,
 	}
 
 	//创建输出端子
-	ls->writer = dm_alloc(ptDir, grayDir, files_dir, ls->width, ls->height,
+	ls->writer = dm_alloc(ptDir, grayDir, ls->width, ls->height,
 			ls->h_w,
 			ls->active_sectors.right && ls->active_sectors.left ?
 					E_DWRITE : E_WRITE);

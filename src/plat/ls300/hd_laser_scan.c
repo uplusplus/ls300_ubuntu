@@ -43,7 +43,6 @@ struct scan_job_t {
 	//文件读写
 	char data_dir[MAX_PATH_LEN];
 	char gray_dir[MAX_PATH_LEN];
-	char files_dir[MAX_PATH_LEN];
 
 	e_int32 state;
 };
@@ -55,6 +54,20 @@ enum {
 //State change
 // 			create 		work 		done
 // NONE		idle	  	work 		idle
+static scan_job_t* global_instance = 0;
+scan_job_t* sj_global_instance() {
+	int ret;
+	if (!global_instance) //此步是调试使用，一般要求主系统启动后，才允许连接web服务
+	{
+		ret = sj_create(&global_instance, "/dev/ttyUSB0", 38400, "192.168.1.10",
+				49152);
+		e_assert(ret>0, NULL);
+		sj_set_data_dir(global_instance, "/sdcard/ls300/data/point_cloud",
+				"/sdcard/ls300/data/image");
+	}
+	e_assert(global_instance, NULL);
+	return global_instance;
+}
 
 /**
  *\brief 创建扫描控制模块
@@ -100,6 +113,7 @@ e_int32 sj_create(scan_job_t** sj_ret, char*dev, int baudrate, char* ip,
 
 	sj->state = STATE_IDLE;
 	(*sj_ret) = sj;
+	global_instance = sj;
 	return E_OK;
 
 	FAILED: (*sj_ret) = NULL;
@@ -126,6 +140,8 @@ e_int32 sj_check_devices(scan_job_t* sj) {
  */
 e_int32 sj_destroy(scan_job_t* sj) {
 	e_assert(sj&&sj->state==STATE_IDLE, E_ERROR_INVALID_HANDLER);
+
+	global_instance =NULL;
 
 	lm_uninit();
 	if (sj->photo_work)
@@ -211,7 +227,6 @@ static e_int32 on_status_change(void* thiz, int state) {
 		sj->state = STATE_IDLE;
 		DMSG((STDOUT, "on_status_change:scan job routine stopped.\r\n"));
 	} else if (state == STATE_WORK) {
-//		sj->state = STATE_WORK;
 		DMSG((STDOUT, "on_status_change:scan job routine started.\r\n"));
 	}
 	return E_OK;
@@ -238,10 +253,9 @@ e_int32 sj_scan_point(scan_job_t* sj) {
 
 	ret = ls_init(&sj->sick_work, sj->control, sj->sick, on_status_change, sj);
 	e_assert(ret>0, ret);
-	ret = ls_scan(sj->sick_work, sj->data_dir, sj->gray_dir, sj->files_dir,
-			sj->speed_h, sj->start_angle_h, sj->end_angle_h, sj->speed_v,
-			sj->resolution_v, sj->interlace_v, sj->start_angle_v,
-			sj->end_angle_v);
+	ret = ls_scan(sj->sick_work, sj->data_dir, sj->gray_dir, sj->speed_h,
+			sj->start_angle_h, sj->end_angle_h, sj->speed_v, sj->resolution_v,
+			sj->interlace_v, sj->start_angle_v, sj->end_angle_v);
 	e_assert(ret>0, ret);
 	return E_OK;
 }
@@ -271,12 +285,10 @@ e_int32 sj_cancel(scan_job_t* sj) {
  *\param grayDir 定义了灰度图存储目录。
  *\retval E_OK 表示成功。
  */
-e_int32 sj_set_data_dir(scan_job_t* sj, char* ptDir, char *grayDir,
-		char *filesDir) {
+e_int32 sj_set_data_dir(scan_job_t* sj, char* ptDir, char *grayDir) {
 	e_assert(sj&&ptDir&&grayDir, E_ERROR_INVALID_HANDLER);
 	strncpy(sj->data_dir, ptDir, sizeof(sj->data_dir));
 	strncpy(sj->gray_dir, grayDir, sizeof(sj->gray_dir));
-	strncpy(sj->files_dir, filesDir, sizeof(sj->files_dir));
 	return E_OK;
 }
 

@@ -11,7 +11,7 @@
 
 //#define TEST_DATA_MANAGER 1
 //#define TEST_ADAPTER 1
-#define TEST_SCAN 1
+//#define TEST_SCAN 1
 //#define TEST_SCAN_CONFIG 1
 //#define TEST_SICKLD 1
 //#define TEST_CONTROL 1
@@ -22,6 +22,7 @@
 //#define TEST_POOL 1
 //#define TEST_MSG_MONITOR 1
 //#define TEST_LASER_MACHINE 1
+#define TEST_LASER_SERVER 1
 
 
 #endif /* HD_TEST_CONFIG_H_ */

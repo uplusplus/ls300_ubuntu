@@ -70,7 +70,7 @@ int on_command(const char *cmd, char *ret_buf, int *ctx,
 	} else if (!strncmp(cmd, "config", sizeof("config"))) {
 		log_printf(ret_buf, ctx, ret, "Laser scan try config..");
 		sj_set_data_dir(job, "/sdcard/ls300/data/point_cloud",
-				"/sdcard/ls300/data/image", "/data/data/com.hdsy.ls300/files");
+				"/sdcard/ls300/data/image");
 		ret = sj_config(job, 100, 0, 360, 5, 0.25, -45, 90);
 		if (e_failed(ret)) {
 			log_printf(ret_buf, ctx, ret,
