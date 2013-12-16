@@ -5,6 +5,7 @@
  *      Author: uplusplus
  */
 #include <time.h>
+#include <stdlib.h>
 #include "rwlock.h"
 #include "session.h"
 
@@ -13,16 +14,8 @@
 #define SESSION_TTL 120
 
 #define authorize_url  "/authorize"
-#define authorize_url_q  "/q=authorize&"
+#define authorize_url_q  "q=authorize&"
 #define login_url      "/login.html"
-
-// Describes web session.
-struct session {
-	char session_id[33]; // Session ID, must be unique
-	char random[20]; // Random data used for extra user validation
-	char user[MAX_USER_LEN]; // Authenticated user
-	time_t expire; // Expiration timestamp, UTC
-};
 
 static struct session sessions[MAX_SESSIONS]; // Current sessions
 
@@ -109,7 +102,7 @@ void redirect_to_login(struct mg_connection *conn,
 
 // A handler for the /authorize endpoint.
 // Login page form sends user name and password to this endpoint.
-void authorize(struct mg_connection *conn,
+int authorize(struct mg_connection *conn,
 		const struct mg_request_info *request_info) {
 	char user[MAX_USER_LEN], password[MAX_USER_LEN];
 	struct session *session;
@@ -139,10 +132,57 @@ void authorize(struct mg_connection *conn,
 				"Set-Cookie: user=%s\r\n"// Set user, needed by Javascript code
 				"Set-Cookie: original_url=/; max-age=0\r\n"// Delete original_url
 				"Location: /\r\n\r\n", session->session_id, session->user);
+		return 1;
 	} else {
 		// Authentication failure, redirect to login.
 		redirect_to_login(conn, request_info);
+		return 0;
 	}
+}
+
+// Return 1 if request is authorized, 0 otherwise.
+static struct session * if_authorized(const struct mg_connection *conn,
+		const struct mg_request_info *request_info) {
+	struct session *session = 0;
+	char valid_id[33];
+	int authorized = 0;
+
+	pthread_rwlock_rdlock(&rwlock);
+	if ((session = get_session(conn)) != NULL) {
+		generate_session_id(valid_id, session->random, session->user);
+		if (strcmp(valid_id, session->session_id) == 0) {
+			session->expire = time(0) + SESSION_TTL;
+			authorized = 1;
+		}
+	}
+	pthread_rwlock_unlock(&rwlock);
+
+	return authorized ? session : 0;
+}
+
+// A handler for the /authorize endpoint.
+// Login page form sends user name and password to this endpoint.
+struct session* authorize_ex(struct mg_connection *conn,
+		const struct mg_request_info *request_info) {
+	char user[MAX_USER_LEN], password[MAX_USER_LEN];
+	struct session *session;
+
+	if (session = if_authorized(conn, request_info))
+		return session;
+
+	// Fetch user name and password.
+	get_qsvar(request_info, "user", user, sizeof(user));
+	get_qsvar(request_info, "password", password, sizeof(password));
+
+	if (check_password(user, password) && (session = new_session()) != NULL) {
+		my_strlcpy(session->user, user, sizeof(session->user));
+		snprintf(session->random, sizeof(session->random), "%d", rand());
+		generate_session_id(session->session_id, session->random,
+				session->user);
+		return session;
+	}
+
+	return 0;
 }
 
 // Return 1 if request is authorized, 0 otherwise.

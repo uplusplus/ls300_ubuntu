@@ -16,25 +16,28 @@
 #include <ls300/hd_laser_machine.h>
 #include <server/hd_webserver.h>
 
-#define HELP "'commands:authorize,devicestatus,gray.jpg, graysize, turntable," \
-	"led, angle, tilt, temperature, battery, config, pointscan, photoscan," \
-	"cancel, aviablePlusDelay,aviableFrequency,aviableResolution," \
-	"aviablePrecises,help.'"
+#define SIMPLE_REPLAY_FORMAT "{ \"query\": \"%s\", \"success\": %d, \"message\":[\"%s\"] }"
+#define REPLAY_FORMAT(_EXTRA_) "{ \"query\": \"%s\", \"success\": %d, \"message\":[\"%s\"]," _EXTRA_ "}"
+
+#define COMMANDS "\"authorize\",\"devicestatus\",\"gray.jpg\",\"graysize\",\"turntable\"," \
+	"\"led\",\"angle\",\" tilt\",\"temperature\",\"battery\",\"config\",\"pointscan\"," \
+	"\"photoscan\", \"cancel\",\"aviablePlusDelay\",\"aviableFrequency\",\"aviableResolution\"," \
+	"\"aviablePrecision\",\"help\""
+
 #define AVIABLEPLUSDELAY "20, 50, 100, 150, 200, 250, 400, 700, 850, 1250, 2500, 5000"
 #define AVIABLEFREQUENCY "5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20"
 #define AVIABLERESOLUTION "20, 50, 100, 150, 200, 250, 400, 700, 850, 1250, 2500, 5000"
 #define AVIABLEPRECISION \
-	"{name: 'PRECISION_LEVEL_LOW',  frequency: 5, resolution:  0.5,plusdelay: 50, widthL:  361, height:  271, time:  72},\
-	{name: 'PRECISION_LEVEL_NORMAL',  frequency: 7, resolution:  0.375, plusdelay: 50, widthL:  505, height:  361, time:  72},\
-	{name: 'PRECISION_LEVEL_MIDDLE',  frequency: 5, resolution:  0.25, plusdelay: 100, widthL:  721, height:  541, time:  144},\
-	{name: 'PRECISION_LEVEL_HIGH',  frequency: 5, resolution:  0.125, plusdelay: 200, widthL:  1441, height:  1081, time:  288},\
-	{name: 'PRECISION_LEVEL_EXTRA',  frequency: 7, resolution:  0.0625, plusdelay: 1250, widthL:  2884, height:  2164, time:  1800}"
+	"{name: \"PRECISION_LEVEL_LOW\",  frequency: 5, resolution:  0.5,plusdelay: 50, widthL:  361, height:  271, time:  72},\
+	{name: \"PRECISION_LEVEL_NORMAL\",  frequency: 7, resolution:  0.375, plusdelay: 50, widthL:  505, height:  361, time:  72},\
+	{name: \"PRECISION_LEVEL_MIDDLE\",  frequency: 5, resolution:  0.25, plusdelay: 100, widthL:  721, height:  541, time:  144},\
+	{name: \"PRECISION_LEVEL_HIGH\",  frequency: 5, resolution:  0.125, plusdelay: 200, widthL:  1441, height:  1081, time:  288},\
+	{name: \"PRECISION_LEVEL_EXTRA\",  frequency: 7, resolution:  0.0625, plusdelay: 1250, widthL:  2884, height:  2164, time:  1800}"
 
-static char *commands[] = { "authorize", "devicestatus", "gray.jpg",
-		" graysize", "turntable", "led", "angle", "tilt", "temperature",
-		" battery", "config", " pointscan", "photoscan", "cancel",
-		" aviablePlusDelay", "aviableFrequency", "aviableResolution",
-		"aviablePrecises", "help" };
+static char *commands[] = { "authorize", "devicestatus", "gray.jpg", "graysize",
+		"turntable", "led", "angle", "tilt", "temperature", "battery", "config",
+		"pointscan", "photoscan", "cancel", "aviablePlusDelay",
+		"aviableFrequency", "aviableResolution", "aviablePrecision", "help" };
 
 static struct {
 	int hash;
@@ -47,6 +50,11 @@ static struct {
 static const char *ajax_reply_start = "HTTP/1.1 200 OK\r\n"
 		"Cache: no-cache\r\n"
 		"Content-Type: application/x-javascript\r\n"
+		"\r\n";
+
+static const char *reply_unzutorized = "HTTP/1.1 401 Unauthorized\r\n"
+		"Cache: no-cache\r\n"
+		"Connection: close\r\n\r\n"
 		"\r\n";
 
 static int strcompare(const char** p1, char** p2) {
@@ -71,20 +79,24 @@ static int is_command_avaiable(char *cmd) {
 			sizeof(commands[0]), strcompare);
 }
 
+#if 0
 static int urlcompare(const char* url, char* patt) {
 	int i = 0;
 	for (;;) {
 		if (patt[i] == '*')
-			return 1;
+		return 1;
 		if ((!patt[i] && url[i]) || (patt[i] && !url[i]))
-			return 0;
+		return 0;
 		if (!patt[i] && !url[i])
-			return 1;
+		return 1;
 		if (url[i] - patt[i])
-			return 0;
+		return 0;
 		i++;
 	}
 }
+#else
+#define urlcompare(_a_,_b_) !strcasecmp(_a_,_b_)
+#endif
 
 static int get_qsvar(const struct mg_request_info *request_info,
 		const char *name, char *dst, size_t dst_len) {
@@ -100,7 +112,7 @@ static int get_qsvar(const struct mg_request_info *request_info,
 		name = get_qsvar(request_info, #name, param, sizeof(param)) > 0 ? \
 				atof(param) : default_value;}while(0)
 
-// If "callback" param is present in query string, this is JSONP call.
+// If "callback" param is present in \"query\" string, this is JSONP call.
 // Return 1 in this case, or 0 if "callback" is not specified.
 // Wrap an output in Javascript function call.
 static int handle_jsonp(struct mg_connection *conn,
@@ -115,49 +127,97 @@ static int handle_jsonp(struct mg_connection *conn,
 	return cb[0] == '\0' ? 0 : 1;
 }
 
-static int send_replay(struct mg_connection *conn, int success, char *q,
-		char *msg) {
-	int ret;
-
-	ret = mg_printf(conn, "{ query: '%s', success: %d, message:['%s'] }", q,
-			success, msg);
-
-	return ret;
-}
-
-static int send_size_info(struct mg_connection *conn) {
-	int ret;
-	if (display.buf == NULL)
-		ret =
-				mg_printf(conn,
-						"{ query: 'size', success: 0, message:['display buf is null.'] }");
-	else
-		ret =
-				mg_printf(conn,
-						"{ query: 'size', success: 1, message:[], size: {width: %d, height: %d} }",
-						display.w, display.h);
-	return ret;
-}
-
-static void send_ok(struct mg_connection *conn, const char* extra, int size) {
+static int send_ok(struct mg_connection *conn, const char* extra, int size) {
+	int ret = 0;
 	if (size) {
 		if (extra)
-			mg_printf(conn,
-					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\nContent-Length: %d\r\n%s\r\n\r\n",
-					size, extra);
+			ret =
+					mg_printf(conn,
+							"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\nContent-Length: %d\r\n%s\r\n\r\n",
+							size, extra);
 		else
-			mg_printf(conn,
-					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\nContent-Length: %d\r\n\r\n",
-					size);
+			ret =
+					mg_printf(conn,
+							"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\nContent-Length: %d\r\n\r\n",
+							size);
 	} else {
 		if (extra)
-			mg_printf(conn,
-					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\n%s\r\n\r\n",
-					extra);
+			ret =
+					mg_printf(conn,
+							"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\n%s\r\n\r\n",
+							extra);
 		else
-			mg_printf(conn,
-					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\n\r\n");
+			ret =
+					mg_printf(conn,
+							"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\n\r\n");
 	}
+	return ret;
+}
+
+// Print message to buffer. If buffer is large enough to hold the message,
+// return buffer. If buffer is to small, allocate large enough buffer on heap,
+// and return allocated buffer.
+static int alloc_vprintf(char **buf, size_t size, const char *fmt, va_list ap) {
+	va_list ap_copy;
+	int len;
+
+	// Windows is not standard-compliant, and vsnprintf() returns -1 if
+	// buffer is too small. Also, older versions of msvcrt.dll do not have
+	// _vscprintf().  However, if size is 0, vsnprintf() behaves correctly.
+	// Therefore, we make two passes: on first pass, get required message length.
+	// On second pass, actually print the message.
+	va_copy(ap_copy, ap);
+	len = vsnprintf(NULL, 0, fmt, ap_copy);
+
+	if (len > (int) size&&	(size = len + 1) > 0 &&
+	(*buf = (char *) malloc(size)) == NULL) {
+		len = -1; // Allocation failed, mark failure
+	} else {
+		va_copy(ap_copy, ap);
+		vsnprintf(*buf, size, fmt, ap_copy);
+	}
+
+	return len;
+}
+#define MG_BUF_LEN 8192
+static int send_replay(struct mg_connection *conn, char *fmt, /*int success,
+ char *msg, */...) {
+	char mem[MG_BUF_LEN], *buf = mem;
+	int len, ret;
+	va_list ap;
+	va_start(ap, fmt);
+
+	if ((len = alloc_vprintf(&buf, sizeof(mem), fmt, ap)) > 0) {
+//		len = mg_printf(conn,buf);
+		ret = send_ok(conn, "Content-Type: text/json; charset=UTF-8", len);
+		ret += mg_write(conn, buf, len);
+	}
+	if (buf != mem && buf != NULL) {
+		free(buf);
+	}
+
+	return ret;
+}
+
+static int send_login_ok(struct mg_connection *conn, char *sessionid,
+		char *user, char *fmt, ...) {
+	char extra[1024], mem[MG_BUF_LEN - 1024], *buf = mem;
+	int len, ret;
+	va_list ap;
+	va_start(ap, fmt);
+
+	if ((len = alloc_vprintf(&buf, sizeof(mem), fmt, ap)) > 0) {
+		snprintf(extra, 1024,
+				"Set-Cookie: session=%s; max-age=3600; http-only\r\nSet-Cookie: user=%s",
+				sessionid, user);
+		ret = send_ok(conn, extra, len);
+		ret += mg_write(conn, buf, len);
+	}
+	if (buf != mem && buf != NULL) {
+		free(buf);
+	}
+
+	return ret;
 }
 
 static void send_jpg(struct mg_connection *conn) {
@@ -179,35 +239,33 @@ static void send_jpg(struct mg_connection *conn) {
 static int do_command(struct mg_connection *conn, const char *cmd) {
 	const struct mg_request_info *request_info = mg_get_request_info(conn);
 	int ret = 1;
-	char param[32];
+
 	if (urlcompare(cmd, "help")) {
-
-		mg_printf(conn, "{query: 'help', success: 1, message:[%s]}", HELP);
+		send_replay(conn, REPLAY_FORMAT("\"commands\":[%s]"), cmd, 1, "",
+				COMMANDS);
 	} else if (urlcompare(cmd, "aviablePlusDelay")) {
-
-		mg_printf(conn,
-				"{query: 'aviablePlusDelay', success: 1, message:[''], aviablePlusDelay: [%s]}",
-				AVIABLEPLUSDELAY);
-
+		send_replay(conn, REPLAY_FORMAT("\"aviablePlusDelay\": [%s]"), cmd, 1,
+				"", AVIABLEPLUSDELAY);
 	} else if (urlcompare(cmd, "aviableFrequency")) {
-
-		mg_printf(conn,
-				"{query: 'aviableFrequency', success: 1, message:[''],  aviableFrequency: [%s]}",
-				AVIABLEFREQUENCY);
-
+		send_replay(conn, REPLAY_FORMAT("\"aviableFrequency\": [%s]"), cmd, 1,
+				"", AVIABLEFREQUENCY);
 	} else if (urlcompare(cmd, "aviableResolution")) {
-
-		mg_printf(conn,
-				"{query: 'aviableResolution', success: 1, message:[''],  aviableResolution: [%s]}",
-				AVIABLERESOLUTION);
-
+		send_replay(conn, REPLAY_FORMAT("\"aviableResolution\": [%s]"), cmd, 1,
+				"", AVIABLERESOLUTION);
 	} else if (urlcompare(cmd, "aviablePrecision")) {
-
-		mg_printf(conn,
-				"{query: 'aviablePrecision', success: 1, message:[''], aviablePrecision: \n [%s]}",
-				AVIABLEPRECISION);
+		send_replay(conn, REPLAY_FORMAT("\"aviablePrecision\": [%s]"), cmd, 1,
+				"", AVIABLEPRECISION);
 	} else if (urlcompare(cmd, "authorize")) {
-		authorize(conn, request_info);
+		struct session * session = authorize_ex(conn, request_info);
+		if (session)
+			send_login_ok(conn, (char*) session->session_id,
+					(char*) session->user,
+					REPLAY_FORMAT("\"userlevel\": \"%s\""), cmd, 1,
+					"login success.", "admin");
+		else {
+			send_replay(conn, REPLAY_FORMAT("\"userlevel\": \"%s\""), cmd, 0,
+					"login failed.", "unauthorize");
+		}
 	} else {
 		ret = 0;
 	}
@@ -222,22 +280,20 @@ static int do_ls300_command(struct mg_connection *conn, const char *cmd) {
 	if (urlcompare(cmd, "gray.jpg")) {
 		send_jpg(conn);
 	} else if (urlcompare(cmd, "graysize")) {
-		send_size_info(conn);
+		send_replay(conn,
+				REPLAY_FORMAT("\"size\": { \"width\": %d, \"height\": %d}"),
+				cmd, 1, "", display.w, display.h);
 	} else if (urlcompare(cmd, "angle")) {
-		mg_printf(conn,
-				"{ query: 'angle', success: 1, message:[''] angle: %8.4f}",
+		send_replay(conn, REPLAY_FORMAT("\"angle\": %8.4f"), cmd, 1, "",
 				server.ls300m->angle);
 	} else if (urlcompare(cmd, "tilt")) {
-		mg_printf(conn,
-				"{ query: 'tilt', success: 1, message:[''] dx: %8.4f dy:%8.4f}",
-				server.ls300m->tilt.dX, server.ls300m->tilt.dY);
+		send_replay(conn, REPLAY_FORMAT("\"dx\": %8.4f,\"dy\":%8.4f"), cmd, 1,
+				"", server.ls300m->tilt.dX, server.ls300m->tilt.dY);
 	} else if (urlcompare(cmd, "temperature")) {
-		mg_printf(conn,
-				"{ query: 'temperature', success: 1, message:[''] temperature: %8.4f}",
+		send_replay(conn, REPLAY_FORMAT("\"temperature\": %8.4f"), cmd, 1, "",
 				server.ls300m->temperature);
 	} else if (urlcompare(cmd, "battery")) {
-		mg_printf(conn,
-				"{ query: 'battery', success: 1, message:[''] battery: %8.4f}",
+		send_replay(conn, REPLAY_FORMAT("\"battery\": %8.4f"), cmd, 1, "",
 				server.ls300m->battery);
 	} else if (urlcompare(cmd, "config")) {
 		int plusdelay, frequency;
@@ -254,34 +310,38 @@ static int do_ls300_command(struct mg_connection *conn, const char *cmd) {
 		ret = sj_config(server.ls300, plusdelay, start_angle_h, end_angle_h,
 				frequency, resolution, start_angle_v, end_angle_v);
 		if (e_failed(ret)) {
-			send_replay(conn, 0, cmd, "Laser scan config failed.device busy.");
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 0,
+					"Laser scan config failed.device busy.");
 		} else {
-			send_replay(conn, 1, cmd, "Laser scan config successfull.");
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
+					"Laser scan config success.");
 		}
 	} else if (urlcompare(cmd, "pointscan")) {
 		ret = sj_scan_point(server.ls300);
 		if (e_failed(ret)) {
-			send_replay(conn, 0, cmd,
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 0,
 					"Laser scan start scan point cloud failed.device busy.");
 		} else {
-			send_replay(conn, 1, cmd,
-					"Laser scan start scan point cloud successfull.");
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
+					"Laser scan start scan point cloud success full.");
 		}
 	} else if (urlcompare(cmd, "photoscan")) {
 		ret = sj_scan_photo(server.ls300);
 		if (e_failed(ret)) {
-			send_replay(conn, 0, cmd,
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 0,
 					"Laser scan start scan photo failed.device busy.");
 		} else {
-			send_replay(conn, 1, cmd,
-					"Laser scan start scan photo successfull.");
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
+					"Laser scan start scan photo success full.");
 		}
 	} else if (urlcompare(cmd, "cancel")) {
 		ret = sj_cancel(server.ls300);
 		if (e_failed(ret)) {
-			send_replay(conn, 0, cmd, "Laser scan stop failed.");
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 0,
+					"Laser scan stop failed.");
 		} else {
-			send_replay(conn, 1, cmd, "Laser scan stopped.");
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
+					"Laser scan stopped.");
 		}
 	} else if (urlcompare(cmd, "led")) {
 		get_qsvar(request_info, "color", param, sizeof(param));
@@ -292,22 +352,26 @@ static int do_ls300_command(struct mg_connection *conn, const char *cmd) {
 		else
 			ret = lm_led_off();
 		if (e_failed(ret)) {
-			send_replay(conn, 0, cmd, "Operate led failed.");
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 0,
+					"Operate led failed.");
 		} else {
-			send_replay(conn, 1, cmd, "Operate led successful.");
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
+					"Operate led success.");
 		}
 	} else if (urlcompare(cmd, "turntable")) {
 		float angle;
 		get_request_param_float(request_info, param, angle, 0);
-		if (angle < 1e-6)
+		if (fabs(angle) < 1e-6)
 			ret = lm_turntable_stop();
 		else
 			ret = lm_turntable_turn_async(angle);
 
 		if (e_failed(ret)) {
-			send_replay(conn, 0, cmd, "Operate turntable failed.");
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 0,
+					"Operate turntable failed.");
 		} else {
-			send_replay(conn, 1, cmd, "Operate turntable successful.");
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
+					"Operate turntable successful.");
 		}
 	} else {
 		ret = 0;
@@ -327,23 +391,34 @@ static int begin_request_handler(struct mg_connection *conn) {
 	char q[32] = { 0 };
 	int is_jsonp;
 
-	if (!is_authorized(conn, request_info)) {
-		redirect_to_login(conn, request_info);
-	} else if (strcmp(request_info->uri, authorize_url) == 0) {
-		authorize(conn, request_info);
+	char* ua = mg_get_header(conn, "User-Agent");
+
+	if (!ua || strcasecmp(ua, "LS300CLIENT")) {
+		//此处用于常规页面验证
+		if (!is_authorized(conn, request_info)) {
+			redirect_to_login(conn, request_info);
+		} else if (strcmp(request_info->uri, authorize_url) == 0) {
+			authorize(conn, request_info);
+		}
 	}
+
+	is_jsonp = handle_jsonp(conn, request_info);
 
 	if (get_qsvar(request_info, "q", q, sizeof(q)) <= 0)
 		return 0;
+
+	if (strcasecmp(q, "authorize") && !authorize_ex(conn, request_info)) {
+		mg_printf(conn, "%s", reply_unzutorized);
+		goto done;
+	}
 
 	if (!is_command_avaiable(q)) {
 		send_replay(conn, 0, q, "unknown command.");
 		goto done;
 	}
 
-	is_jsonp = handle_jsonp(conn, request_info);
-	if (is_jsonp)
-		mg_printf(conn, "%s", ajax_reply_start);
+//	if (is_jsonp)
+//		mg_printf(conn, "%s", ajax_reply_start);
 
 	if (do_command(conn, q))
 		goto done;
@@ -355,16 +430,19 @@ static int begin_request_handler(struct mg_connection *conn) {
 					"/placeholder.jpg");
 		}
 		mg_printf(conn,
-				"{ query: '%s', success: 0, message:['ls300 is not ready.'] }",
+				"{ \"query\": \"%s\", \"success\": 0, \"message\":[\"ls300 is not ready.\"] }",
 				q);
 		goto done;
 	}
-	if (do_ls300_command(conn, q))
-		goto done;
 
-	done: if (is_jsonp) {
-		mg_printf(conn, "%s", ")");
-	}
+	do_ls300_command(conn, q);
+
+
+//	if (is_jsonp) {
+//		mg_printf(conn, "%s", ")");
+//	}
+
+	done:
 
 	return 1;
 }

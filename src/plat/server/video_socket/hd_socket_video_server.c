@@ -27,10 +27,10 @@
 #include <comm/hd_utils.h>
 #include <jpg/hd_jpeg.h>
 
-//#ifdef DMSG
-//#undef DMSG
-//#define DMSG
-//#endif
+#ifdef DMSG
+#undef DMSG
+#define DMSG
+#endif
 
 static struct video_server_t {
 

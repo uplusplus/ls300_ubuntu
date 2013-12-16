@@ -18,6 +18,7 @@
 #include <arch/hd_plat_base.h>
 #include <ls300/hd_laser_control.h>
 
+
 /*结构体定义*/
 typedef struct scan_job_t scan_job_t;
 
