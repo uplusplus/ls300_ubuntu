@@ -244,7 +244,7 @@ e_int32 sc_recv_ex(hd_connect_t *sc, e_uint8 *buffer, e_uint32 bytes_to_read,
 
 		if (bytes_done < bytes_to_read) { //一次没发送完，说明网络负载过大，等待
 			ret = sc_select(sc, E_READ, timeout);
-			if (ret < 0)
+			if (ret < 0 && ret != E_ERROR_RETRY)
 				break;
 		}
 	}
@@ -290,7 +290,7 @@ e_int32 sc_send_ex(hd_connect_t *sc, e_uint8 *buffer, e_uint32 bytes_to_send,
 
 		if (bytes_done < bytes_to_send) { //一次没发送完，说明网络负载过大，等待
 			ret = sc_select(sc, E_WRITE, timeout);
-			if (ret < 0)
+			if (ret < 0 && ret != E_ERROR_RETRY)
 				break;
 		}
 	}
@@ -339,8 +339,8 @@ e_int32 sc_request(hd_connect_t *sc, e_uint8 *send_buffer, e_uint32 slen,
 	beg_time = GetTickCount();
 
 	//发送
-	ret = sc_select(sc, E_WRITE, timeout_usec);
-	e_assert(ret>0, ret);
+//	ret = sc_select(sc, E_WRITE, timeout_usec);
+//	e_assert(ret>0, ret);
 
 	elapsed_time = compute_elapsed_time(beg_time, GetTickCount());
 	e_assert(elapsed_time < timeout_usec, E_ERROR_TIME_OUT);

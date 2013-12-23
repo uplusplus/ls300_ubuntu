@@ -172,13 +172,13 @@ e_int32 sld_uninitialize(sickld_t* sick) {
 	ret = sld_set_signals(sick, DEFAULT_SICK_SIGNAL_SET);
 	e_assert(ret>0, ret);
 
-	/* Attempt to close the tcp connection */
-	DMSG((STDOUT, "\tClosing connection to Sick LD...\r\n"));
-	ret = sld_teardown_connection(sick);
-	e_assert(ret>0, ret);
-
-	DMSG((STDOUT, "\t\tConnection closed!\r\n"));
-	DMSG((STDOUT, "\t*** Uninit. complete - Sick LD is now offline!\r\n"));
+//	/* Attempt to close the tcp connection */
+//	DMSG((STDOUT, "\tClosing connection to Sick LD...\r\n"));
+//	ret = sld_teardown_connection(sick);
+//	e_assert(ret>0, ret);
+//
+//	DMSG((STDOUT, "\t\tConnection closed!\r\n"));
+//	DMSG((STDOUT, "\t*** Uninit. complete - Sick LD is now offline!\r\n"));
 
 	/* Mark the device as uninitialized */
 	sick->initialized = false;

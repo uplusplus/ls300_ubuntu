@@ -1,0 +1,1256 @@
+#include <string>
+
+extern "C" {
+#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <string.h>
+#include <errno.h>
+#include <limits.h>
+#include <stddef.h>
+#include <stdarg.h>
+#include <ctype.h>
+#include <stdint.h>
+#include <math.h>
+#include "mongoose.h"
+}
+
+static std::string dir;
+
+std::string base64_encode(unsigned char const*, unsigned int len);
+std::string base64_decode(std::string const& s);
+char* convertxml(char* to, const char* from);
+void my_send_directory(struct mg_connection *conn, const char *dir);
+int64_t contentlen(struct mg_connection* conn);
+
+extern "C" {
+struct dirent {
+	uint64_t d_ino;
+	int64_t d_off;
+	unsigned short d_reclen;
+	unsigned char d_type;
+	char d_name[256];
+};
+
+typedef struct DIR DIR;
+
+extern int getdents(unsigned int, struct dirent*, unsigned int);
+extern DIR* opendir(const char* dirpath);
+extern DIR* fdopendir(int fd);
+extern struct dirent* readdir(DIR* dirp);
+extern int readdir_r(DIR* dirp, struct dirent *entry, struct dirent **result);
+extern int closedir(DIR* dirp);
+extern void rewinddir(DIR *dirp);
+extern int dirfd(DIR* dirp);
+extern int alphasort(const void *a, const void *b);
+extern int scandir(const char *dir, struct dirent ***namelist,
+		int (*filter)(const struct dirent *),
+		int (*compar)(const struct dirent **, const struct dirent **));
+}
+
+bool startswith(const char* st, char* patt) {
+	int i = 0;
+	while (patt[i]) {
+		if (st[i] == 0 || st[i] - patt[i])
+			return false;
+		i++;
+	}
+	return true;
+}
+
+static std::string getoption(char* list, char* option) {
+	std::string ret;
+	int n = strlen(list);
+	int i;
+	for (i = 0; i < n; i++)
+		if (startswith(list + i, option)) {
+			i += strlen(option);
+			while (i < n && list[i] != '&')
+				ret += list[i++];
+			break;
+		}
+	return ret;
+}
+
+static void remove_double_dots_and_double_slashes(char *s) {
+	char *p = s;
+
+	while (*s != '\0') {
+		*p++ = *s++;
+		if (s[-1] == '/' || s[-1] == '\\') {
+
+			while (*s == '/' || *s == '\\')
+				s++;
+
+			while (*s == '.' && s[1] == '.')
+				s += 2;
+		}
+	}
+	*p = '\0';
+}
+
+typedef int bool_t;
+static size_t url_decode(const char *src, size_t src_len, char *dst,
+		size_t dst_len, bool_t is_form_url_encoded) {
+	size_t i, j;
+	int a, b;
+
+	for (i = j = 0; i < src_len && j < dst_len - 1; i++, j++) {
+		if (src[i] == '%' && isxdigit(*(unsigned char *) (src + i + 1))
+				&& isxdigit(*(unsigned char *) (src + i + 2))) {
+			a = tolower(*(unsigned char *) (src + i + 1));
+			b = tolower(*(unsigned char *) (src + i + 2));
+			dst[j] = (((isdigit(a) ? a - '0' : a - 'W') << 4)
+					| (isdigit(b) ? b - '0' : b - 'W')) & 0xff;
+			i += 2;
+		} else if (is_form_url_encoded && src[i] == '+') {
+			dst[j] = ' ';
+		} else {
+			dst[j] = src[i];
+		}
+	}
+
+	dst[j] = '\0';
+
+	return (j);
+}
+
+static void send_ok_ex(struct mg_connection *conn, const char* extra = __null,
+		int size = 0)
+
+		{
+	if (size) {
+		if (extra)
+			mg_printf(conn,
+					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\nContent-Length: %d\r\n%s\r\n\r\n",
+					size, extra);
+		else
+			mg_printf(conn,
+					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\nContent-Length: %d\r\n\r\n",
+					size);
+	} else {
+		if (extra)
+			mg_printf(conn,
+					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\n%s\r\n\r\n",
+					extra);
+		else
+			mg_printf(conn,
+					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nConnection: close\r\n\r\n");
+	}
+}
+static void read_post_data(struct mg_connection *conn,
+		const struct mg_request_info *ri, char** post_data,
+		int* post_data_len) {
+	int l = contentlen(conn);
+	if (l > 65536)
+		l = 65536;
+	*post_data = new char[l + 1];
+	*post_data_len = mg_read(conn, *post_data, l);
+	(*post_data)[*post_data_len] = 0;
+}
+
+bool urlcompare_ex(const char* url, char* patt) {
+	int i = 0;
+	while (true) {
+		if (patt[i] == '*')
+			return true;
+		if ((!patt[i] && url[i]) || (patt[i] && !url[i]))
+			return false;
+		if (!patt[i] && !url[i])
+			return true;
+		if (url[i] - patt[i])
+			return false;
+		i++;
+	}
+}
+bool cmp(const char* st, char* patt) {
+	int i = 0;
+	while (patt[i] && st[i]) {
+		if (st[i] - patt[i])
+			return false;
+		i++;
+	}
+	if (st[i] - patt[i])
+		return false;
+	return true;
+}
+
+static void sendfile(const char* file, struct mg_connection *conn, bool sendok =
+		false, char * extra = __null) {
+	FILE* f = fopen(file, "rb");
+	if (!f) {
+		if (sendok)
+			send_ok_ex(conn);
+		return;
+	}
+	fseek(f, 0, 2);
+	int lSize = ftell(f);
+	if (sendok)
+		send_ok_ex(conn, extra, lSize);
+	rewind(f);
+	char* filebuffer = new char[65536];
+	if (filebuffer) {
+		while (lSize > 0) {
+			int s = std::min(65536, lSize);
+			fread(filebuffer, 1, std::min(65536, lSize), f);
+			mg_write(conn, filebuffer, s);
+			lSize -= s;
+		}
+		fclose(f);
+		delete[] filebuffer;
+	}
+}
+
+FILE* fo(const char* filename, const char* mode) {
+	std::string longname = dir + filename;
+	FILE* ret = fopen(longname.c_str(), mode);
+	if (!ret) {
+		printf("Couldn't open %s with mode %s\n", longname.c_str(), mode);
+		perror("error failed:");
+	}
+
+	return ret;
+}
+
+static void sdcard(struct mg_connection *conn, const struct mg_request_info *ri,
+		void *data) {
+	send_ok_ex(conn,
+			"Content-Type: text/html; charset=UTF-8\r\nSet-Cookie: path=/");
+	FILE* f = fo("sdcard.html", "rb");
+	if (!f)
+		return;
+	fseek(f, 0, 2);
+	int lSize = ftell(f);
+	rewind(f);
+	char* filebuffer = new char[lSize + 1];
+	if (!filebuffer)
+		return;
+	fread(filebuffer, 1, lSize, f);
+	filebuffer[lSize] = 0;
+	mg_write(conn, filebuffer, lSize);
+	fclose(f);
+	delete[] filebuffer;
+}
+
+int remove_directory(const char *path) {
+	DIR *d = opendir(path);
+	size_t path_len = strlen(path);
+	int r = -1;
+	if (d) {
+		struct dirent *p;
+		r = 0;
+		while (!r && (p = readdir(d))) {
+			int r2 = -1;
+			char *buf;
+			size_t len;
+			if (!strcmp(p->d_name, ".") || !strcmp(p->d_name, ".."))
+				continue;
+			std::string next = std::string(path) + std::string("/")
+					+ std::string(p->d_name);
+			struct stat statbuf;
+			if (!stat(next.c_str(), &statbuf)) {
+				if ((((statbuf.st_mode) & 00170000) == 0040000)) {
+					r2 = remove_directory(next.c_str());
+				} else {
+					r2 = unlink(next.c_str());
+				}
+			}
+			r = r2;
+		}
+		closedir(d);
+	}
+	if (!r) {
+		r = rmdir(path);
+	}
+	return r;
+}
+
+static void upload(struct mg_connection *conn, const struct mg_request_info *ri,
+		void *data) {
+	char* post_data;
+	int post_data_len = contentlen(conn);
+	int read = 0;
+
+	std::string file = getoption(ri->uri, "file=");
+	if (file.size() == 0)
+		file = dir + getoption(ri->uri, "local=");
+
+	char to[4096];
+	strcpy(to, file.c_str());
+	url_decode(to, strlen(to), to, 4096, true);
+	remove_double_dots_and_double_slashes(to);
+
+	mg_printf(conn,
+			"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nContent-Type: text/plain;\r\nConnection: close\r\n\r\n");
+
+	FILE* out;
+	if ((out = fopen(to, "w")) == __null) {
+		mg_printf(conn, "Unable to open file.\n");
+		return;
+	}
+
+	while (read < post_data_len) {
+		int next = post_data_len - read;
+		if (next > 1048576)
+			next = 1048576;
+		post_data = new char[next + 1];
+		if (post_data == __null) {
+			mg_printf(conn, "Not enough memory.\n");
+			return;
+		}
+
+		read += mg_read(conn, post_data, next);
+		if (fwrite(post_data, 1, next, out) < next) {
+			mg_printf(conn, "Failed to save file.\n");
+			delete[] post_data;
+			return;
+		}
+		delete[] post_data;
+	}
+	fclose(out);
+	std::string perm = getoption(post_data, "file=");
+	if (perm.size()) {
+		int p = atoi(perm.c_str());
+		chmod(to, p);
+	}
+
+	mg_printf(conn, "ok");
+}
+
+static void content(struct mg_connection *conn,
+		const struct mg_request_info *ri, void *data) {
+	char* post_data;
+	int post_data_len;
+	read_post_data(conn, ri, &post_data, &post_data_len);
+//	printf("post_data %s\n q=%s\n",post_data,ri->query_string);
+	if (ri->query_string == __null && post_data_len
+			&& startswith(post_data, "get_action=put_content")) {
+		std::string file = getoption(post_data, "file=");
+		char to[4096];
+		strcpy(to, file.c_str());
+		url_decode(to, strlen(to), to, 4096, true);
+		remove_double_dots_and_double_slashes(to);
+		std::string code = getoption(post_data, "content=");
+		char* c = new char[code.length() + 1];
+		strcpy(c, code.c_str());
+		url_decode(c, strlen(c), c, strlen(c), true);
+		mg_printf(conn,
+				"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nContent-Type: text/plain;\r\nConnection: close\r\n\r\n");
+		if (post_data_len == 65536) {
+			mg_printf(conn, "The file is too large.");
+			delete[] c;
+			return;
+		}
+		FILE* out;
+		if (out = fopen(to, "w")) {
+			fwrite(c, 1, strlen(c), out);
+			fclose(out);
+			mg_printf(conn, "The file has been saved successfully");
+		} else
+			mg_printf(conn, "1000");
+
+		delete[] c;
+		return;
+	}
+	int i;
+	for (i = 0; i < ri->num_headers; i++) {
+		if (!strncasecmp("Content-Type", ri->http_headers[i].name, 12)
+				&& !strncasecmp("multipart/form-data",
+						ri->http_headers[i].value, 19))
+			break;
+	}
+
+	if (i < ri->num_headers) {
+
+		i = 0;
+		while (i < post_data_len && post_data[i] != '\r')
+			i++;
+		if (i >= post_data_len) {
+			if (post_data)
+				delete[] post_data;
+			return;
+		}
+		post_data[i] = 0;
+		std::string boundary = std::string("\r\n") + std::string(post_data);
+		i += 2;
+
+		if (i >= post_data_len) {
+			if (post_data)
+				delete[] post_data;
+			return;
+		}
+
+		if (strncasecmp("Content-Disposition: form-data; name=\"userfile_",
+				post_data + i, 47)) {
+			if (post_data)
+				delete[] post_data;
+			return;
+		}
+		i += 47;
+
+		while (i < post_data_len && post_data[i] != '_')
+			i++;
+		i++;
+		if (i >= post_data_len) {
+			if (post_data)
+				delete[] post_data;
+			return;
+		}
+		int start = i;
+		while (i < post_data_len && post_data[i] != '"')
+			i++;
+		if (i >= post_data_len) {
+			if (post_data)
+				delete[] post_data;
+			return;
+		}
+		post_data[i] = 0;
+
+		url_decode(post_data + start, strlen(post_data + start),
+				post_data + start, 4096, true);
+		std::string dir = post_data + start;
+
+		while (i < post_data_len - 4
+				&& strncmp(post_data + i, "filename=\"", 10))
+			i++;
+		i += 10;
+		start = i;
+		while (i < post_data_len - 4 && post_data[i] != '"')
+			i++;
+		if (i >= post_data_len) {
+			if (post_data)
+				delete[] post_data;
+			return;
+		}
+
+		post_data[i] = 0;
+		std::string filename = post_data + start;
+
+		while (i < post_data_len - 4 && strncmp(post_data + i, "\r\n\r\n", 4))
+			i++;
+		i += 4;
+		if (i >= post_data_len) {
+			if (post_data)
+				delete[] post_data;
+			return;
+		}
+		start = i;
+
+		send_ok_ex(conn);
+		FILE * f = fopen((dir + "/" + filename).c_str(), "w");
+		if (!f) {
+
+			mg_printf(conn,
+					"<html><script language=\"javascript\">if(parent.ajaxplorer.actionBar.multi_selector) parent.ajaxplorer.actionBar.multi_selector.submitNext('Error opening file for writing');</script></html>\n");
+			if (post_data)
+				delete[] post_data;
+			return;
+		}
+
+		int already_read = 65536;
+		while (post_data_len == 65536) {
+			int s = fwrite(post_data + start, 1, 65536 - 500 - start, f);
+
+			if (s < 65536 - 500 - start) {
+				mg_printf(conn,
+						"<html><script language=\"javascript\">if(parent.ajaxplorer.actionBar.multi_selector) parent.ajaxplorer.actionBar.multi_selector.submitNext('Error writing. Is disk full?');</script></html>\n");
+				fclose(f);
+				if (post_data)
+					delete[] post_data;
+				return;
+			}
+			start = 0;
+			int l = contentlen(conn) - already_read;
+
+			if (l > 65536 - 500)
+				l = 65536 - 500;
+			memcpy(post_data, post_data + 65536 - 500, 500);
+			post_data_len = mg_read(conn, post_data + 500, l) + 500;
+			post_data[post_data_len] = 0;
+			already_read += post_data_len - 500;
+
+		}
+		i = 0;
+		while (i < post_data_len
+				&& strncmp(post_data + i, boundary.c_str(), boundary.size()))
+			i++;
+		if (i >= post_data_len) {
+			mg_printf(conn,
+					"<html><script language=\"javascript\">if(parent.ajaxplorer.actionBar.multi_selector) parent.ajaxplorer.actionBar.multi_selector.submitNext('Error, no boundary found at the end of the stream. Strange...');</script></html>\n");
+			if (post_data)
+				delete[] post_data;
+			fclose(f);
+			return;
+		}
+		if (fwrite(post_data + start, 1, i - start, f) < i - start) {
+			mg_printf(conn,
+					"<html><script language=\"javascript\">if(parent.ajaxplorer.actionBar.multi_selector) parent.ajaxplorer.actionBar.multi_selector.submitNext('Error writing. Is disk full?');</script></html>\n");
+			fclose(f);
+			if (post_data)
+				delete[] post_data;
+			return;
+		}
+		fclose(f);
+		mg_printf(conn,
+				"<html><script language=\"javascript\">if(parent.ajaxplorer.actionBar.multi_selector) parent.ajaxplorer.actionBar.multi_selector.submitNext();</script></html>\n");
+		if (post_data)
+			delete[] post_data;
+		return;
+	}
+	if (ri->query_string == __null)
+		return;
+
+	FILE* f = __null;
+	if (startswith(ri->query_string, "get_action=save_user_pref")
+			|| startswith(ri->query_string, "get_action=switch_repository")) {
+		sdcard(conn, ri, data);
+		return;
+	}
+	std::string action = getoption(ri->query_string, "action=");
+
+	if (action == "get_boot_conf") {
+		send_ok_ex(conn, "Content-Type: text/javascript; charset=UTF-8");
+		f = fo("ae_get_boot_conf", "rb");
+	}
+	if (strcmp(ri->query_string,
+			"get_action=get_template&template_name=flash_tpl.html&pluginName=uploader.flex&encode=false")
+			== 0) {
+		send_ok_ex(conn);
+		f = fo("ae_get_template", "rb");
+		if (f) {
+			fseek(f, 0, 2);
+			int lSize = ftell(f);
+			rewind(f);
+			char* filebuffer = new char[lSize + 1];
+			if (!filebuffer)
+				return;
+			fread(filebuffer, 1, lSize, f);
+			filebuffer[lSize] = 0;
+			mg_write(conn, filebuffer, lSize);
+			fclose(f);
+			delete[] filebuffer;
+
+			f = __null;
+
+		}
+	}
+	if (action == "get_xml_registry") {
+		send_ok_ex(conn, "Content-Type: text/xml; charset=UTF-8");
+		f = fo("ae_get_xml_registry", "rb");
+	}
+	if (f) {
+		fseek(f, 0, 2);
+		int lSize = ftell(f);
+		rewind(f);
+		char* filebuffer = new char[lSize + 1];
+		if (!filebuffer)
+			return;
+		fread(filebuffer, 1, lSize, f);
+		filebuffer[lSize] = 0;
+		mg_write(conn, filebuffer, lSize);
+		fclose(f);
+		delete[] filebuffer;
+		return;
+	}
+	if (action == "ls") {
+
+		send_ok_ex(conn, "Content-Type: text/xml; charset=UTF-8");
+		std::string dp = getoption(ri->query_string, "dir=");
+		char dirpath[4096];
+
+		strcpy(dirpath, dp.c_str());
+		url_decode(dirpath, strlen(dirpath), dirpath, 4096, true);
+
+		if (!startswith(dirpath, "/sdcard")) {
+			(void) mg_printf(conn,
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree filename=\"\" text=\"\" is_file=\"false\"><tree is_file=\"false\" filename=\"/sdcard\" text=\"sdcard\" icon=\"folder.png\" mimestring=\"Directory\" is_image=\"0\"/></tree>");
+			return;
+		}
+
+		remove_double_dots_and_double_slashes(dirpath);
+
+		my_send_directory(conn, dirpath);
+	}
+	if (action == "download" || action == "preview_data_proxy"
+			|| action == "audio_proxy" || action == "get_content"
+			|| action == "open_with") {
+
+		std::string fp = getoption(ri->query_string, "file=");
+		if (action == "audio_proxy")
+			fp = base64_decode(fp);
+		char filepath[4096];
+		strcpy(filepath, fp.c_str());
+		url_decode(filepath, strlen(filepath), filepath, 4096, true);
+		if (!startswith(filepath, "/sdcard"))
+			return;
+		remove_double_dots_and_double_slashes(filepath);
+		int i;
+		for (i = strlen(filepath) - 1; i >= 0; i--)
+			if (filepath[i] == '/')
+				break;
+
+		if (action == "preview_data_proxy") {
+			mg_printf(conn,
+					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nContent-Type: image/jpg; name=\"%s\"\r\nConnection: close\r\n\r\n",
+					filepath + i + 1);
+
+		}
+		if (action == "open_with" || action == "get_content") {
+			mg_printf(conn,
+					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nContent-Type: text/plain;\r\nConnection: close\r\n\r\n");
+		}
+		if (action == "download") {
+			mg_printf(conn,
+					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nname=\"%s\"\r\nContent-Disposition: attachment; filename=\"%s\"\r\nConnection: close\r\n\r\n",
+					filepath + i + 1, filepath + i + 1);
+		}
+		if (action == "audio_proxy") {
+			mg_printf(conn,
+					"HTTP/1.1 200 OK\r\nCache-Control: no-store, no-cache, must-revalidate\r\nCache-Control: post-check=0, pre-check=0\r\nPragma: no-cache\r\nContent-Type: audio/mp3: name=\"%s\"\r\nConnection: close\r\n\r\n",
+					filepath + i + 1);
+		}
+		sendfile(filepath, conn);
+
+		return;
+	}
+	if (action == "rename") {
+		std::string fp = getoption(ri->query_string, "file=");
+		char filepath[4096];
+		strcpy(filepath, fp.c_str());
+		url_decode(filepath, strlen(filepath), filepath, 4096, true);
+		if (!startswith(filepath, "/sdcard"))
+			return;
+		remove_double_dots_and_double_slashes(filepath);
+		int i;
+		for (i = strlen(filepath) - 1; i >= 0; i--)
+			if (filepath[i] == '/')
+				break;
+
+		fp = getoption(ri->query_string, "filename_new=");
+		char newfile[4096];
+		strcpy(newfile, filepath);
+		newfile[i + 1] = 0;
+		strcat(newfile, fp.c_str());
+		url_decode(newfile, strlen(newfile), newfile, 4096, true);
+		remove_double_dots_and_double_slashes(newfile);
+
+		int st = rename(filepath, newfile);
+		send_ok_ex(conn);
+		if (st == 0) {
+			char buff[4096];
+			convertxml(buff, filepath);
+			char buff2[4096];
+			convertxml(buff2, fp.c_str());
+			mg_printf(conn,
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"SUCCESS\">%s has been renamed to %s</message><reload_instruction object=\"data\" node=\"\" file=\"%s\"/></tree>",
+					buff, buff2, buff2);
+		} else {
+			char buff[4096];
+			convertxml(buff, filepath);
+			char buff2[4096];
+			convertxml(buff2, fp.c_str());
+			mg_printf(conn,
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"ERROR\">Error renaming %s to %s</message></tree>",
+					buff, buff2);
+		}
+		return;
+	}
+	if (action == "mkdir") {
+		std::string fp = getoption(ri->query_string, "dir=");
+		if (!startswith(fp.c_str(), "%2Fsdcard"))
+			fp = "/sdcard/" + fp;
+		char filepath[4096];
+		strcpy(filepath, fp.c_str());
+		url_decode(filepath, strlen(filepath), filepath, 4096, true);
+
+		std::string nd = getoption(ri->query_string, "dirname=");
+		std::string dirname = fp + '/' + nd;
+		char newdir[4096];
+		strcpy(newdir, dirname.c_str());
+		url_decode(newdir, strlen(newdir), newdir, 4096, true);
+		remove_double_dots_and_double_slashes(newdir);
+
+		int st = mkdir(newdir, 0777);
+		send_ok_ex(conn);
+		if (st == 0) {
+			char buff[4096];
+			convertxml(buff, newdir);
+			char buff2[4096];
+			convertxml(buff2, nd.c_str());
+			mg_printf(conn,
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"SUCCESS\">The directory %s has been created.</message><reload_instruction object=\"data\" node=\"\" file=\"%s\"/></tree>",
+					buff, buff2);
+		} else {
+			char buff[4096];
+			convertxml(buff, newdir);
+			mg_printf(conn,
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"ERROR\">Error creating directory %s</message></tree>",
+					buff);
+		}
+		return;
+	}
+	if (action == "mkfile") {
+		std::string file = getoption(ri->query_string, "dir=") + "/"
+				+ getoption(ri->query_string, "filename=");
+		if (!startswith(file.c_str(), "%2Fsdcard"))
+			file = "/sdcard/" + file;
+
+		char filepath[4096];
+		strcpy(filepath, file.c_str());
+		url_decode(filepath, strlen(filepath), filepath, 4096, true);
+		remove_double_dots_and_double_slashes(filepath);
+
+		FILE * f;
+		char buff[4096];
+		convertxml(buff, filepath);
+		if (f = fopen(filepath, "a")) {
+			mg_printf(conn,
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"SUCCESS\">The file %s has been created.</message><reload_instruction object=\"data\" node=\"\" file=\"%s\"/></tree>",
+					buff, buff);
+			fclose(f);
+			return;
+		}
+		mg_printf(conn,
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"ERROR\">Error creating file %s</message></tree>",
+				buff);
+	}
+	if (action == "delete" || action == "copy" || action == "move") {
+		bool copy = (action == "copy");
+		bool del = (action == "delete");
+		bool move = (action == "move");
+		std::string dest = getoption(ri->query_string, "dest=");
+		if (!startswith(dest.c_str(), "%2Fsdcard"))
+			dest = "/sdcard/" + dest;
+		int i = -1;
+		std::string file;
+		int ok = 0;
+		int failed = 0;
+		char filepath[4096];
+		char to[4096];
+
+		while (1) {
+			if (i == -1)
+				file = getoption(ri->query_string, "file=");
+			else {
+				char name[32];
+				strcpy(name, "file_");
+				char num[32];
+				sprintf(num, "%d", i);
+				//itoa(num,i);
+				strcat(name, num);
+				strcat(name, "=");
+				file = getoption(ri->query_string, name);
+			}
+			if (file == "" && i != -1)
+				break;
+			if (file == "" && i == -1) {
+				i++;
+				continue;
+			}
+			if (!startswith(file.c_str(), "%2Fsdcard"))
+				file = "/sdcard/" + file;
+
+			strcpy(filepath, file.c_str());
+			url_decode(filepath, strlen(filepath), filepath, 4096, true);
+			remove_double_dots_and_double_slashes(filepath);
+
+			if (del) {
+				struct stat statbuf;
+				if (!stat(filepath, &statbuf)) {
+					int r = -1;
+					if ((((statbuf.st_mode) & 00170000) == 0040000))
+						r = remove_directory(filepath);
+					else
+						r = unlink(filepath);
+					if (!r)
+						ok++;
+				} else
+					ok++;
+
+			}
+			if (move) {
+				strcpy(to, dest.c_str());
+				url_decode(to, strlen(to), to, 4096, true);
+				remove_double_dots_and_double_slashes(to);
+				int j = strlen(to);
+				if (j && to[j - 1] != '/') {
+					to[j++] = '/';
+					to[j] = 0;
+				}
+				int n = strlen(filepath) + 1;
+				int i = n;
+				for (; i >= 0 && filepath[i] != '/'; i--)
+					;
+				for (i++; i < n; i++)
+					to[j++] = filepath[i];
+				to[j++] = 0;
+				if (!rename(filepath, to))
+					ok++;
+
+			}
+			if (copy) {
+
+				strcpy(to, dest.c_str());
+				url_decode(to, strlen(to), to, 4096, true);
+				remove_double_dots_and_double_slashes(to);
+				int j = strlen(to);
+				if (j && to[j - 1] != '/') {
+					to[j++] = '/';
+					to[j] = 0;
+				}
+				int n = strlen(filepath) + 1;
+				int i = n;
+				for (; i >= 0 && filepath[i] != '/'; i--)
+					;
+				for (i++; i < n; i++)
+					to[j++] = filepath[i];
+				to[j++] = 0;
+				FILE* in, *out;
+				char buff[65526];
+				struct stat s;
+				if (!stat(filepath, &s) && (((s.st_mode) & 00170000) == 0100000)
+						&& (in = fopen(filepath, "r"))) {
+					if ((out = fopen(to, "w"))) {
+						while (j = fread(buff, 1, 65536, in)) {
+
+							fwrite(buff, 1, j, out);
+						}
+						fclose(out);
+						ok++;
+					}
+					fclose(in);
+				}
+			}
+
+			i++;
+		}
+		char d[4096];
+		strcpy(d, dest.c_str());
+		url_decode(d, strlen(d), d, 4096, true);
+		remove_double_dots_and_double_slashes(d);
+		if (i == 0 && del) {
+			char buff[4096];
+			convertxml(buff, filepath);
+			if (ok == 0)
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"ERROR\">Error deleting file or directory %s</message></tree>",
+						buff);
+			else
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"SUCCESS\">The file or directory %s has been deleted.</message><reload_instruction object=\"data\" node=\"\"/></tree>",
+						buff);
+		}
+		if (i == 0 && move) {
+			char buff[4096];
+			convertxml(buff, filepath);
+			char buff2[4096];
+			convertxml(buff2, to);
+			char buff3[4096];
+			convertxml(buff3, d);
+			if (ok == 0)
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"ERROR\">Error moving file or directory %s to %s.</message></tree>",
+						buff, buff2);
+			else
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"SUCCESS\">The file or directory %s has been moved to %s.</message><reload_instruction object=\"data\" node=\"\"/><reload_instruction object=\"data\" node=\"%s\"/></tree>",
+						buff, buff2, buff3);
+		}
+		if (i == 0 && copy) {
+			char buff[4096];
+			convertxml(buff, filepath);
+			char buff2[4096];
+			convertxml(buff2, to);
+			char buff3[4096];
+			convertxml(buff3, d);
+			if (ok == 0)
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"ERROR\">Error copying file or directory %s to %s.</message></tree>",
+						buff, buff2);
+			else
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"SUCCESS\">The file or directory %s has been copied to %s.</message><reload_instruction object=\"data\" node=\"\"/><reload_instruction object=\"data\" node=\"%s\"/></tree>",
+						buff, buff2, buff3);
+		}
+		if (i > 0 && del) {
+			if (ok != i)
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"ERROR\">Error deleting some files or directories</message><reload_instruction object=\"data\" node=\"\"/></tree>");
+			else
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"SUCCESS\">The selected files and directories have been deleted.</message><reload_instruction object=\"data\" node=\"\"/></tree>");
+		}
+		if (i > 0 && move) {
+			char buff3[4096];
+			convertxml(buff3, d);
+			if (ok != i)
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"ERROR\">Error moving some files or directories</message><reload_instruction object=\"data\" node=\"\"/><reload_instruction object=\"data\" node=\"%s\"/></tree>",
+						buff3);
+			else
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"SUCCESS\">The selected files and directories have been moved.</message><reload_instruction object=\"data\" node=\"\"/><reload_instruction object=\"data\" node=\"%s\"/></tree>",
+						buff3);
+		}
+		if (i > 0 && copy) {
+			char buff3[4096];
+			convertxml(buff3, d);
+			if (ok != i)
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"ERROR\">Error copying some files or directories</message><reload_instruction object=\"data\" node=\"\"/><reload_instruction object=\"data\" node=\"%s\"/></tree>",
+						buff3);
+			else
+				mg_printf(conn,
+						"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree><message type=\"SUCCESS\">The selected files and directories have been copied.</message><reload_instruction object=\"data\" node=\"\"/><reload_instruction object=\"data\" node=\"%s\"/></tree>",
+						buff3);
+		}
+	}
+	if (action == "upload") {
+		send_ok_ex(conn);
+		std::string dir = getoption(ri->query_string, "dir=");
+		char to[4096];
+		strcpy(to, dir.c_str());
+		url_decode(to, strlen(to), to, 4096, true);
+		int i;
+		std::string file;
+		for (i = 0; i < ri->num_headers; i++)
+			if (!strcasecmp("X-File-Name", ri->http_headers[i].name)) {
+				file = ri->http_headers[i].value;
+				break;
+			}
+		if (i == ri->num_headers) {
+			mg_printf(conn,
+					"There should be an X-File-Name in the HTTP header list.");
+			return;
+		}
+		if (!startswith(to, "/sdcard"))
+			file = std::string("/sdcard/") + std::string(to) + '/' + file;
+		else
+			file = std::string(to) + '/' + file;
+		char filepath[4096];
+		if (file.size() >= 4096 - 1) {
+			mg_printf(conn, "Too long filename");
+			return;
+		}
+		strcpy(filepath, file.c_str());
+		remove_double_dots_and_double_slashes(filepath);
+
+		FILE* f = fopen(filepath, "w");
+		if (!f) {
+			mg_printf(conn, "Bad Request3");
+			return;
+		}
+
+		int already_read = 0;
+		while (post_data_len) {
+			already_read += post_data_len;
+			fwrite(post_data, 1, post_data_len, f);
+			int l = contentlen(conn) - already_read;
+			if (l > 65536)
+				l = 65536;
+			post_data_len = mg_read(conn, post_data, l);
+			post_data[post_data_len] = 0;
+		}
+		fwrite(post_data, 1, post_data_len, f);
+		fclose(f);
+		mg_printf(conn, "OK");
+	}
+	if (post_data)
+		delete[] post_data;
+}
+
+#define Permission (-1)
+
+char* lang(const mg_request_info* ri, const char *key) {
+	return key;
+}
+
+static void sendmenu(struct mg_connection *conn,
+		const struct mg_request_info *ri, void *data) {
+
+	mg_printf(conn, "<div id=\"tabs\"><ul>");
+	if (Permission == -1 || (Permission & 1))
+		mg_printf(conn,
+				"<li><a href=\"phone.html\" target=\"_top\"><span>%s</span></a></li> ",
+				lang(ri, "Phone"));
+	if (Permission == -1 || (Permission & 2))
+		mg_printf(conn,
+				"<li><a href=\"gps.html\" target=\"_top\"><span>%s</span></a></li> ",
+				lang(ri, "GPS"));
+	if (Permission == -1 || (Permission & 16)) {
+		mg_printf(conn,
+				"<li><a href=\"sms.html\" target=\"_top\"><span>%s</span></a></li>",
+				lang(ri, "SMS"));
+		mg_printf(conn,
+				"<li><a href=\"calls.html\" target=\"_top\"><span>%s</span></a></li> ",
+				lang(ri, "Call list"));
+		mg_printf(conn,
+				"<li><a href=\"net.html\" target=\"_top\"><span>%s</span></a></li> ",
+				lang(ri, "Net"));
+	}
+	if (Permission == -1) {
+		mg_printf(conn,
+				"<li><a href=\"notify.html\" target=\"_top\"><span>%s</span></a></li>",
+				lang(ri, "Notify"));
+		mg_printf(conn,
+				"<li><a href=\"terminal.html\" target=\"_top\"><span>%s</span></a></li> ",
+				lang(ri, "Terminal"));
+	}
+	if (Permission == -1 || (Permission & 16))
+		mg_printf(conn,
+				"<li><a href=\"export.html\" target=\"_top\"><span>%s</span></a></li> ",
+				lang(ri, "Export"));
+
+	if (Permission == -1 || (Permission & 32) || (Permission & 8))
+		mg_printf(conn,
+				"<li><a href=\"files.html\" target=\"_top\"><span>%s</span></a></li> ",
+				lang(ri, "Files"));
+	if (Permission == -1 || (Permission & 64))
+		mg_printf(conn,
+				"<li><a href=\"sdcard.html\" target=\"_top\"><span>%s</span></a></li> ",
+				lang(ri, "Sdcard"));
+
+	mg_printf(conn,
+			"<li><a href=\"help.html\" target=\"_top\"><span>%s</span></a></li> ",
+			lang(ri, "Help"));
+	mg_printf(conn, "<li id=\"menulastli\"></li></ul></div>");
+}
+
+static void cgi(struct mg_connection *conn, const struct mg_request_info *ri,
+		void *data, int lSize, char* filebuffer) {
+	int i = 0;
+	int start = 0;
+	int has_ssl = 0;
+	while (filebuffer[i]) {
+		if (filebuffer[i] == '`') {
+			mg_write(conn, filebuffer + start, i - start);
+			i += 1;
+			start = i;
+			while (filebuffer[start] && filebuffer[start] != '`')
+				start++;
+			if (filebuffer[start] == 0)
+				break;
+			filebuffer[start] = 0;
+			start += 1;
+			mg_printf(conn, "%s", filebuffer + i);
+
+			i = start;
+		} else if (filebuffer[i] == '<' && filebuffer[i + 1] == '<') {
+			mg_write(conn, filebuffer + start, i - start);
+			i += 2;
+			start = i;
+			int deep = 1;
+			while (filebuffer[start]) {
+				if (filebuffer[start] == '>' && filebuffer[start + 1] == '>')
+					deep--;
+				if (filebuffer[start] == '<' && filebuffer[start + 1] == '<')
+					deep++;
+				if (!deep)
+					break;
+				start++;
+			}
+			if (filebuffer[start] == 0)
+				break;
+			filebuffer[start] = 0;
+			start += 2;
+			if (strcmp("MENU", filebuffer + i) == 0) {
+				sendmenu(conn, ri, data);
+				i = start;
+			} else if (strcmp("BUTTONS", filebuffer + i) == 0) {
+				// if (Permission == -1)
+				//   for (int j=0; j < fastkeys.size(); j++)
+				//     if (1 || fastkeys[j]->show)
+				//     {
+
+				//       mg_printf(conn,"<div class=\"widget\" id=\"button_%s\"><input type=\"button\" class=\"butt\" value=\"%s\" onclick=\"makeRequest('button_%d','')\"/></div>",fastkeys[j]->name,lang(ri,fastkeys[j]->name),j+1);
+				//     }
+				i = start;
+			} else if (strcmp("MODELNAME", filebuffer + i) == 0) {
+				// if (modelname[0])
+				//   mg_printf(conn,"%s",modelname);
+				i = start;
+			} else if (strcmp("XRES", filebuffer + i) == 0) {
+				// mg_printf(conn,"%d",scrinfo.xres);
+				i = start;
+			} else if (strcmp("YRES", filebuffer + i) == 0) {
+				// mg_printf(conn,"%d",scrinfo.yres);
+				i = start;
+			} else if (strcmp("CHAT", filebuffer + i) == 0) {
+				if (Permission == -1 || (Permission & 4))
+					mg_printf(conn, "true");
+				else
+					mg_printf(conn, "false");
+				i = start;
+			} else if (strcmp("USERNAME", filebuffer + i) == 0) {
+				if (ri->remote_user)
+					mg_printf(conn, "%s", ri->remote_user);
+				i = start;
+			} else if (strcmp("PORT", filebuffer + i) == 0) {
+				// mg_printf(conn,"%d",port);
+				i = start;
+			} else if (strcmp("SSLPORT", filebuffer + i) == 0) {
+				// mg_printf(conn,"%d",sslport);
+				i = start;
+			} else if (strcmp("WEBVERSION", filebuffer + i) == 0) {
+				mg_printf(conn, "2.09");
+				i = start;
+			} else if (strcmp("GAMECODE", filebuffer + i) == 0) {
+				FILE* f = fopen((dir + "gamecode.txt").c_str(), "r");
+				if (f) {
+					char buff[256];
+					while (fgets(buff, sizeof(buff), f) != __null) {
+						mg_printf(conn, buff);
+					}
+					fclose(f);
+				}
+				i = start;
+			} else if (strncmp("ADMIN", filebuffer + i, 5) == 0) {
+				if (Permission == -1) {
+					filebuffer[start - 2] = ' ';
+					filebuffer[start - 1] = ' ';
+					i = i + 5;
+					start = i;
+				} else
+					i = start;
+			} else if (strncmp("CHANGE2SSL", filebuffer + i, 10) == 0) {
+				if (ri->remote_ip && has_ssl && ri->is_ssl == false) {
+					filebuffer[start - 2] = ' ';
+					filebuffer[start - 1] = ' ';
+					i = i + 10;
+					start = i;
+				} else
+					i = start;
+			} else if (strncmp("CHANGE2NORMAL", filebuffer + i, 13) == 0) {
+				if (ri->remote_ip && has_ssl && ri->is_ssl == true) {
+					filebuffer[start - 2] = ' ';
+					filebuffer[start - 1] = ' ';
+					i = i + 13;
+					start = i;
+				} else
+					i = start;
+			} else if (strcmp("FRAMEBUFFER_COUNT", filebuffer + i) == 0) {
+				// if (scrinfo.yres == scrinfo.yres_virtual)
+				//   mg_printf(conn,"hidden");
+				// else
+				mg_printf(conn, "checkbox");
+				i = start;
+			} else if (strncmp("REGISTRATION", filebuffer + i, 12) == 0) {
+				bool r = true;
+				std::string sharedpref = dir
+						+ "../shared_prefs/com.webkey_preferences.xml";
+				FILE* sp = fopen(sharedpref.c_str(), "r");
+				if (!sp)
+					sp =
+							fopen(
+									"/dbdata/databases/com.webkey/shared_prefs/com.webkey_preferences.xml",
+									"r");
+				if (sp) {
+					char buff[256];
+					while (fgets(buff, sizeof(buff) - 1, sp) != __null) {
+						if (startswith(buff,
+								"<boolean name=\"allowremotereg\" value=\"false\"")) {
+							r = false;
+							break;
+						}
+					}
+					fclose(sp);
+				}
+				if (r) {
+					filebuffer[start - 2] = ' ';
+					filebuffer[start - 1] = ' ';
+					i = i + 12;
+					start = i;
+				} else
+					i = start;
+			} else if (strncmp("HASUSER", filebuffer + i, 7) == 0) {
+				bool r = false;
+				std::string sharedpref = dir
+						+ "../shared_prefs/com.webkey_preferences.xml";
+				std::string passfile = "passwords.txt";
+				FILE* pf = fopen((dir + passfile).c_str(), "r");
+				char tmp[10];
+				if (pf != __null && fgets(tmp, 9, pf) != __null) {
+					r = true;
+				}
+				if (pf)
+					fclose(pf);
+				if (r) {
+					filebuffer[start - 2] = ' ';
+					filebuffer[start - 1] = ' ';
+					i = i + 7;
+					start = i;
+				} else
+					i = start;
+			} else if (strncmp("NOREGISTRATION", filebuffer + i, 14) == 0) {
+				bool r = true;
+				std::string sharedpref = dir
+						+ "../shared_prefs/com.webkey_preferences.xml";
+				FILE* sp = fopen(sharedpref.c_str(), "r");
+				if (!sp)
+					sp =
+							fopen(
+									"/dbdata/databases/com.webkey/shared_prefs/com.webkey_preferences.xml",
+									"r");
+				if (sp) {
+					char buff[256];
+					while (fgets(buff, sizeof(buff) - 1, sp) != __null) {
+						if (startswith(buff,
+								"<boolean name=\"allowremotereg\" value=\"false\"")) {
+							r = false;
+							break;
+						}
+					}
+					fclose(sp);
+				}
+				if (!r) {
+					filebuffer[start - 2] = ' ';
+					filebuffer[start - 1] = ' ';
+					i = i + 14;
+					start = i;
+				} else
+					i = start;
+			}
+		} else
+			i++;
+	}
+
+	mg_write(conn, filebuffer + start, i - start);
+}
+
+static void getfile(struct mg_connection *conn,
+		const struct mg_request_info *ri, void *data) {
+	FILE* f;
+	if (strcmp(ri->uri, "/") == 0)
+		f = fo("index.html", "rb");
+	else
+		f = fo(ri->uri + 1, "rb");
+	if (!f)
+		return;
+	fseek(f, 0, 2);
+	int lSize = ftell(f);
+
+	send_ok_ex(conn, __null);
+	rewind(f);
+	char* filebuffer = new char[lSize + 1];
+	if (filebuffer) {
+		fread(filebuffer, 1, lSize, f);
+		filebuffer[lSize] = 0;
+		cgi(conn, ri, data, lSize, filebuffer);
+		fclose(f);
+		delete[] filebuffer;
+	}
+}
+
+int ae_handler(struct mg_connection *conn) {
+	const struct mg_request_info *request_info = mg_get_request_info(conn);
+	if (dir.empty())
+		dir.assign(document_root).append("/ae/");
+	if (urlcompare_ex(request_info->uri, "/ae/content.php*"))
+		content(conn, request_info, __null);
+	else if (urlcompare_ex(request_info->uri, "/ae/js/webkey.js"))
+		getfile(conn, request_info, __null);
+	else
+		return 0;
+	return 1;
+}

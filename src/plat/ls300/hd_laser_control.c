@@ -228,7 +228,7 @@ e_int32 hl_turntable_prepare(laser_control_t *lc, e_float64 pre_start_angle) {
 	lc->angle_pre = pre_start_angle;
 	//先转到开始位置,阻塞的
 	ret = inter_turn_by_step(lc, FAST_SPEED,
-			lc->start_steps - ANGLE_TO_STEP(pre_start_angle), 1); //冗余处理
+			lc->start_steps - ANGLE_TO_STEP(pre_start_angle), 1);
 	e_assert(ret>0, ret);
 	hl_pop_state(lc, CONTROL_REQUEST_WORK_TURN);
 	return E_OK;
@@ -299,8 +299,8 @@ e_int32 hl_turntable_config(laser_control_t *lc, e_uint32 plus_delay,
 	return E_OK;
 }
 
-static e_int32 inter_turn_by_step(laser_control_t *lc, e_uint32 speed, int step,
-		int sync) {
+static e_int32 inter_turn_by_step(laser_control_t *lc, e_uint32 speed,
+		int step,int sync) {
 	e_uint8 bufSend[40] = { 0 };
 	e_int32 ret, timeout = 0;
 	int step_abs;
@@ -355,6 +355,7 @@ e_int32 hl_turntable_turn_async(laser_control_t *lc, e_float64 angle) {
 
 	ret = inter_turn(lc, lc->plus_delay, angle, 0);
 
+//	hl_pop_state(lc, CONTROL_REQUEST_WORK_TURN);
 	return ret;
 }
 

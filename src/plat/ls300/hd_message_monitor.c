@@ -108,7 +108,7 @@ static e_int32 get_one_msg(msg_monitor_t *mm, e_uint8* buf, int buf_len,
 				ret = sc_select(mm->connect, E_READ, MM_SLEEP_TIMEOUT);
 				if (ret > 0)
 					break;
-				if (ret == E_ERROR_INVALID_HANDLER)
+				if (ret != E_ERROR_RETRY && ret!=E_ERROR_TIME_OUT)
 					return ret;
 			}
 			continue;
@@ -199,7 +199,7 @@ e_int32 mm_loop(void *data) {
 		if (len <= 0)
 			break;
 		//发送消息通知
-		strncpy(monitor->sockets[session_id].buf, buf, MSG_MAX_LEN);
+		hd_strncpy(monitor->sockets[session_id].buf, buf, MSG_MAX_LEN);
 		ret = semaphore_post(&monitor->sockets[session_id].recv_sem);
 		//TODO:详细的失败处理？
 		if (!ret) //失败？

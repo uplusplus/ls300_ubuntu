@@ -55,7 +55,7 @@ e_int32 Pipe_Open(pipe_t *pip, char *name, int size, int mode) {
 	/* save handle to pip */
 	pip->priv->pip_handle = fd;
 	pip->mode = mode;
-	strncpy(pip->name, name, sizeof(pip->name));
+	hd_strncpy(pip->name, name, sizeof(pip->name));
 	pip->state = TRUE;
 	return E_OK;
 }
@@ -160,7 +160,15 @@ e_int32 Pipe_Select(pipe_t *pip, e_int32 type, e_int32 timeout_usec) {
 		ret = FD_ISSET(fd, &checkfds);
 		e_assert(ret, E_ERROR_IO);
 		ioctl(fd, FIONREAD, &ret); //取得数据长度
-		e_assert((ret > 0), E_ERROR_IO);
+		if (ret <= 0)
+			if (errno == EINTR || errno == EWOULDBLOCK
+					|| errno == EAGAIN) {
+				pip->last_error = E_ERROR_RETRY;
+				return E_ERROR_RETRY;
+			} else {
+				pip->last_error = E_ERROR_INVALID_CALL;
+				return E_ERROR_INVALID_CALL;
+			}
 		//DMSG((STDOUT,"Com_Select %d data can read",ret));
 		//可读数据长度>0
 		return ret;

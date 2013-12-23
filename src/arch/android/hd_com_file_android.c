@@ -208,7 +208,7 @@ e_uint8 Comm_Open(com_t *com, const char* com_dev, const int bandrate) {
 		DMSG((STDOUT, "faild to set parity \n"));
 		return 0;
 	}
-	strncpy(com->name, com_dev, sizeof(com->name));
+	hd_strncpy(com->name, com_dev, sizeof(com->name));
 	com->priv = (void*) fd;
 	com->state = TRUE;
 	com->ready = TRUE;

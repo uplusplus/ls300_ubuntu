@@ -95,7 +95,7 @@ e_int32 socket_video_server_start(char *address, e_uint32 port, int socket_type)
 
 	e_assert(address, E_ERROR_INVALID_ADDRESS);
 
-	strncpy(video_server.address, address, sizeof(video_server.address));
+	hd_strncpy(video_server.address, address, sizeof(video_server.address));
 	video_server.port = port;
 	video_server.socket_type = socket_type;
 

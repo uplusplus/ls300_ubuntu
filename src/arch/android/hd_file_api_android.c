@@ -20,8 +20,8 @@
 #include <unistd.h>
 
 
-#define  e_str2utf8( a, b, c ) do{strncpy(b,a,c);DMSG((STDOUT,"e_str2utf8 is not defined"));}while(0)
-#define  e_utf82str( a, b, c ) do{strncpy(b,a,c);DMSG((STDOUT,"e_utf82str is not defined"));}while(0)
+#define  e_str2utf8( a, b, c ) do{hd_strncpy(b,a,c);DMSG((STDOUT,"e_str2utf8 is not defined"));}while(0)
+#define  e_utf82str( a, b, c ) do{hd_strncpy(b,a,c);DMSG((STDOUT,"e_utf82str is not defined"));}while(0)
 
 //----------------------------------------------------------------------------
 void replace_splash(char *in_out)

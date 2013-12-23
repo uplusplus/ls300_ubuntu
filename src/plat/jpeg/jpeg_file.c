@@ -21,7 +21,7 @@ e_int32 gray_to_jpeg_file(char *filename, unsigned char *bits, int width,
 	jpeg_create_compress(&cinfo);
 
 	if ((outfile = fopen(filename, "wb")) == NULL) {
-		fprintf(stderr, "can't open %s/n", filename);
+		fprintf(stderr, "can't open %s\n", filename);
 		return -1;
 	}
 	jpeg_stdio_dest(&cinfo, outfile);

@@ -100,6 +100,8 @@ e_int32 DEV_EXPORT sj_search_zero(scan_job_t* sj);
 e_int32 DEV_EXPORT sj_get_info(scan_job_t* sj, e_uint32 idx, e_uint8* buffer,
 		e_int32 blen);
 
+char * DEV_EXPORT sj_state(scan_job_t* sj);
+
 #ifdef __cplusplus
 }
 #endif

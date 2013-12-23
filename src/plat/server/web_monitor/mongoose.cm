@@ -1,0 +1,320 @@
+#include <vector>
+#include <algorithm>
+
+int64_t contentlen(struct mg_connection* conn)
+{
+ return conn->content_len;
+}
+
+static const char *filetypes[] = {
+".mid",
+".txt",
+".sql",
+".js",
+".gif",
+".jpg",
+".html",
+".htm",
+".rar",
+".gz",
+".tgz",
+".z",
+".ra",
+".ram",
+".rm",
+".pl",
+".zip",
+".wav",
+".php",
+".php3",
+".phtml",
+".exe",
+".bmp",
+".png",
+".css",
+".mp3",
+".xls",
+".doc",
+".pdf",
+".mov",
+".avi",
+".mpg",
+".mpeg",
+".wmv",
+".swf",
+".flv"
+};
+static const char *filetypes2[] = {
+"midi.png",
+"txt2.png",
+"txt2.png",
+"javascript.png",
+"image.png",
+"image.png",
+"html.png",
+"html.png",
+"archive.png",
+"zip.png",
+"archive.png",
+"archive.png",
+"video.png",
+"video.png",
+"video.png",
+"source_pl.png",
+"zip.png",
+"sound.png",
+"php.png",
+"php.png",
+"php.png",
+"exe.png",
+"image.png",
+"image.png",
+"css.png",
+"sound.png",
+"spreadsheet.png",
+"document.png",
+"pdf.png",
+"video.png",
+"video.png",
+"video.png",
+"video.png",
+"video.png",
+"flash.png",
+"flash.png"
+};
+static const char *filetypes3[] = {
+ "Midi File",
+ "Text file",
+ "Text file",
+  "Javascript",
+  "GIF picture",
+  "JPG picture",
+  "HTML page",
+  "HTML page",
+  "RAR File",
+  "GZ File",
+  "GZ File",
+  "GZ File",
+  "REAL file",
+  "REAL file",
+  "REAL file",
+  "PERL script",
+  "ZIP file",
+  "WAV file",
+  "PHP script",
+  "PHP script",
+  "PHP script",
+  "Exe file",
+  "BMP picture",
+  "PNG picture",
+  "CSS File",
+  "MP3 File",
+  "XLS File",
+  "Word File",
+  "PDF File",
+  "MOV File",
+  "AVI File",
+  "MPG File",
+  "MPEG File",
+  "AVI File",
+  "FLASH File",
+  "FLASH File"
+};
+
+struct mgstat {
+  int is_directory;
+  int64_t size;
+  time_t mtime;
+};
+
+struct filestat
+{
+ char* name;
+ mgstat stat;
+};
+
+struct dir_lt
+{
+ bool operator()(struct filestat* lhs, struct filestat* rhs)
+ {
+  if (lhs->stat.is_directory && !rhs->stat.is_directory)
+   return true;
+  if (!lhs->stat.is_directory && rhs->stat.is_directory)
+   return false;
+  return strcmp(lhs->name, rhs->name) < 0;
+ };
+};
+
+int mystrlen(char* c)
+{
+ int i = 0;
+ while(c[i])
+  i++;
+ return i;
+}
+
+
+
+char* convertxml(char* to, const char* from)
+  {
+    int i = 0;
+    int j = 0;
+    while(from[i] && j < 4096 - 8)
+    {
+      if(from[i] == '<')
+      {
+        to[j++] = '&';
+        to[j++] = 'l';
+        to[j++] = 't';
+        to[j++] = ';';
+      }
+      else if(from[i] == '>')
+      {
+        to[j++] = '&';
+        to[j++] = 'g';
+        to[j++] = 't';
+        to[j++] = ';';
+      }
+      else if(from[i] == '&')
+      {
+        to[j++] = '&';
+        to[j++] = 'a';
+        to[j++] = 'm';
+        to[j++] = 'p';
+        to[j++] = ';';
+      }
+      else if(from[i] == '"')
+      {
+        to[j++] = '&';
+        to[j++] = 'q';
+        to[j++] = 'u';
+        to[j++] = 'o';
+        to[j++] = 't';
+        to[j++] = ';';
+      }
+      else if(from[i] == '\'')
+      {
+        to[j++] = '&';
+        to[j++] = 'a';
+        to[j++] = 'p';
+        to[j++] = 'o';
+        to[j++] = 's';
+        to[j++] = ';';
+      }
+      else
+        to[j++] = from[i];
+      i++;
+    }
+    to[j++] = 0;
+    return to;
+  }
+
+static int mg_stat1(const char *path, struct mgstat *stp) {
+  struct stat st;
+  int ok;
+
+  if (stat(path, &st) == 0) {
+    ok = 0;
+    stp->size = st.st_size;
+    stp->mtime = st.st_mtime;
+    stp->is_directory = (((st.st_mode) & 00170000) == 0040000);
+  } else {
+    ok = -1;
+  }
+
+  return ok;
+}
+
+void
+my_send_directory(struct mg_connection *conn, const char *dir)
+{
+ struct dirent *dpointer;
+ struct dirent dp;
+ DIR *dirp;
+
+ char path[1024];
+ int i, sort_direction, num_entries = 0, arr_size = 128;
+
+ char buff[4096];
+
+ if ((dirp = opendir(dir)) == __null) {
+     (void) mg_printf(conn,"<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree filename=\"\" text=\"\" is_file=\"false\"></tree>");
+  return;
+ }
+
+ (void) mg_printf(conn, "%s",
+     "<?xml version=\"1.0\" encoding=\"UTF-8\"?><tree filename=\"\" text=\"\" is_file=\"false\">");
+ std::vector<struct filestat*> files;
+
+ while ((dpointer = readdir(dirp)) != __null) {
+
+
+  if (!strcmp(dpointer->d_name, ".") ||
+      !strcmp(dpointer->d_name, ".."))
+   continue;
+
+  struct filestat* to_load = new struct filestat;
+  (void) mg_snprintf(conn, path, sizeof(path), "%s%c%s",
+      dir, '/', dpointer->d_name);
+  (void) mg_stat1(path, &(to_load->stat));
+  to_load->name = new char[mystrlen(dpointer->d_name)+1];
+  strcpy(to_load->name,dpointer->d_name);
+  files.push_back(to_load);
+ }
+ std::sort(files.begin(),files.end(),dir_lt());
+ int p = 0;
+ for(p=0;p<files.size();p++)
+ {
+  (void) mg_snprintf(conn, path, sizeof(path), "%s%c%s",
+      dir, '/', files[p]->name);
+  (void) mg_printf(conn, "<tree is_file=\"");
+  if (files[p]->stat.is_directory)
+   (void) mg_printf(conn, "false");
+  else
+   (void) mg_printf(conn, "true");
+  (void) mg_printf(conn, "\" filename=\"");
+  convertxml(buff,path);
+  (void) mg_write(conn, buff, mystrlen(buff));
+  (void) mg_printf(conn,"\" icon=");
+
+  if (files[p]->stat.is_directory)
+   (void) mg_printf(conn, "\"folder.png\" mimestring=\"Directory\" is_image=\"0\"");
+  else
+  {
+   int n = strlen(files[p]->name);
+   int i = 0;
+   int j;
+   for (i = 0; i < 36; i++)
+    if (n > ( j=strlen(filetypes[i]) ) && strcmp(files[p]->name +n- j,filetypes[i]) ==0)
+    {
+     if (strcmp(filetypes2[i],"image.png")==0)
+      (void) mg_printf(conn, "\"%s\" mimestring=\"%s\" is_image=\"1\"",filetypes2[i],filetypes3[i]);
+     else
+      (void) mg_printf(conn, "\"%s\" mimestring=\"%s\" is_image=\"0\"",filetypes2[i],filetypes3[i]);
+     break;
+    }
+   if (i == 36)
+    (void) mg_printf(conn, "\"mime_empty.png\" mimestring=\"Unknown format\" is_image=\"0\"");
+  }
+
+  (void) mg_printf(conn," ajxp_modiftime=\"%d\" bytesize=\"%d\" filesize=\"",files[p]->stat.mtime,files[p]->stat.size);
+
+  if (files[p]->stat.size < 1024)
+   (void) mg_printf(conn, "%lu", (unsigned long) files[p]->stat.size);
+  else if (files[p]->stat.size < 1024 * 1024)
+   (void) mg_printf(conn, "%.1fk", (double) files[p]->stat.size/1024.0);
+  else if (files[p]->stat.size < 1024 * 1024 * 1024)
+   (void) mg_printf(conn, "%.1fM", (double) files[p]->stat.size/1048576);
+  else
+   (void) mg_printf(conn, "%.1fG", (double) files[p]->stat.size/1073741824);
+  convertxml(buff,files[p]->name);
+  mg_printf(conn,"\" text=\"%s\"/>",buff);
+  delete[] files[p]->name;
+ }
+ (void) closedir(dirp);
+
+ (void) mg_printf(conn, "</tree>");
+ //conn->request_info.status_code = 200;
+ for (p=0;p<files.size();p++)
+  delete files[p];
+}

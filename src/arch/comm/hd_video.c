@@ -129,7 +129,7 @@ e_uint8* hd_image_stretch(int screen_w, int screen_h, int bpp, e_uint8* src,
 	e_uint8* dst;
 
 	//占满屏幕算法
-	if (screen_h / (float)screen_w >= s_h_w) { //宽度为限制条件
+	if (screen_h / (float) screen_w >= s_h_w) { //宽度为限制条件
 		(*d_w) = screen_w & ~3; //(screen_w + 3) & ~3;
 		(*d_h) = (*d_w) * s_h_w;
 	} else { //高度为限制条件
@@ -171,12 +171,12 @@ static int hd_video_upate_context() {
 
 	//占满屏幕算法
 	if (video.screen_h / video.screen_w >= video.s_h_w) { //宽度为限制条件
-		video.d_w = (video.screen_w) & ~3;//(video.screen_w + 3) & ~3;
+		video.d_w = (video.screen_w) & ~3; //(video.screen_w + 3) & ~3;
 		video.d_h = video.d_w * video.s_h_w;
 	} else { //高度为限制条件
 		video.d_h = video.screen_h;
 		video.d_w = video.d_h / video.s_h_w;
-		video.d_w = (video.d_w) & ~3;//(video.d_w + 3) & ~3;
+		video.d_w = (video.d_w) & ~3; //(video.d_w + 3) & ~3;
 	}
 
 	dst_old = video.dst;
@@ -214,3 +214,5 @@ int hd_video_upate_screen() {
 			video.d_w, video.d_h, video.bpp);
 	return 1;
 }
+
+

@@ -52,7 +52,7 @@ e_int32 fsocket_open(fsocket_t *fs, e_uint8 *name, e_uint32 session_id,
 	ret = semaphore_init(&fs->recv_sem, 0); //消息缓存里现在有0条数据，这里缓存大小为1
 	e_assert(ret, E_ERROR_INVALID_CALL);
 	if (name)
-		strncpy(fs->name, name, sizeof(fs->name));
+		hd_strncpy(fs->name, name, sizeof(fs->name));
 
 	fs->state = 1;
 	return E_OK;

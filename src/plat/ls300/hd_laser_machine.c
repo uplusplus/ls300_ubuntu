@@ -211,6 +211,14 @@ e_int32 lm_turntable_config(e_uint32 plus_delay, e_float64 start, e_float64 end)
 	return ret;
 }
 
+e_int32 lm_turntable_searchzero() {
+	int ret, state;
+	state = pause_loop();
+	ret = hl_search_zero(lm->lc);
+	resume_loop(state);
+	return ret;
+}
+
 //根据实际传过来的水平旋转角度，调整水平台，以较快速度转到实际水平台的起始角度/转台回到起始原点
 e_int32 lm_turntable_turn(e_float64 angle) {
 	int ret, state;
@@ -303,6 +311,7 @@ e_int32 lm_led_red() {
 	int ret, state;
 	state = pause_loop();
 	ret = hl_led_red(lm->lc);
+	lm->LED = -1;
 	resume_loop(state);
 	return ret;
 }
@@ -312,6 +321,7 @@ e_int32 lm_led_green() {
 	int ret, state;
 	state = pause_loop();
 	ret = hl_led_green(lm->lc);
+	lm->LED = 1;
 	resume_loop(state);
 	return ret;
 }
@@ -321,8 +331,22 @@ e_int32 lm_led_off() {
 	int ret, state;
 	state = pause_loop();
 	ret = hl_led_off(lm->lc);
+	lm->LED = 0;
 	resume_loop(state);
 	return ret;
+}
+
+char* lm_led_state() {
+	int ret, state;
+	switch(lm->LED){
+	case -1:
+		return "RED";
+	case 0:
+		return "OFF";
+	case 1:
+		return "GREEN";
+	}
+	return "UNKNOWN";
 }
 
 //以最快速度调整到指定水平范围起始角

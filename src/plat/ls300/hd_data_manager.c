@@ -184,5 +184,5 @@ static e_int32 init_display(int width, int height, float h_w, int mode) {
 
 static void uninit_display() {
 	free(display.buf);
-	display.buf = NULL;
+	display.w = display.h = display.buf = NULL;
 }

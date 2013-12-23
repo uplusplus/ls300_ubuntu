@@ -53,7 +53,7 @@ static e_int32 assign_pipe_handle(pipe_t *pip, char* name, int size) {
 
 	for (i = 0; i < MAX_ENTITY_NUM; i++) { //create
 		if (!pipes.handles[i].state) {
-			strncpy(pipes.handles[i].name, name, MAX_PATH_LEN);
+			hd_strncpy(pipes.handles[i].name, name, MAX_PATH_LEN);
 
 			pipes.handles[i].size = size;
 			pipes.handles[i].buf1 = malloc(size * 2);

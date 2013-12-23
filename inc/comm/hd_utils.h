@@ -19,7 +19,7 @@
 /*结构体定义*/
 
 typedef struct display_t {
-	int w, h;
+	e_uint32 w, h;
 	float h_w;
 	int hash;
 	e_uint8* buf;
@@ -52,6 +52,8 @@ int DEV_EXPORT hd_video_set_src(e_uint8 *src, int s_w, int s_h, float s_h_w);
 int DEV_EXPORT hd_video_set_screen(int screen_w, int screen_h, int bpp,
 		void (*set_image)(unsigned char* pixel, int w, int h));
 int DEV_EXPORT hd_video_upate_screen();
+
+char* DEV_EXPORT hd_strncpy(char *dst, const char *src, size_t len);
 
 #ifdef __cplusplus
 }

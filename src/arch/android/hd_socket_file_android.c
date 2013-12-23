@@ -109,7 +109,7 @@ e_int32 Socket_Open(socket_t **socket_ptr, const char *socket_addr,
 	/*存储附加信息*/
 	skt->priv = (void *) sockfd;
 	if (socket_addr != NULL)
-		strncpy(skt->ip_address, socket_addr, sizeof(skt->ip_address));
+		hd_strncpy(skt->ip_address, socket_addr, sizeof(skt->ip_address));
 
 	skt->port = port;
 	skt->type = type;
@@ -227,11 +227,15 @@ e_int32 Socket_Select(socket_t *socket, e_int32 type, e_int32 timeout_usec) {
 			ret = FD_ISSET(sockfd, &checkfds);
 			e_assert(ret, E_ERROR_IO);
 			ret = ioctl(sockfd, FIONREAD, &nread); //取得数据长度
-			if (ret < 0 || nread <= 0) {
-				DMSG(
-						(STDOUT,"ioctl(sockfd, FIONREAD, &ret) ret=%d nread=%d\n",ret,nread));
-				return E_ERROR_IO;
-			}
+			if (nread <= 0)
+				if (errno == EINTR || errno == EWOULDBLOCK
+						|| errno == EAGAIN) {
+					socket->last_error = E_ERROR_RETRY;
+					return E_ERROR_RETRY;
+				} else {
+					socket->last_error = E_ERROR_INVALID_CALL;
+					return E_ERROR_INVALID_CALL;
+				}
 			//DMSG((STDOUT,"Socket_Select %d data can read",ret));
 			//可读数据长度>0
 			return nread;
@@ -399,7 +403,7 @@ e_int32 Socket_Accept(socket_t *socket, socket_t **socket_c) {
 	skt->priv = (void *) ret;
 	ip_address = inet_ntoa(peer_address.sin_addr); // resolve IP in antelope
 	e_assert(ip_address, E_ERROR_INVALID_ADDRESS);
-	strncpy(skt->ip_address, ip_address, sizeof(skt->ip_address));
+	hd_strncpy(skt->ip_address, ip_address, sizeof(skt->ip_address));
 	skt->port = ntohs(peer_address.sin_port);
 	skt->type = socket->type;
 	skt->send_max_size = socket->send_max_size;

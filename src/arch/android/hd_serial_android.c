@@ -56,7 +56,7 @@ e_int32 Serial_Open(serial_t *port, char *name) {
 	port->priv->port_handle = fd;
 	/* get current options */
 	tcgetattr(port->priv->port_handle, &(port->priv->options));
-	strncpy(port->name, name, sizeof(port->name));
+	hd_strncpy(port->name, name, sizeof(port->name));
 	port->state = TRUE;
 
 	return E_OK;
@@ -260,8 +260,15 @@ e_int32 Serial_Select(serial_t *port, e_int32 type, e_int32 timeout_usec) {
 		ret = FD_ISSET(fd, &checkfds);
 		e_assert(ret, E_ERROR_IO);
 		ioctl(fd, FIONREAD, &ret); //取得数据长度
-		e_assert((ret > 0), E_ERROR_IO);
-		//DMSG((STDOUT,"Com_Select %d data can read",ret));
+		if (ret <= 0)
+			if (errno == EINTR || errno == EWOULDBLOCK
+					|| errno == EAGAIN) {
+				port->last_error = E_ERROR_RETRY;
+				return E_ERROR_RETRY;
+			} else {
+				port->last_error = E_ERROR_INVALID_CALL;
+				return E_ERROR_INVALID_CALL;
+			}
 		//可读数据长度>0
 		return ret;
 	case E_WRITE:

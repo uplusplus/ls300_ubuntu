@@ -264,6 +264,7 @@
 								</option>
 								<option id="gnu.cpp.compiler.option.include.paths.1700284306" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/lua5.2"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/laslib/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/local/include/eigen3/"/>
@@ -271,7 +272,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ecore/external/pcl}&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.1345902939" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.optimization.flags.1463542035" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.optimization.flags.1463542035" name="Other optimization flags" superClass="gnu.cpp.compiler.option.optimization.flags" value="-fpermissive" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.other.pic.2011742941" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.verbose.984672114" name="Verbose (-v)" superClass="gnu.cpp.compiler.option.other.verbose" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.other.1693246514" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-pointer-sign" valueType="string"/>
@@ -308,7 +309,6 @@
 									<listOptionValue builtIn="false" value="cyassl"/>
 									<listOptionValue builtIn="false" value="lua5.2"/>
 									<listOptionValue builtIn="false" value="pthread"/>
-									<listOptionValue builtIn="false" value="c"/>
 									<listOptionValue builtIn="false" value="boost_thread-mt"/>
 									<listOptionValue builtIn="false" value="rt"/>
 									<listOptionValue builtIn="false" value="pcl_common"/>
@@ -319,7 +319,10 @@
 								<option defaultValue="true" id="gnu.cpp.link.option.shared.720539715" name="Shared (-shared)" superClass="gnu.cpp.link.option.shared" value="false" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.1950054674" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="/usr/local/lib"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.6/"/>
 								</option>
+								<option id="gnu.cpp.link.option.flags.1030972880" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="" valueType="string"/>
+								<option id="gnu.cpp.link.option.other.492122272" name="Other options (-Xlinker [option])" superClass="gnu.cpp.link.option.other" valueType="stringList"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.662695012" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

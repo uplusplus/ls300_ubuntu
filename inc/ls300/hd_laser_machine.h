@@ -29,6 +29,7 @@ typedef struct laser_machine_t {
 	angle_t tilt;
 	e_float64 angle;
 	e_uint32 angle_usec_timestamp;
+	e_int8 LED;
 
 	data_manager_t *dm;
 	laser_control_t *lc;
@@ -76,6 +77,7 @@ e_int32 DEV_EXPORT lm_turntable_config(e_uint32 plus_delay, e_float64 start,
 e_int32 DEV_EXPORT lm_turntable_turn(e_float64 angle);
 e_int32 DEV_EXPORT lm_turntable_turn_async(e_float64 angle);
 e_int32 DEV_EXPORT lm_turntable_fast_turn(e_float64 angle);
+e_int32 DEV_EXPORT lm_turntable_searchzero();
 
 e_int32 DEV_EXPORT lm_turntable_check();
 
@@ -99,6 +101,9 @@ e_int32 DEV_EXPORT lm_led_green();
 
 //LED熄灭
 e_int32 DEV_EXPORT lm_led_off();
+
+//LED
+char* DEV_EXPORT lm_led_state();
 
 //搜索零点
 e_int32 DEV_EXPORT lm_search_zero();
