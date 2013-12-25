@@ -55,7 +55,7 @@ enum {
 // 			create 		work 		done
 // NONE		idle	  	work 		idle
 static scan_job_t* global_instance = 0;
-static int  global_instance_lock = 0;
+static int global_instance_lock = 0;
 scan_job_t* sj_global_instance() {
 	int ret;
 	if (!global_instance && !global_instance_lock) //此步是调试使用，一般要求主系统启动后，才允许连接web服务
@@ -63,9 +63,13 @@ scan_job_t* sj_global_instance() {
 		global_instance_lock = 1;
 		ret = sj_create(&global_instance, "/dev/ttyUSB0", 38400, "192.168.1.10",
 				49152);
-		e_assert(ret>0, NULL);
+		if(e_failed(ret)){
+			global_instance_lock = 0;
+			return NULL;
+		}
 		sj_set_data_dir(global_instance, "/sdcard/ls300/data/point_cloud",
 				"/sdcard/ls300/data/image");
+		sj_stop_devices(global_instance);
 	}
 	e_assert(global_instance, NULL);
 	return global_instance;
@@ -99,7 +103,6 @@ e_int32 sj_create(scan_job_t** sj_ret, char*dev, int baudrate, char* ip,
 		free(sj->control);
 		goto FAILED;
 	}
-	ret = hl_led_off(sj->control);
 
 	ret = sld_create(&sj->sick, ip, port);
 	if (e_failed(ret)) {
@@ -132,6 +135,20 @@ e_int32 sj_check_devices(scan_job_t* sj) {
 	e_assert(ret>0, ret);
 	ret = sld_get_status(sj->sick);
 	e_assert(ret>0, ret);
+	return E_OK;
+}
+
+e_int32 sj_stop_devices(scan_job_t* sj) {
+	int ret;
+	e_assert(sj&&sj->state==STATE_IDLE, E_ERROR_INVALID_HANDLER);
+	ret = hl_led_off(sj->control);
+	e_check(ret<=0);
+	ret = hl_turntable_stop(sj->control);
+	e_check(ret<=0);
+	ret = sld_initialize(sj->sick);
+	e_check(ret<=0);
+	ret = sld_set_sensor_mode_to_idle(sj->sick);
+	e_check(ret<=0);
 	return E_OK;
 }
 
@@ -264,14 +281,14 @@ e_int32 sj_scan_point(scan_job_t* sj) {
 	sj->state = STATE_WORK;
 
 	ret = ls_init(&sj->sick_work, sj->control, sj->sick, on_status_change, sj);
-	if(e_failed(ret)){
+	if (e_failed(ret)) {
 		sj->state = STATE_IDLE;
 		return ret;
 	}
 	ret = ls_scan(sj->sick_work, sj->data_dir, sj->gray_dir, sj->speed_h,
 			sj->start_angle_h, sj->end_angle_h, sj->speed_v, sj->resolution_v,
 			sj->interlace_v, sj->start_angle_v, sj->end_angle_v);
-	if(e_failed(ret)){
+	if (e_failed(ret)) {
 		sj->state = STATE_IDLE;
 		return ret;
 	}

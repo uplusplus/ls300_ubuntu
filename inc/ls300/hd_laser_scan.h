@@ -36,6 +36,7 @@ e_int32 DEV_EXPORT sj_create(scan_job_t** sj_ret, char*dev, int baudrate,
 		char* ip, int port);
 
 e_int32 DEV_EXPORT sj_check_devices(scan_job_t* sj);
+e_int32 DEV_EXPORT sj_stop_devices(scan_job_t* sj);
 /************************************************************************
  * 与扫描仪断开连接
  ************************************************************************/

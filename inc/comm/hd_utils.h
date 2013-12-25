@@ -54,6 +54,7 @@ int DEV_EXPORT hd_video_set_screen(int screen_w, int screen_h, int bpp,
 int DEV_EXPORT hd_video_upate_screen();
 
 char* DEV_EXPORT hd_strncpy(char *dst, const char *src, size_t len);
+int DEV_EXPORT hd_creatdir(char *pDir);
 
 #ifdef __cplusplus
 }

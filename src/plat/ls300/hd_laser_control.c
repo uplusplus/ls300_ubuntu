@@ -259,10 +259,11 @@ e_int32 hl_turntable_start(laser_control_t *lc) {
 //停止工作
 e_int32 hl_turntable_stop(laser_control_t *lc) {
 	int ret;
-	ret = lc->state == CONTROL_STATE_WORK;
-	e_assert(ret, E_ERROR_INVALID_STATUS);
+//	ret = lc->state == CONTROL_STATE_WORK;
+//	e_assert(ret, E_ERROR_INVALID_STATUS);
+	e_check_equal(lc->state, CONTROL_STATE_WORK);
 
-	DMSG((STDOUT,"Try StopWork\r\n"));
+	DMSG((STDOUT,"Try Stop Tunrtable\r\n"));
 
 	//重置socket状态
 	fsocket_reset(lc->fs_turntable);
@@ -300,7 +301,7 @@ e_int32 hl_turntable_config(laser_control_t *lc, e_uint32 plus_delay,
 }
 
 static e_int32 inter_turn_by_step(laser_control_t *lc, e_uint32 speed,
-		int step,int sync) {
+		int step, int sync) {
 	e_uint8 bufSend[40] = { 0 };
 	e_int32 ret, timeout = 0;
 	int step_abs;
@@ -355,7 +356,7 @@ e_int32 hl_turntable_turn_async(laser_control_t *lc, e_float64 angle) {
 
 	ret = inter_turn(lc, lc->plus_delay, angle, 0);
 
-//	hl_pop_state(lc, CONTROL_REQUEST_WORK_TURN);
+	hl_pop_state(lc, CONTROL_REQUEST_WORK_TURN);
 	return ret;
 }
 

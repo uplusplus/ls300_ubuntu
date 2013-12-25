@@ -18,6 +18,10 @@ extern "C" {
 }
 
 static char document_root[1024] = { 0 };
+static struct mg_context *ctx = NULL;
+static semaphore_t stop_sem;
+static int loop = 1;
+static int should_stop_machine = 0;
 
 #define SIMPLE_REPLAY_FORMAT "{ \"query\": \"%s\", \"success\": %d, \"message\":[\"%s\"] }"
 #define REPLAY_FORMAT(_EXTRA_) "{ \"query\": \"%s\", \"success\": %d, \"message\":[\"%s\"]," _EXTRA_ "}"
@@ -28,7 +32,7 @@ static char document_root[1024] = { 0 };
 #define COMMANDS "\"authorize\",\"devicestate\",\"gray.jpg\",\"graysize\",\"turntable\"," \
 	"\"led\",\"takephoto\",\"angle\",\"tilt\",\"temperature\",\"battery\",\"config\",\"pointscan\"," \
 	"\"photoscan\", \"cancel\",\"availablePlusDelay\",\"availableFrequency\",\"availableResolution\"," \
-	"\"availablePrecision\",\"help\""
+	"\"availablePrecision\",\"shutdown\",\"restart\",\"stopdevice\",\"help\""
 
 #define AVIABLEPLUSDELAY "20, 50, 100, 150, 200, 250, 400, 700, 850, 1250, 2500, 5000"
 #define AVIABLEFREQUENCY "5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20"
@@ -40,11 +44,12 @@ static char document_root[1024] = { 0 };
 	{name: \"PRECISION_LEVEL_HIGH\",  frequency: 5, resolution:  0.125, plusdelay: 200, widthL:  1441, height:  1081, time:  288},\
 	{name: \"PRECISION_LEVEL_EXTRA\",  frequency: 7, resolution:  0.0625, plusdelay: 1250, widthL:  2884, height:  2164, time:  1800}"
 
-static char *commands[] = { "authorize", "devicestate", "gray.jpg", "graysize",
-		"turntable", "led", "takephoto", "angle", "tilt", "temperature",
-		"battery", "config", "pointscan", "photoscan", "cancel",
-		"availablePlusDelay", "availableFrequency", "availableResolution",
-		"availablePrecision", "help" };
+static char *commands[] = { "authorize", "devicestate",
+		"gray.jpg", "graysize", "turntable", "led", "takephoto", "angle",
+		"tilt", "temperature", "battery", "config", "pointscan", "photoscan",
+		"cancel", "availablePlusDelay", "availableFrequency",
+		"availableResolution",
+		"availablePrecision", "restart", "stopdevice", "shutdown", "help" };
 
 static struct {
 	int hash;
@@ -79,6 +84,9 @@ static int strcompare(const char** p1, char** p2) {
 static void init_server() {
 	qsort(commands, sizeof(commands) / sizeof(commands[0]), sizeof(commands[0]),
 			strcompare);
+	semaphore_init(&stop_sem, 0);
+	loop = 1;
+	should_stop_machine = 0;
 }
 
 static int is_command_avaiable(char *cmd) {
@@ -273,6 +281,9 @@ static void send_jpg(struct mg_connection *conn) {
 	}
 }
 
+static void stop_loop();
+static void stop_machine();
+
 static int do_command(struct mg_connection *conn, const char *cmd) {
 	const struct mg_request_info *request_info = mg_get_request_info(conn);
 	int ret = 1;
@@ -303,6 +314,14 @@ static int do_command(struct mg_connection *conn, const char *cmd) {
 			send_replay(conn, REPLAY_FORMAT("\"userlevel\": \"%s\""), cmd, 0,
 					"login failed.", "unauthorize");
 		}
+	} else if (urlcompare(cmd, "restart")) {
+		stop_loop();
+		send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
+				"Laser server restarted.");
+	} else if (urlcompare(cmd, "shutdown")) {
+		stop_machine();
+		send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
+				"Laser machine shutdown.");
 	} else {
 		ret = 0;
 	}
@@ -318,7 +337,7 @@ static int do_ls300_command(struct mg_connection *conn, const char *cmd) {
 		send_jpg(conn);
 	} else if (urlcompare(cmd, "graysize")) {
 		send_replay(conn,
-				REPLAY_FORMAT("\"size\": { \"width\": %d, \"height\": %d}"),
+				REPLAY_FORMAT("\"width\": %d, \"height\": %d"),
 				cmd, 1, "", display.w, display.h);
 	} else if (urlcompare(cmd, "angle")) {
 		send_replay(conn, REPLAY_FORMAT("\"angle\": %8.4f"), cmd, 1, "",
@@ -378,10 +397,19 @@ static int do_ls300_command(struct mg_connection *conn, const char *cmd) {
 		ret = sj_cancel(server.ls300);
 		if (e_failed(ret)) {
 			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 0,
-					"Laser scan stop failed.");
+					"Laser scan cancel failed.");
 		} else {
 			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
-					"Laser scan stopped.");
+					"Laser scan canceled.");
+		}
+	} else if (urlcompare(cmd, "stopdevice")) {
+		ret = sj_stop_devices(server.ls300);
+		if (e_failed(ret)) {
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 0,
+					"Laser scan stopdevice failed.");
+		} else {
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
+					"Laser scan device stopped.");
 		}
 	} else if (urlcompare(cmd, "takephoto")) {
 		ret = lm_camera_take_photo();
@@ -421,7 +449,7 @@ static int do_ls300_command(struct mg_connection *conn, const char *cmd) {
 		if (fabs(angle) < 1e-6)
 			ret = lm_turntable_stop();
 		else
-			ret = lm_turntable_fast_turn(angle);
+			ret = lm_turntable_turn_async(angle);
 
 		if (e_failed(ret)) {
 			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 0,
@@ -455,6 +483,7 @@ static int enter_ls300_evn() {
 #include "web_server.cm"
 
 //#define USE_AUTHORIZE 1
+static e_int32 webserver_leave();
 
 static int begin_request_handler(struct mg_connection *conn) {
 	const struct mg_request_info *request_info = mg_get_request_info(conn);
@@ -505,10 +534,13 @@ static int begin_request_handler(struct mg_connection *conn) {
 					"Set-Cookie: original_url=%s\r\n"
 					"Location: %s\r\n\r\n", request_info->uri,
 					"/placeholder.jpg");
+			mg_printf(conn,
+					"{ \"query\": \"%s\", \"success\": 0, \"message\":[\"ls300 is not ready.\"] }",
+					q);
+		} else {
+			send_replay(conn, SIMPLE_REPLAY_FORMAT, q, 0,
+					"ls300 is not ready.");
 		}
-		mg_printf(conn,
-				"{ \"query\": \"%s\", \"success\": 0, \"message\":[\"ls300 is not ready.\"] }",
-				q);
 		goto done;
 	}
 
@@ -519,11 +551,10 @@ static int begin_request_handler(struct mg_connection *conn) {
 //	}
 
 	done:
-
+	if (!loop)
+		webserver_leave();
 	return 1;
 }
-
-static struct mg_context *ctx = NULL;
 
 e_int32 webserver_start(char *root_dir) {
 	struct mg_callbacks callbacks;
@@ -544,6 +575,18 @@ e_int32 webserver_start(char *root_dir) {
 	return 1;
 }
 
+static e_int32 webserver_leave() {
+	semaphore_post(&stop_sem);
+}
+
+void webserver_loop() {
+	semaphore_wait(&stop_sem);
+}
+
+static void webserver_shutdown_machine() {
+	system("/data/bin/shutdown");
+}
+
 e_int32 webserver_stop(void) {
 	if (!ctx)
 		return 0;
@@ -552,5 +595,17 @@ e_int32 webserver_stop(void) {
 	sj_destroy(server.ls300);
 	mg_stop(ctx);
 	ctx = NULL;
+	if (should_stop_machine)
+		webserver_shutdown_machine();
 	return 1;
+}
+
+static void stop_loop()
+{
+	loop = 0;
+}
+
+static void stop_machine() {
+	should_stop_machine = 1;
+	loop = 0;
 }

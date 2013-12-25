@@ -2310,7 +2310,6 @@ e_int32 sld_get_status(sickld_t *sick) {
 static e_int32 sld_quick_request(sickld_t *sick,
 		e_uint8 *payload_buffer/*[in,out]*/, e_uint32 recv_len) {
 	e_int32 ret = E_OK;
-	/* Ensure the device has been initialized */
 	e_assert(sick, E_ERROR_INVALID_HANDLER);
 	/* Create the Sick messages */
 	sick_message_t send_message, recv_message;
@@ -3022,7 +3021,6 @@ e_int32 sld_get_next_message_from_datastream(sickld_t *sick,
 //	DMSG((STDOUT,"+++++++++++sld_get_next_message_from_datastream"));
 	/* A buffer to hold the current byte out of the stream */
 	const e_uint8 sick_response_header[4] = { 0x02, 'U', 'S', 'P' };
-
 	e_uint8 checksum = 0;
 	e_uint8 message_buffer[MESSAGE_MAX_LENGTH] = { 0 };
 	e_uint32 payload_length = 0;

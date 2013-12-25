@@ -23,6 +23,7 @@ extern "C" {
 #endif
 
 e_int32 DEV_EXPORT webserver_start(char *root_dir);
+void   DEV_EXPORT webserver_loop();
 e_int32 DEV_EXPORT webserver_stop(void);
 
 #ifdef __cplusplus

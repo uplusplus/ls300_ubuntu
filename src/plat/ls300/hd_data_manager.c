@@ -62,6 +62,11 @@ dm_alloc(char* ptDir, char *grayDir, int width, int height, float h_w, int mode)
 	e_assert(ptDir&&grayDir&&width&&height&& (mode==E_DWRITE||mode==E_WRITE),
 			E_ERROR_INVALID_PARAMETER);
 
+	ret = hd_creatdir(ptDir);
+//	e_assert(ret>0, E_ERROR);
+	ret = hd_creatdir(grayDir);
+//	e_assert(ret>0, E_ERROR);
+
 	data_manager_t*dm = calloc(1, sizeof(data_manager_t));
 	e_assert(dm, E_ERROR_BAD_ALLOCATE);
 
@@ -154,7 +159,8 @@ e_int32 dm_alloc_buffer(data_manager_t *dm, int buf_type, point_t **pnt_buf,
 e_int32 dm_update(data_manager_t *dm, int c, int file_right) {
 	int ret;
 	e_assert(dm&&dm->state, E_ERROR_INVALID_HANDLER);
-	ret = da_write_column(&dm->adapters_point_cloud, c, dm->points_xyz, file_right);
+	ret = da_write_column(&dm->adapters_point_cloud, c, dm->points_xyz,
+			file_right);
 	e_check(ret<=0);
 	ret = da_write_column(&dm->adapters_gray, c, dm->points_gray, file_right);
 	e_check(ret<=0);
