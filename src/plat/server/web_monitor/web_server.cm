@@ -16,6 +16,7 @@ extern "C" {
 #include "mongoose.h"
 }
 
+
 static std::string dir;
 
 std::string base64_encode(unsigned char const*, unsigned int len);
@@ -50,13 +51,12 @@ extern int scandir(const char *dir, struct dirent ***namelist,
 }
 
 bool startswith(const char* st, char* patt) {
-	int i = 0;
-	while (patt[i]) {
-		if (st[i] == 0 || st[i] - patt[i])
-			return false;
-		i++;
-	}
-	return true;
+		int i = 0;while(patt [ i] ) {
+	if (st[i] == 0 || st[i] - patt[i])
+	return false;
+	i++;
+}
+return true;
 }
 
 static std::string getoption(char* list, char* option) {
@@ -1242,6 +1242,8 @@ static void getfile(struct mg_connection *conn,
 	}
 }
 
+#include "shell_server.cm"
+
 int ae_handler(struct mg_connection *conn) {
 	const struct mg_request_info *request_info = mg_get_request_info(conn);
 	if (dir.empty())
@@ -1250,6 +1252,8 @@ int ae_handler(struct mg_connection *conn) {
 		content(conn, request_info, __null);
 	else if (urlcompare_ex(request_info->uri, "/ae/js/webkey.js"))
 		getfile(conn, request_info, __null);
+	else if (urlcompare_ex(request_info->uri, "/shellinabox/shellinabox*"))
+		shellinabox(conn, request_info, __null);
 	else
 		return 0;
 	return 1;

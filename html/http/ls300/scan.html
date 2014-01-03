@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    
+    <head>
+        <title>
+            scan
+        </title>
+        <script src="js/jquery-1.4.1.js" type="text/javascript">
+        </script>
+        <link href="css/scan.css" rel="stylesheet" type="text/css" />
+        <script src="js/common.js" type="text/javascript"></script>
+        <script src="js/ls300.js" type="text/javascript"> </script>
+        <script type="text/javascript">
+         $(document).ready(function() {
+            start_monitor();
+          }
+        </script>
+    </head>
+
+    <body>
+        <div id="row1" class="row"  style="background-color: #989898;">
+            <span style="position: relative; left: 80%; color:#D0D0D0;" onclick="window.location.href= 'scan.html'"
+            class="menu">
+                扫描
+            </span>
+            <span style="position: relative; left: 80%;" onclick="window.open('view.html')"
+            class="menu">
+                浏览
+            </span>
+        </div>
+        <div id="row2" class="row" style="margin-top: 10px;">
+            <span style="color: #3366FF; font-family: 'Segoe UI Light'; font-size: xx-large;
+            margin-right: 20px;">
+                State
+            </span>
+            状态：
+            <label id="state">
+            </label>
+            &nbsp;&nbsp;电量：
+            <label id="battery">
+            </label>
+            &nbsp;&nbsp;角度：
+            <label id="angle">
+            </label>
+            &nbsp;&nbsp;倾角：
+            <label id="tilt">
+            </label>
+            &nbsp;&nbsp;LED：
+            <label id="led">
+            </label>
+            &nbsp;&nbsp;温度：
+            <label id="temperature" style="width:100px;">
+            </label>
+        </div>
+        <div id="row3" class="row" style="text-align: center;">
+            <img id="img" alt="" />
+        </div>
+        <div id="cover">
+        </div>
+        <div id="row4" class="row">
+            <span style="color: #3366FF; font-family: 'Segoe UI Light'; font-size: xx-large;margin-right: 20px;">
+                Setting
+            </span>
+            <hr style="background-color: #3366FF;width:70%;text-align:left;" />
+            <div style="height:70px;width:100%;">
+                &nbsp;&nbsp;水平速度
+                <select id="plusdelay" name="plusdelay">
+                    <option value="">
+                        请选择
+                    </option>
+                </select>
+                垂直精度
+                <select id="resolution" name="resolution">
+                    <option value="">
+                        请选择
+                    </option>
+                </select>
+                垂直速度
+                <select id="frequency" name="frequency">
+                    <option value="">
+                        请选择
+                    </option>
+                </select>
+                推荐配置
+                <select id="precision" name="precision">
+                    <option value="">
+                        请选择
+                    </option>
+                </select>
+            </div>
+            <div style="height:50px;width:100%;">
+                &nbsp;&nbsp;水平角度范围
+                <input id="anglehstart" type="text" class="text" onkeyup="if(isNaN(value))execCommand('undo')"
+                />
+                ~
+                <input id="anglehend" type="text" class="text" onkeyup="if(isNaN(value))execCommand('undo')"
+                />
+            </div>
+            <div style="height:50px;width:100%;">
+                &nbsp;&nbsp;垂直角度范围
+                <input id="anglevstart" type="text" class="text" onkeyup="if(isNaN(value))execCommand('undo')"
+                />
+                ~
+                <input id="anglevend" type="text" class="text" onkeyup="if(isNaN(value))execCommand('undo')"
+                />
+            </div>
+            <div style="height:70px;width:100%;">
+                <div id="photoscan" class="button" style="margin-right: 20px;margin-left:10px;">
+                    扫描照片
+                </div>
+                <div id="pointscan" class="button" style="margin-right: 20px;">
+                    扫描点云
+                </div>
+                <div id="cancel" class="button" style="margin-right: 20px;">
+                    取消操作
+                </div>
+                <div id="chushihua" class="button">
+                    预扫描
+                </div>
+            </div>
+            <div id="more" style="height:28px; width:888px; color: #3366FF;">
+                More+
+            </div>
+            <div id="control" style="display:none">
+                <span style="color: #3366FF; font-family: 'Segoe UI Light'; font-size: xx-large;
+                margin-left: 20px;">
+                    Control
+                </span>
+                <hr style="background-color: #3366FF;width:70%;text-align:left;" />
+                <div style="height:30px;width:100%;">
+                    &nbsp;&nbsp;LED 红
+                    <input name="led" id="ledred" type="radio" value="red" />
+                    绿
+                    <input name="led" id="ledgreen" type="radio" value="green" />
+                </div>
+                <div style="height:30px;width:100%;">
+                    &nbsp;&nbsp;转台角度：
+                    <input id="angletext" type="text" class="text" />
+                </div>
+                <div style="height:30px;width:100%;">
+                    <div id="executeled" style="margin-top:10px;margin-left:10px;margin-right:10px;"
+                    class="button">
+                        控制LED
+                    </div>
+                    &nbsp;&nbsp;
+                    <div id="executeangle" style="margin-top:10px;margin-left:10px;margin-right:20px;"
+                    class="button">
+                        控制角度
+                    </div>
+                    <div id="takephoto" class="button" style="margin-top:10px;">
+                        拍摄照片
+                    </div>
+                </div>
+                <span style="color: #3366FF; font-family: 'Segoe UI Light'; font-size: xx-large;
+                margin-left: 20px;">
+                    Update(ms)
+                </span>
+                <hr style="background-color: #3366FF;width:70%;text-align:left;" />
+                <div style="height:30px;width:100%;">
+                    Video Update Delay
+                    <input name="videodelay" id="videodelay" type="text" />
+                    State Update Delay
+                    <input name="statedelay" id="statedelay" type="text" />
+                </div>
+                <div id="setupdatedelay" class="button" style="margin-left: 20px; margin-top:10px;"
+                onclick="setupdate_delay()">
+                    Confirm
+                </div>
+            </div>
+        </div>
+        <div id="row5">
+            <span id="clear" style="color: #3366FF; width:30px;font-weight: 700; font-family: 'Segoe UI Semilight';position:relative;left:96%;cursor:default;">
+                clear
+            </span>
+            <textarea id="messagebox" cols="3" readonly="readonly" disabled="disabled"
+            style="overflow:scroll;">
+                消息：
+            </textarea>
+        </div>
+    </body>
+
+</html>

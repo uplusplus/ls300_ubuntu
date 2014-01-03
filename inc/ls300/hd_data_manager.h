@@ -49,8 +49,8 @@ e_int32 DEV_EXPORT dm_append_column(data_manager_t *da, point_t* point,
 e_int32 DEV_EXPORT dm_alloc_buffer(data_manager_t *dm, int buf_type,
 		point_t **pnt_buf, point_t **gray_buf);
 e_int32 DEV_EXPORT dm_update(data_manager_t *dm, int c, int file_right);
-e_int32 DEV_EXPORT dm_write_tunable(data_manager_t *dm, e_uint32 usec_timestamp,
-		e_float64 angle);
+e_int32 DEV_EXPORT dm_write_meta(data_manager_t *dm, e_uint32 usec_timestamp,
+		char *prefix, char *fmt, ...);
 
 #ifdef __cplusplus
 }

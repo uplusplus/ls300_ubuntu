@@ -28,7 +28,7 @@ typedef struct laser_machine_t {
 	e_float64 temperature;
 	angle_t tilt;
 	e_float64 angle;
-	e_uint32 angle_usec_timestamp;
+	e_uint32 usec_timestamp;
 	e_int8 LED;
 
 	data_manager_t *dm;

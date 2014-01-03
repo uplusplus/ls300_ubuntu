@@ -1,0 +1,27 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>view</title>
+    <script src="js/jquery-1.4.1.js" type="text/javascript"></script>
+    <script src="js/common.js" type="text/javascript"></script>
+    <link href="css/view.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+    //初始化页面
+        $(function () {
+
+        })
+    </script>
+</head>
+<body>
+    <div id="row1" class="row">
+        <span style="position:relative;left:80%;" onclick="window.location.href= '../html/scan.html'" class="menu">扫描</span>
+        <span style="position:relative;left:80%;"onclick="window.location.href= '../html/view.html'" class="menu">浏览</span>
+    </div>
+<div id="row2" class="row"></div>
+<div id="row3" class="row">
+<iframe id="frame" src="http://192.168.10.154:8082/ae/ae.html" style="border:0px;margin:0px;"></iframe>
+</div>
+<div id="row4" class="row"></div>
+</body>
+</html>

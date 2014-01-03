@@ -1,0 +1,42 @@
+<html xmlns="http://www.w3.org/1999/xhtml" style="width:100%;text-align:center; "> 
+<head> 
+	<meta http-equiv="Content-Type" content="text/html;charset=utf8" /> 
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>LS300</title>
+	<link rel="stylesheet" href="css/jquery.Jcrop.css" type="text/css" />
+    <link href="css/scan.css" rel="stylesheet" type="text/css" />
+ 	<link href="css/main.css" rel="stylesheet" type="text/css" />
+ 	<script src="js/jquery.min.js" type="text/javascript"></script>
+	<script src="js/common.js" type="text/javascript"></script>
+	<script src="js/jquery.Jcrop.js"  type="text/javascript" ></script>
+	<script src="js/ls300.js" type="text/javascript"></script>
+</head> 
+<body>
+	<div id="box" class="round-box">
+		<div id="head"> </div>
+		<div id="Tab1"> 
+			<ul class="nav clearfix" id="nav">
+				<li id="one1" onClick="setTab('one',1,4)" class="btn active"> 扫描</li>
+				<li id="one2" onClick="setTab('one',2,4)"  class="btn">浏览</li> 
+				<li id="one3" onClick="setTab('one',3,4)"  class="btn">系统</li> 
+				<li id="one4" onClick="setTab('one',4,4)"  class="btn">控制台</li> 
+			</ul>
+			<div id="errmsg" class="errorbox"></div>
+			<div class="Contentbox"> 
+			<div id="con_one_1" class="hover">
+				<div id="scan" class="hover" style="border:0px;margin:1px;"> </div> 
+			</div> 
+			<div id="con_one_2" style="display:none">
+				<iframe id="view" style="border:5px;margin:1px;"> </iframe>
+			</div> 
+			<div id="con_one_3" style="display:none">
+				<div id="setting" class="hover" style="border:0px;margin:1px;"> </div> 
+			</div> 
+			<div id="con_one_4" style="display:none">
+				<iframe id="shell" style="border:5px;margin:1px;"></iframe> 
+			</div> 
+			</div> 
+		</div> 
+	</div>
+</body>
+</html>

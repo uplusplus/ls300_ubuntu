@@ -42,7 +42,7 @@ extern "C"
 #endif
 //----------------------------------------------------------------------------
 // file operation:
-e_int32		DEV_EXPORT fi_open( const char *filename, e_int32 mode, file_t *fi ); 
+e_int32		DEV_EXPORT fi_open( const char *filename, e_int32 mode, file_t *fi );
 void		DEV_EXPORT fi_close( file_t *fi );
 e_int32		DEV_EXPORT fi_delete( const char *filename );
 e_int32		DEV_EXPORT fi_rename( const char *newname, const char *oldname );
@@ -52,6 +52,8 @@ e_int32		DEV_EXPORT fi_rename( const char *newname, const char *oldname );
 e_int32		DEV_EXPORT fi_seek( file_t *fi, e_int32 offset, e_int32 origin );
 e_int32		DEV_EXPORT fi_read( void *buffer, e_int32 size, e_int32 count, file_t *fi );
 e_int32		DEV_EXPORT fi_write( const void *buffer, e_int32 size, e_int32 count, file_t *fi );
+e_int32		DEV_EXPORT fi_printf(file_t *fi, const void *fmt, ...);
+e_int32		DEV_EXPORT fi_vprintf(file_t *fi, const void *fmt, va_list ap);
 e_int32		DEV_EXPORT fi_flush( file_t *fi );
 e_int32		DEV_EXPORT fi_tell( file_t *fi );
 
@@ -79,7 +81,7 @@ e_int32		DEV_EXPORT fi_mode( file_t *fi );
 typedef struct{
 	void			*priv;
 	e_uint32	mode;
-	
+
 	char			name[256];
 }dir_t;
 

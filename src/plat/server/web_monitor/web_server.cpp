@@ -15,6 +15,7 @@ extern "C" {
 #include <ls300/hd_laser_scan.h>
 #include <ls300/hd_laser_machine.h>
 #include <server/hd_webserver.h>
+#include <arch/hd_timer_api.h>
 }
 
 static char document_root[1024] = { 0 };
@@ -30,9 +31,10 @@ static int should_stop_machine = 0;
 #define REPLAY_FORMAT_AJAX(_EXTRA_) "%s({ \"query\": \"%s\", \"success\": %d, \"message\":[\"%s\"]," _EXTRA_ "})"
 
 #define COMMANDS "\"authorize\",\"devicestate\",\"gray.jpg\",\"graysize\",\"turntable\"," \
-	"\"led\",\"takephoto\",\"angle\",\"tilt\",\"temperature\",\"battery\",\"config\",\"pointscan\"," \
-	"\"photoscan\", \"cancel\",\"availablePlusDelay\",\"availableFrequency\",\"availableResolution\"," \
-	"\"availablePrecision\",\"shutdown\",\"restart\",\"stopdevice\",\"help\""
+		"\"led\",\"takephoto\",\"angle\",\"tilt\",\"temperature\",\"battery\",\"config\"," \
+		"\"pointscan\",\"photoscan\", \"cancel\",\"searchzero\",\"availablePlusDelay\"," \
+		"\"availableFrequency\",\"availableResolution\",\"availablePrecision\"," \
+		"\"shutdown_device\",\"restart_server\",\"stop_device\",\"help\""
 
 #define AVIABLEPLUSDELAY "20, 50, 100, 150, 200, 250, 400, 700, 850, 1250, 2500, 5000"
 #define AVIABLEFREQUENCY "5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20"
@@ -47,9 +49,9 @@ static int should_stop_machine = 0;
 static char *commands[] = { "authorize", "devicestate",
 		"gray.jpg", "graysize", "turntable", "led", "takephoto", "angle",
 		"tilt", "temperature", "battery", "config", "pointscan", "photoscan",
-		"cancel", "availablePlusDelay", "availableFrequency",
-		"availableResolution",
-		"availablePrecision", "restart", "stopdevice", "shutdown", "help" };
+		"cancel", "searchzero", "availablePlusDelay", "availableFrequency",
+		"availableResolution", "availablePrecision", "restart_server",
+		"stop_device", "shutdown_device", "help" };
 
 static struct {
 	int hash;
@@ -80,13 +82,16 @@ static int strcompare(const char** p1, char** p2) {
 		i++;
 	}
 }
-
+static void webserver_system_prepare();
 static void init_server() {
 	qsort(commands, sizeof(commands) / sizeof(commands[0]), sizeof(commands[0]),
 			strcompare);
 	semaphore_init(&stop_sem, 0);
 	loop = 1;
 	should_stop_machine = 0;
+#ifndef LINUX
+	webserver_system_prepare();
+#endif
 }
 
 static int is_command_avaiable(char *cmd) {
@@ -250,10 +255,13 @@ static int send_login_ok(struct mg_connection *conn, char *sessionid,
 
 static void send_jpg(struct mg_connection *conn) {
 	const struct mg_request_info *request_info = mg_get_request_info(conn);
-	if (!display.buf) {
+	if (!display.buf && !server.jpg_buf) {
 		mg_printf(conn, "HTTP/1.1 302 Found\r\n"
 				"Set-Cookie: original_url=%s\r\n"
 				"Location: %s\r\n\r\n", request_info->uri, "/placeholder.jpg");
+	} else if (!display.buf && server.jpg_buf) {
+		send_ok(conn, "Content-Type: image/jpeg;", server.buf_size);
+		mg_write(conn, server.jpg_buf, server.buf_size);
 	} else {
 		if (server.w != display.w || server.h != display.h) {
 			//原图发生变化，重置缓冲区
@@ -268,16 +276,8 @@ static void send_jpg(struct mg_connection *conn) {
 					&server.jpg_buf, &server.buf_size);
 			server.hash = display.hash;
 		}
-		send_ok(conn,
-				"Content-Type: image/jpeg;"
-				//"charset=UTF-8\r\n"
-				//"Content-Disposition: attachment;filename=gray.jpg"
-				, server.buf_size);
-
+		send_ok(conn, "Content-Type: image/jpeg;", server.buf_size);
 		mg_write(conn, server.jpg_buf, server.buf_size);
-//		} else {
-//			mg_printf(conn, "HTTP/1.1 304 Not Modified\r\n\r\n");
-//		}
 	}
 }
 
@@ -314,11 +314,11 @@ static int do_command(struct mg_connection *conn, const char *cmd) {
 			send_replay(conn, REPLAY_FORMAT("\"userlevel\": \"%s\""), cmd, 0,
 					"login failed.", "unauthorize");
 		}
-	} else if (urlcompare(cmd, "restart")) {
+	} else if (urlcompare(cmd, "restart_server")) {
 		stop_loop();
 		send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
 				"Laser server restarted.");
-	} else if (urlcompare(cmd, "shutdown")) {
+	} else if (urlcompare(cmd, "shutdown_device")) {
 		stop_machine();
 		send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
 				"Laser machine shutdown.");
@@ -336,9 +336,15 @@ static int do_ls300_command(struct mg_connection *conn, const char *cmd) {
 	if (urlcompare(cmd, "gray.jpg")) {
 		send_jpg(conn);
 	} else if (urlcompare(cmd, "graysize")) {
-		send_replay(conn,
-				REPLAY_FORMAT("\"width\": %d, \"height\": %d"),
-				cmd, 1, "", display.w, display.h);
+		if (!server.jpg_buf) {
+			send_replay(conn,
+					REPLAY_FORMAT("\"width\": 800, \"height\": 400"),
+					cmd, 0, "placeholder size.");
+		} else {
+			send_replay(conn,
+					REPLAY_FORMAT("\"width\": %d, \"height\": %d"),
+					cmd, 1, "", display.w, display.h);
+		}
 	} else if (urlcompare(cmd, "angle")) {
 		send_replay(conn, REPLAY_FORMAT("\"angle\": %8.4f"), cmd, 1, "",
 				server.ls300m->angle);
@@ -402,11 +408,11 @@ static int do_ls300_command(struct mg_connection *conn, const char *cmd) {
 			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
 					"Laser scan canceled.");
 		}
-	} else if (urlcompare(cmd, "stopdevice")) {
+	} else if (urlcompare(cmd, "stop_device")) {
 		ret = sj_stop_devices(server.ls300);
 		if (e_failed(ret)) {
 			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 0,
-					"Laser scan stopdevice failed.");
+					"Laser scan stop device failed.");
 		} else {
 			send_replay(conn, SIMPLE_REPLAY_FORMAT, cmd, 1,
 					"Laser scan device stopped.");
@@ -537,6 +543,10 @@ static int begin_request_handler(struct mg_connection *conn) {
 			mg_printf(conn,
 					"{ \"query\": \"%s\", \"success\": 0, \"message\":[\"ls300 is not ready.\"] }",
 					q);
+		} else if (urlcompare(q, "graysize")) {
+			send_replay(conn,
+					REPLAY_FORMAT("\"width\": 800, \"height\": 400"),
+					q, 0, "placeholder size.");
 		} else {
 			send_replay(conn, SIMPLE_REPLAY_FORMAT, q, 0,
 					"ls300 is not ready.");
@@ -556,15 +566,33 @@ static int begin_request_handler(struct mg_connection *conn) {
 	return 1;
 }
 
+static int try_enter_ls300_evn() {
+	unsigned int failed = 0;
+	while (failed < 10) {
+		printf("+++++++++++++++++TRY CONNECT %d\n", failed);
+		if (enter_ls300_evn() > 0)
+			return E_OK;
+		failed++;
+		Delay(500);
+	}
+
+	webserver_leave();
+	return E_ERROR;
+}
+
 e_int32 webserver_start(char *root_dir) {
+	int ret;
 	struct mg_callbacks callbacks;
 	const char *options[] = { "listening_ports", "8082", "document_root",
 			root_dir, NULL };
-
 	if (ctx)
 		return 0;
-
 	init_server();
+
+#ifndef LINUX
+	ret = try_enter_ls300_evn();
+	e_assert(ret>0, ret);
+#endif
 
 	hd_strncpy(document_root, root_dir, 1024);
 
@@ -585,6 +613,11 @@ void webserver_loop() {
 
 static void webserver_shutdown_machine() {
 	system("/data/bin/shutdown");
+}
+
+static void webserver_system_prepare() {
+	system("/system/bin/ifconfig eth0 192.168.1.2 up");
+	system("/system/bin/svc wifi enable");
 }
 
 e_int32 webserver_stop(void) {

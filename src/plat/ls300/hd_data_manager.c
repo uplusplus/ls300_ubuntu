@@ -167,15 +167,20 @@ e_int32 dm_update(data_manager_t *dm, int c, int file_right) {
 	return E_OK;
 }
 
-e_int32 dm_write_tunable(data_manager_t *dm, e_uint32 usec_timestamp,
-		e_float64 angle) {
+//不要多线程调用此函数
+e_int32 dm_write_meta(data_manager_t *dm, e_uint32 usec_timestamp,
+		char *prefix, char *fmt, ...) {
 	int ret;
+	va_list ap;
 	char buf[21];
 	e_assert(dm&&dm->state, E_ERROR_INVALID_HANDLER);
 
-	ret = sprintf(buf, "%10u,%8.4f\n", usec_timestamp, angle);
-	ret = fi_write(buf, 20, 1, &dm->f_tunable);
-	e_assert(ret == 1, E_ERROR);
+	va_start(ap, fmt);
+
+	ret = fi_printf(&dm->f_tunable, "\n%10u %s\t", usec_timestamp, prefix);
+	e_assert(ret>0, E_ERROR);
+	ret = fi_vprintf(&dm->f_tunable, fmt, ap);
+	e_assert(ret>0, E_ERROR);
 	return E_OK;
 }
 

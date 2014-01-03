@@ -1,0 +1,356 @@
+
+extern "C" {
+#include <sys/time.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+}
+#include <vector>
+
+struct SESSION
+{
+	int ptm;
+	int oldwidth;
+	int oldheight;
+	int alive;
+	pid_t pid;
+	time_t lastused;
+	pthread_mutex_t mutex;
+};
+
+static std::vector<SESSION*> sessions;
+
+static int create_subprocess(pid_t* pProcessId)
+{
+	char *devname;
+
+	pid_t pid;
+
+	printf("[ enter create_subprocess]\n");
+
+	int ptm = open("/dev/ptmx", 00000002);
+	if(ptm < 0){
+		printf("[ cannot open /dev/ptmx - %s ]\n",strerror(errno));
+		return -1;
+	}
+	fcntl(ptm, 2, 1);
+
+	if(grantpt(ptm) || unlockpt(ptm) ||
+			((devname = (char*) ptsname(ptm)) == 0)){
+		printf("[ trouble with /dev/ptmx - %s ]\n", strerror(errno));
+		return -1;
+	}
+
+	pid = fork();
+	if(pid < 0) {
+		printf("- fork failed: %s -\n", strerror(errno));
+		return -1;
+	}
+
+	if(pid == 0){
+		close(ptm);
+		int pts;
+		setsid();
+		pts = open(devname, 00000002);
+		if(pts < 0) exit(-1);
+
+
+		dup2(pts, 0);
+		dup2(pts, 1);
+		dup2(pts, 2);
+
+		char** env = new char*[6];
+		env[0] = "TERM=xterm";
+		env[1] = "LINES=25";
+		env[2] = "COLUMNS=80";
+		env[3] = "HOME=/sdcard";
+		env[4] = "PATH=/data/local/bin:/usr/bin:/usr/sbin:/bin:/sbin:/system/bin:/system/xbin:/system/xbin/bb:/system/sbin";
+		env[5] = 0;
+#ifndef LINUX
+		execle("/system/bin/bash", "/system/bin/bash", NULL, env);
+		printf("...");
+		execle("/system/xbin/bash", "/system/xbin/bash", NULL, env);
+		printf("...");
+		execle("/system/xbin/bb/bash", "/system/xbin/bb/bash", NULL, env);
+		printf("...");
+		execle("/system/bin/sh", "/system/bin/sh", NULL, env);
+#else
+		printf("...\n");
+		execle("/bin/bash", "/bin/bash", NULL, env);
+		printf("...");
+		execle("/bin/sh", "/bin/sh", NULL, env);
+		printf("...");
+#endif
+		exit(-1);
+	} else {
+		usleep(100000);
+		*pProcessId = pid;
+		return ptm;
+	}
+}
+
+
+static char *jsonEscape(const char *buf, int len) {
+	static const char *hexDigit = "0123456789ABCDEF";
+
+	int count = 0;
+	const char *ptr = buf;
+	for (int i = 0; i < len; i++) {
+		unsigned char ch = *(unsigned char *)ptr++;
+		if (ch < ' ') {
+			switch (ch) {
+				case '\b': case '\f': case '\n': case '\r': case '\t':
+					count += 2;
+					break;
+				default:
+					count += 6;
+					break;
+			}
+		} else if (ch == '"' || ch == '\\' || ch == '/') {
+			count += 2;
+		} else if (ch > '\x7F') {
+			count += 6;
+		} else {
+			count++;
+		}
+	}
+
+
+	char *result;
+	result = new char[count + 1];
+	char *dst = result;
+	ptr = buf;
+	for (int i = 0; i < len; i++) {
+		unsigned char ch = *(unsigned char *)ptr++;
+		if (ch < ' ') {
+			*dst++ = '\\';
+			switch (ch) {
+				case '\b': *dst++ = 'b'; break;
+				case '\f': *dst++ = 'f'; break;
+				case '\n': *dst++ = 'n'; break;
+				case '\r': *dst++ = 'r'; break;
+				case '\t': *dst++ = 't'; break;
+				default:
+unicode:
+					   *dst++ = 'u';
+					   *dst++ = '0';
+					   *dst++ = '0';
+					   *dst++ = hexDigit[ch >> 4];
+					   *dst++ = hexDigit[ch & 0xF];
+					   break;
+			}
+		} else if (ch == '"' || ch == '\\' || ch == '/') {
+			*dst++ = '\\';
+			*dst++ = ch;
+		} else if (ch > '\x7F') {
+			*dst++ = '\\';
+			goto unicode;
+		} else {
+			*dst++ = ch;
+		}
+	}
+	*dst++ = '\000';
+	return result;
+}
+
+
+static void
+shellinabox(struct mg_connection *conn,
+		const struct mg_request_info *ri, void *data)
+		{
+	char* post_data;
+	int post_data_len;
+	read_post_data(conn, ri, &post_data, &post_data_len);
+	int i = 0;
+	std::string param;
+	std::string value;
+	int p = 0;
+	int width = 0;
+	int height = 0;
+	std::string sessionstr;
+	std::string keys;
+	bool keys_received = false;
+	bool root_url = false;
+	while (true)
+	{
+		if (i == post_data_len || post_data[i] == '&')
+				{
+			p = 0;
+			if (param == "width")
+				width = atoi(value.c_str());
+			else if (param == "height")
+				height = atoi(value.c_str());
+			else if (param == "session")
+				sessionstr = value;
+			else if (param == "keys")
+					{
+				keys = value;
+				keys_received = true;
+			}
+			else if (param == "rooturl")
+				root_url = true;
+
+			param = "";
+			value = "";
+		}
+		else
+		if (post_data[i] == '=')
+				{
+			p = 1;
+		}
+		else
+		{
+			if (p)
+				value += post_data[i];
+			else
+				param += post_data[i];
+		}
+		if (i == post_data_len)
+			break;
+		i++;
+	}
+	send_ok_ex(conn, "Content-type: application/json; charset=utf-8");
+	SESSION* session = NULL;
+	int sessionid = -1;
+	int ptm = 0;
+	if (sessionstr.length())
+		sessionid = atoi(sessionstr.c_str());
+	if (root_url)
+	{
+		int pid;
+		while (1)
+		{
+			ptm = create_subprocess(&pid);
+			char buf[6];
+			fd_set set;
+			struct timeval timeout;
+			FD_ZERO(&set);
+			FD_SET(ptm,&set);
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 100;
+			int s = select(1024, &set, NULL, NULL, &timeout);
+			if (s > 0)
+					{
+				read(ptm, buf, 6);
+				break;
+			}
+			kill(pid, 9);
+		}
+		session = new SESSION;
+		session->pid = pid;
+		session->ptm = ptm;
+		session->oldwidth = 180;
+		session->oldheight = 25;
+		session->alive = true;
+		struct timeval tv;
+		gettimeofday(&tv, 0);
+		session->lastused = tv.tv_sec;
+		pthread_mutex_init(&(session->mutex), NULL);
+		sessions.push_back(session);
+		if (ptm >= 0)
+			mg_printf(conn, "{\"session\":\"%d\",\"data\":\"\"}\n",
+					sessions.size() - 1);
+
+		printf("terminal started pid=%d\n",pid);
+		if (post_data)
+			delete[] post_data;
+		return;
+	}
+	if (sessionid == -1 || sessionid >= sessions.size())
+			{
+
+		if (post_data)
+			delete[] post_data;
+//		printf("invalid sessionid:%d\n",sessionid);
+		return;
+	}
+	session = sessions[sessionid];
+	if (session->alive == false)
+			{
+		if (post_data)
+			delete[] post_data;
+//		printf("not avlie sessionid:%d\n",sessionid);
+		return;
+	}
+	struct timeval tv;
+	gettimeofday(&tv, 0);
+	session->lastused = tv.tv_sec;
+
+	if (width && height
+			&& (width != session->oldwidth || height != session->oldheight))
+			{
+		struct winsize win;
+		ioctl(session->ptm, 0x5413, &win);
+		win.ws_row = height;
+		win.ws_col = width;
+		ioctl(session->ptm, 0x5414, &win);
+		session->oldwidth = width;
+		session->oldheight = height;
+
+	}
+
+	if (keys_received) {
+		char *keyCodes;
+		keyCodes = new char[keys.length() / 2];
+		int len = 0;
+		for (const unsigned char *ptr = (const unsigned char *) keys.c_str();;
+				) {
+			unsigned c0 = *ptr++;
+			if (c0 < '0' || (c0 > '9' && c0 < 'A') ||
+					(c0 > 'F' && c0 < 'a') || c0 > 'f') {
+				break;
+			}
+			unsigned c1 = *ptr++;
+			if (c1 < '0' || (c1 > '9' && c1 < 'A') ||
+					(c1 > 'F' && c1 < 'a') || c1 > 'f') {
+				break;
+			}
+			keyCodes[len++] = 16 * ((c0 & 0xF) + 9 * (c0 > '9')) +
+					(c1 & 0xF) + 9 * (c1 > '9');
+		}
+		write(session->ptm, keyCodes, len);
+		delete[] keyCodes;
+		if (post_data)
+			delete[] post_data;
+		return;
+	}
+	if (post_data)
+		delete[] post_data;
+	pthread_mutex_lock(&(session->mutex));
+
+//	printf("enter session mutex sessionid:%d\n",sessionid);
+
+	char buf[2048];
+	fd_set set;
+	struct timeval timeout;
+	FD_ZERO(&set);
+	FD_SET(session->ptm,&set);
+	timeout.tv_sec = 30;
+	timeout.tv_usec = 0;
+	int s = select(1024, &set, NULL, NULL, &timeout);
+	int n = 1;
+	if (s == 1)
+		n = read(session->ptm, buf, 2047);
+	else if (s == 0)
+			{
+		mg_printf(conn, "{\"session\":\"%d\",\"data\":\"\"}\n", sessionid);
+		pthread_mutex_unlock(&(session->mutex));
+//		printf("reponse session and leave sessionid:%d\n",sessionid);
+		return;
+	}
+
+	if (s < 0 || n <= 0)
+			{
+		session->alive = false;
+		close(session->ptm);
+		pthread_mutex_unlock(&(session->mutex));
+		printf("close session and leave sessionid:%d\n",sessionid);
+		return;
+	}
+	char* t = jsonEscape(buf, n);
+
+	mg_printf(conn, "{\"session\":\"%d\",\"data\":\"%s\"}\n", sessionid, t);
+//	printf("end reponse session and leave sessionid:%d\n",sessionid);
+	delete[] t;
+	pthread_mutex_unlock(&(session->mutex));
+}
+

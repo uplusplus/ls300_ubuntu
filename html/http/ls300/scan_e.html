@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    
+    <head>
+        <title>
+            scan
+        </title>
+    </head>
+        <div id="div_img_holder" style="text-align:center; margin:0 auto;">
+            <div id="img_div" class="row">
+                    <img id="image" src="/?q=gray.jpg" class="image" alt="" style="width:100%;"/>
+            </div>
+        </div>
+        <div id="config_div" class="row">
+            <legend>Config</legend>
+            <hr style="background-color: #3366FF; width: 80%;margin-left: 5px;" />
+            <div style="height:30px;">
+                水平速度
+                <select id="plusdelay" name="plusdelay">
+                    <option value="">
+                        请选择
+                    </option>
+                </select>
+                垂直精度
+                <select id="resolution" name="resolution">
+                    <option value="">
+                        请选择
+                    </option>
+                </select>
+                垂直速度
+                <select id="frequency" name="frequency">
+                    <option value="">
+                        请选择
+                    </option>
+                </select>
+                推荐配置
+                <select id="precision" name="precision">
+                    <option value="">
+                        请选择
+                    </option>
+                </select>
+            </div>
+            <div style="height:30px;">
+                水平角度范围
+                <input id="anglehstart" type="text" class="text" onkeyup="if(isNaN(value))execCommand('undo')"
+                />~
+                <input id="anglehend" type="text" class="text" onkeyup="if(isNaN(value))execCommand('undo')"
+                />
+                垂直角度范围
+                <input id="anglevstart" type="text" class="text" onkeyup="if(isNaN(value))execCommand('undo')"/>~
+                <input id="anglevend" type="text" class="text" onkeyup="if(isNaN(value))execCommand('undo')"
+                />
+                <button id="selectarea" onclick="selectarea()" style="display:none;">Select</button>
+            </div>
+            <br>
+            <div style="height:30px; text-align:center;">
+ 		        <button id="chushihua" class="button">
+                    预 扫 描
+                </button>
+                <button id="pointscan" class="button" >
+                    扫描点云
+                </button>
+                <button id="photoscan" class="button" >
+                    扫描照片
+                </button>
+                <button id="cancel" class="button" >
+                    取消操作
+                </button>
+            </div>
+        </div>
+
+    </body>
+
+</html>

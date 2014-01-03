@@ -9,7 +9,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ecore"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/ecore/Default"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="ecore"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="ecore" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -123,7 +123,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ecore"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/ecore/Static"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="ecore"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="ecore" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -241,7 +241,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/ecore"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/ecore/Excute"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="ecore"/>
+						<entry flags="RESOLVED" kind="libraryFile" name="ecore" srcPrefixMapping="" srcRootPath=""/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -322,7 +322,7 @@
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.6/"/>
 								</option>
 								<option id="gnu.cpp.link.option.flags.1030972880" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="" valueType="string"/>
-								<option id="gnu.cpp.link.option.other.492122272" name="Other options (-Xlinker [option])" superClass="gnu.cpp.link.option.other" valueType="stringList"/>
+								<option id="gnu.cpp.link.option.other.492122272" name="Other options (-Xlinker [option])" superClass="gnu.cpp.link.option.other"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.662695012" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -344,8 +344,27 @@
 					</folderInfo>
 					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.external/jpeg/cderror.h" name="cderror.h" rcbsApplicability="disable" resourcePath="external/jpeg/cderror.h" toolsToInvoke=""/>
 					<fileInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.external/jpeg/cdjpeg.h" name="cdjpeg.h" rcbsApplicability="disable" resourcePath="external/jpeg/cdjpeg.h" toolsToInvoke=""/>
+					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.1108309246.1790188192.1614543327" name="/" resourcePath="src/plat/server/web_monitor/shellinabox">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.base.1729146834" name="cdt.managedbuild.toolchain.gnu.base" superClass="cdt.managedbuild.toolchain.gnu.base" unusedChildren="">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.502594561" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base.531571164"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.295477671" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base.1787895676">
+								<option id="gnu.cpp.compiler.option.other.other.2021142543" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-pointer-sign" valueType="string"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.489288438" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.2112961527" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base.1676941859">
+								<option id="gnu.c.compiler.option.misc.other.1032694228" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -Wno-pointer-sign -std=c99" valueType="string"/>
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1874050979" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.712693908" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base.1788810768"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1938760131" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base.1171125255"/>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.base.927057827" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base.1372653653">
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1778849477" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
 					<sourceEntries>
-						<entry excluding="src/plat/server/web_monitor/mod_lua.c|external/lua-5.2.1|external/cyassl-2.8.0|src/plat/gif|external/jpeg/rdswitch.c|external/jpeg/rdgif.c|ls300/LaserScan.cpp|external/jpeg/wrtarga.c|external/jpeg/ckconfig.c|external/jpeg/ansi2knr.c|external/jpeg/transupp.c|external/jpeg/rdjpgcom.c|src/test_case/ls300/gl0.c|external/jpeg/jidctfst.S|inc/ls300/hd_data_writer.h|external/jpeg/rdrle.c|src/test_case/Ls300_moinitor|external/jpeg/wrgif.c|ls300/Laser_Control.cpp|external/jpeg/wrbmp.c|external/jpeg/jmemmac.c|external/jpeg/cderror.h|external/jpeg/rdbmp.c|external/jpeg/cdjpeg.h|src/test_case/ls300/gl.c|external/jpeg/jmemansi.c|external/jpeg/cjpeg.c|external/jpeg/jmemdosa.asm|external/jpeg/rdppm.c|external/jpeg/jmemdos.c|external/jpeg/transupp.h|external/jpeg|inc/ls300/hd_data_router.h|external/jpeg/rdcolmap.c|external/jpeg/djpeg.c|external/jpeg/rdtarga.c|external/jpeg/wrjpgcom.c|external/hd/hd_jpg.cpp|external/jpeg/cdjpeg.c|ls300/Laser_Control.h|external/pcl_android|ls300/LaserScan.h|external/jpeg/wrppm.c|external/jpeg/jmemnobs.c|rt_picture|external/jpeg/jpegtran.c|src/test_case/ls300/sprite.c|external/jpeg/jmemname.c|external/jpeg/example.c|external/jpeg/wrrle.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="src/plat/server/web_monitor/shellinabox/session.c|src/plat/server/web_monitor/shellinabox/externalfile.cpp|src/plat/server/web_monitor/mod_lua.c|external/lua-5.2.1|external/cyassl-2.8.0|src/plat/gif|external/jpeg/rdswitch.c|external/jpeg/rdgif.c|ls300/LaserScan.cpp|external/jpeg/wrtarga.c|external/jpeg/ckconfig.c|external/jpeg/ansi2knr.c|external/jpeg/transupp.c|external/jpeg/rdjpgcom.c|src/test_case/ls300/gl0.c|external/jpeg/jidctfst.S|inc/ls300/hd_data_writer.h|external/jpeg/rdrle.c|src/test_case/Ls300_moinitor|external/jpeg/wrgif.c|ls300/Laser_Control.cpp|external/jpeg/wrbmp.c|external/jpeg/jmemmac.c|external/jpeg/cderror.h|external/jpeg/rdbmp.c|external/jpeg/cdjpeg.h|src/test_case/ls300/gl.c|external/jpeg/jmemansi.c|external/jpeg/cjpeg.c|external/jpeg/jmemdosa.asm|external/jpeg/rdppm.c|external/jpeg/jmemdos.c|external/jpeg/transupp.h|external/jpeg|inc/ls300/hd_data_router.h|external/jpeg/rdcolmap.c|external/jpeg/djpeg.c|external/jpeg/rdtarga.c|external/jpeg/wrjpgcom.c|external/hd/hd_jpg.cpp|external/jpeg/cdjpeg.c|ls300/Laser_Control.h|external/pcl_android|ls300/LaserScan.h|external/jpeg/wrppm.c|external/jpeg/jmemnobs.c|rt_picture|external/jpeg/jpegtran.c|src/test_case/ls300/sprite.c|external/jpeg/jmemname.c|external/jpeg/example.c|external/jpeg/wrrle.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -516,4 +535,5 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
 	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 </cproject>

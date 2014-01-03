@@ -143,7 +143,6 @@ static void main_loop(void* vs) {
 			system_timeslice[seq].work();
 			seq += system_timeslice[seq].seq_len;
 			seq &= 31;
-//			DMSG((STDOUT,"_%d_",seq));
 		}
 		if (lm->state == STATE_PAUSE) {
 			lm->is_paused = 1;
@@ -165,14 +164,19 @@ int getTemperature() {
 //	DMSG((STDOUT,"temperature %8.4f\n",lm->temperature));
 }
 int getTilt() {
+	lm->usec_timestamp = GetTickCount();
 	hl_get_tilt(lm->lc, &lm->tilt);
+	if (lm->dm)
+		dm_write_meta(lm->dm, lm->usec_timestamp, "DIP", "%8.4f,%8.4f",
+				lm->tilt.dX, lm->tilt.dY);
 //	DMSG((STDOUT,"tilt %8.4f %8.4f\n",lm->tilt.dX,lm->tilt.dY));
 }
 int getAngle() {
-	lm->angle_usec_timestamp = GetTickCount();
+	lm->usec_timestamp = GetTickCount();
 	lm->angle = hl_turntable_get_angle(lm->lc);
 	if (lm->dm)
-		dm_write_tunable(lm->dm, lm->angle_usec_timestamp, lm->angle);
+		dm_write_meta(lm->dm, lm->usec_timestamp, "AGL", "%8.4f",
+				lm->angle);
 }
 
 //开始工作
@@ -338,7 +342,7 @@ e_int32 lm_led_off() {
 
 char* lm_led_state() {
 	int ret, state;
-	switch(lm->LED){
+	switch (lm->LED) {
 	case -1:
 		return "RED";
 	case 0:

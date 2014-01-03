@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    
+    <head>
+        <title>
+            Setting
+        </title>
+    </head>
+    
+    <body>
+        <div id="control_div">
+            <div id="control" >
+                <span style="color: #White; font-family: 'Segoe UI Light'; font-size: xx-large;">
+                    Control
+                </span>
+                <hr style="background-color: #White; width: 80%;margin-left: 5px;" />
+                <div style="height:24px;">
+                    &nbsp;LED&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;红
+                    <input name="led" class="radioled" id="ledred" type="radio" value="red"
+                    onselect="onledselect" />
+                    &nbsp;&nbsp;&nbsp;&nbsp;绿
+                    <input name="led" class="radioled" id="ledgreen" type="radio" value="green"
+                    onselect="onledselect" />
+                </div>
+                <div>
+                    转台：
+                    <button id="turnleft" class="button" >
+                        &lArr;
+                    </button>
+                    <input id="angletext" type="text" class="text" />
+                    <button id="turnright" class="button" >
+                        &rArr;
+                    </button>
+                    &brvbar;
+                    <button id="turnzero" class="button">
+                        turn to zero
+                    </button>
+                </div>
+                <div>
+                    相机：
+                    <button id="takephoto" class="button" >
+                        拍摄照片
+                    </button>
+                </div>
+                <br>
+                <span style="color: #White; font-family: 'Segoe UI Light'; font-size: xx-large;">
+                    Update(s)
+                </span>
+                <hr style="background-color: #White; width: 80%;margin-left: 5px;" />
+                <div>
+                    Video Update Delay
+                    <input name="videodelay" id="videodelay" type="text" />
+                    <br>
+                    State Update Delay&nbsp;
+                    <input name="statedelay" id="statedelay" type="text" />
+                    <button id="setupdatedelay" class="button" onclick="setupdate_delay()">
+                    Confirm
+                    </button>
+                </div>
+                <br>
+                <span style="color: #White; font-family: 'Segoe UI Light'; font-size: xx-large;">
+                    Log
+                </span>
+                <hr style="background-color: #White; width: 80%;margin-left: 5px;" />
+                <div>
+                   <span id="clear" style="color: #White; width:30px;font-family: 'Segoe UI Semilight';position:relative;left:0%;cursor:hand;">
+                        Clear
+                    </span>
+                    <br>
+                    <textarea id="messagebox" cols="3" readonly="readonly" disabled="disabled">
+                    </textarea>
+                </div>
+
+            </div>
+        </div>
+    </body>
+
+</html>

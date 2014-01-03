@@ -19,14 +19,21 @@
 
 #if TEST_LASER_SERVER
 
-int main() {
+int main(int argc, char **argv) {
+	int ret;
 	char ban[] = "	 _     ____ _____  ___   ___   __     ______    ___  \n"
 			"	| |   / ___|___ / / _ \\ / _ \\  \\ \\   / /___ \\  / _ \\ \n"
 			"	| |   \\___ \\ |_ \\| | | | | | |  \\ \\ / /  __) || | | |\n"
 			"	| |___ ___) |__) | |_| | |_| |   \\ V /  / __/ | |_| |\n"
 			"	|_____|____/____/ \\___/ \\___/     \\_/  |_____(_)___/ \n";
 	printf("%s", ban);
-	webserver_start("/sdcard/ls300/html/http/");
+
+	if (argc > 1) {
+		ret = webserver_start(argv[1]);
+	} else
+//		ret = webserver_start("/sdcard/ls300/html/http/");
+		ret = webserver_start("~/workspace/ls300web/");
+	e_assert(ret > 0, -1);
 //	while (getchar() != 'q')
 //		;
 	webserver_loop();

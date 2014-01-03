@@ -29,8 +29,6 @@
 
 static struct sigaction sa_old = { };
 
-#define RETRY()  (errno == EAGAIN)
-
 static volatile int is_inited = 0;
 static int make_unix_domain_addr(const char* name, struct sockaddr_un* pAddr,
 		socklen_t* pSockLen);
@@ -334,15 +332,24 @@ e_int32 Socket_Connect(socket_t *socket) {
 
 	if (ret == -1) {
 		fd_set set;
-		int len = sizeof(int);
+		int error_val = -1;
+		int len = sizeof(error_val);
 		struct timeval tm;
 		tm.tv_sec = 1;
 		tm.tv_usec = 0;
 		FD_ZERO(&set);
 		FD_SET(sockfd, &set);
 		if (select(sockfd + 1, NULL, &set, NULL, &tm) > 0) {
-			getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &ret, (socklen_t *) &len);
-			if (ret == 0)
+			ret = getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error_val,
+					(socklen_t *) &len);
+//!!!!!可能android有bug;
+#ifndef LINUX
+			if (errno == ENETUNREACH)
+				return E_ERROR_IO;
+#endif
+			printf("Connect select ret=%d error_val=%d errno=%d\n", ret,
+					error_val, errno);
+			if (error_val == 0)
 				ret = E_OK;
 			else
 				ret = E_ERROR_IO;
