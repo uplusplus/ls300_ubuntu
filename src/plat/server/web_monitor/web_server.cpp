@@ -82,6 +82,8 @@ static int strcompare(const char** p1, char** p2) {
 		i++;
 	}
 }
+
+#define USE_SERVICE 0
 static void webserver_system_prepare();
 static void init_server() {
 	qsort(commands, sizeof(commands) / sizeof(commands[0]), sizeof(commands[0]),
@@ -89,7 +91,7 @@ static void init_server() {
 	semaphore_init(&stop_sem, 0);
 	loop = 1;
 	should_stop_machine = 0;
-#ifndef LINUX
+#if USE_SERVICE
 	webserver_system_prepare();
 #endif
 }
@@ -589,7 +591,7 @@ e_int32 webserver_start(char *root_dir) {
 		return 0;
 	init_server();
 
-#ifndef LINUX
+#if USE_SERVICE
 	ret = try_enter_ls300_evn();
 	e_assert(ret>0, ret);
 #endif

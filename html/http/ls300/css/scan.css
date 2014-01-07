@@ -25,15 +25,15 @@
 	text-align: center;
 	border: 0px solid #000;
 	margin: 5px;
-	padding: 1px;
+	padding: 10px;
 
-	-moz-border-radius: 10px;
-	-webkit-border-radius: 10px;
-	border-radius: 10px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
 	/*IE 7 AND 8 DO NOT SUPPORT BORDER RADIUS*/
-	-moz-box-shadow: 0px 0px 20px #000000;
-	-webkit-box-shadow: 0px 0px 20px #000000;
-	box-shadow: 0px 0px 20px #000000;
+	-moz-box-shadow: 0px 0px 10px #000000;
+	-webkit-box-shadow: 0px 0px 10px #000000;
+	box-shadow: 0px 0px 10px #000000;
 	/*IE 7 AND 8 DO NOT SUPPORT BLUR PROPERTY OF SHADOWS*/
 }
 .buttons {
@@ -59,19 +59,13 @@
 	font-size:medium;
 }
 .image {
-	max-width:600px;
-	height:auto;
-	text-align: center;
-	cursor:pointer;
-	border:1px dashed #4E6973;
-	padding:3px;
-	zoom:expression( function(elm) {
-	if (elm.width>560) {
-	var oldVW = elm.width;
-	elm.width=560;
-	elm.height = elm.height*(560 /oldVW);
-	}
-	elm.style.zoom = '1';}(this));
+	/*max-width:80%;*/
+	/*text-align: center;*/
+	/*cursor:pointer;*/
+	/*border:1px dashed #4E6973;*/
+	/*padding:1px;*/
+/*	zoom:expression( function(elm) {if (elm.width>400) {var oldVW = elm.width;
+	elm.width=400;elm.height = elm.height*(400 /oldVW);}elm.style.zoom = '1';}(this));*/
 }
 #messagebox {
 	height:160px;

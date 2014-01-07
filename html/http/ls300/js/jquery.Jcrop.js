@@ -327,14 +327,13 @@
 
     var boundx = $img.width(),
         boundy = $img.height(),
-        
-        
         $div = $('<div />').width(boundx).height(boundy).addClass(cssClass('holder')).css({
           position: 'relative',
           margin: '0em auto',
           backgroundColor: options.bgColor
       }).insertAfter($origimg).append($img);
-
+    console.log("img x,y = " + boundx + " " + boundy + " box w,h=" + options.boxWidth + 
+      " " + options.boxHeight);
     if (options.addClass) {
       $div.addClass(options.addClass);
     }

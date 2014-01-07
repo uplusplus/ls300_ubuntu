@@ -12,10 +12,10 @@ var tmpdesx = 0; //终点水平绝对距离
 var tmpdesy = 0; //终点垂直绝对距离
 var width = screen.width; //屏幕宽度
 var height = screen.height; //屏幕高度
-var rewidth = 0; //相对图片宽度
-var reheight = 0; //相对图片高度
-var newdiv; //画框对象
-var leftButtonDown = 0;
+var last_config = {
+    s_v : -45,   e_v : 90,   
+    s_h : 0,     e_h : 360
+};
 var photowidth = 0; //图片原始宽度
 var photoheight = 0; //图片原始高度
 var pic_update_delay = 5000;
@@ -271,6 +271,12 @@ function setconfig(plusdelay, frequency, resolution, start_angle_h, end_angle_h,
         dataType: 'jsonp',
         url: base_url + '?q=config&plusdelay=' + plusdelay + '&frequency=' + frequency + '&resolution=' + resolution + '&start_angle_h=' + start_angle_h + '&end_angle_h=' + end_angle_h + '&start_angle_v=' + start_angle_v + '&end_angle_v=' + end_angle_v,
         success: function(ev) {
+            if(ev.success != 0){
+                last_config.s_h = start_angle_h;
+                last_config.e_h = end_angle_h;
+                last_config.s_v = start_angle_v;
+                last_config.e_v = end_angle_v;
+            }
             log(ev.message);
             showmsg(ev.message);
         }
@@ -347,10 +353,14 @@ function shortten(num) {
 
 function update_select_area(coords){
     if(parseInt(coords.w) > 0){
-        anglehstart = coords.x * (360 / photowidth);
-        anglehend = coords.x2 * (360 / photowidth);
-        anglevstart = (photoheight - coords.y2) * (135 / photoheight) - 45;
-        anglevend = (photoheight -coords.y) * (135 / photoheight) - 45;
+        anglehstart = last_config.s_h + coords.x * 
+            (last_config.e_h - last_config.s_h) / photowidth;
+        anglehend = last_config.s_h + coords.x2 * 
+            (last_config.e_h - last_config.s_h) / photowidth;
+        anglevstart = (photoheight - coords.y2) * 
+        (last_config.e_v - last_config.s_v) / photoheight + last_config.s_v;
+        anglevend = (photoheight -coords.y) * 
+        (last_config.e_v - last_config.s_v) / photoheight + last_config.s_v;
 
         $("#anglehstart").val(shortten(anglehstart));
         $("#anglehend").val(shortten(anglehend));
@@ -464,13 +474,15 @@ function ready_hook() {
         onChange:update_select_area,
         onSelect:update_select_area,
         onDblClick:function(){this.release();},
-        aspectRatio:0
+        aspectRatio:0,
+        boxWidth:$('#img_div').width(),
+        addClass:'image'
     },function(){
         jcrop = this;
         getgray();
     }); 
     globle_init();
-    start_monitor();
+    // start_monitor();
 }
 
 $(function() {

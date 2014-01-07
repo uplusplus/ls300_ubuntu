@@ -1,8 +1,8 @@
-
 extern "C" {
 #include <sys/time.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+//#include <asm/termios.h>
 }
 #include <vector>
 
@@ -20,39 +20,39 @@ struct SESSION
 static std::vector<SESSION*> sessions;
 
 static int create_subprocess(pid_t* pProcessId)
-{
+		{
 	char *devname;
 
 	pid_t pid;
 
-	printf("[ enter create_subprocess]\n");
+	printf("[ enter create_subprocess　]\n");
 
 	int ptm = open("/dev/ptmx", 00000002);
-	if(ptm < 0){
-		printf("[ cannot open /dev/ptmx - %s ]\n",strerror(errno));
+	if (ptm < 0) {
+		printf("[ cannot open /dev/ptmx - %s ]\n", strerror(errno));
 		return -1;
 	}
 	fcntl(ptm, 2, 1);
 
-	if(grantpt(ptm) || unlockpt(ptm) ||
-			((devname = (char*) ptsname(ptm)) == 0)){
+	if (grantpt(ptm) || unlockpt(ptm) ||
+			((devname = (char*) ptsname(ptm)) == 0)) {
 		printf("[ trouble with /dev/ptmx - %s ]\n", strerror(errno));
 		return -1;
 	}
 
 	pid = fork();
-	if(pid < 0) {
+	if (pid < 0) {
 		printf("- fork failed: %s -\n", strerror(errno));
 		return -1;
 	}
 
-	if(pid == 0){
+	if (pid == 0) {
 		close(ptm);
 		int pts;
 		setsid();
 		pts = open(devname, 00000002);
-		if(pts < 0) exit(-1);
-
+		if (pts < 0)
+			exit(-1);
 
 		dup2(pts, 0);
 		dup2(pts, 1);
@@ -62,32 +62,28 @@ static int create_subprocess(pid_t* pProcessId)
 		env[0] = "TERM=xterm";
 		env[1] = "LINES=25";
 		env[2] = "COLUMNS=80";
-		env[3] = "HOME=/sdcard";
-		env[4] = "PATH=/data/local/bin:/usr/bin:/usr/sbin:/bin:/sbin:/system/bin:/system/xbin:/system/xbin/bb:/system/sbin";
-		env[5] = 0;
+		env[3] =
+				"PATH=/data/local/bin:/usr/bin:/usr/sbin:/bin:/sbin:/system/bin:/system/xbin:/system/xbin/bb:/system/sbin";
+		env[4] = NULL;
+		env[5] = NULL;
 #ifndef LINUX
+		env[4] = "HOME=/sdcard";
+		execle("/system/xbin/ash", "/system/xbin/ash", NULL, env);
 		execle("/system/bin/bash", "/system/bin/bash", NULL, env);
-		printf("...");
 		execle("/system/xbin/bash", "/system/xbin/bash", NULL, env);
-		printf("...");
 		execle("/system/xbin/bb/bash", "/system/xbin/bb/bash", NULL, env);
-		printf("...");
 		execle("/system/bin/sh", "/system/bin/sh", NULL, env);
 #else
-		printf("...\n");
 		execle("/bin/bash", "/bin/bash", NULL, env);
-		printf("...");
 		execle("/bin/sh", "/bin/sh", NULL, env);
-		printf("...");
 #endif
 		exit(-1);
 	} else {
-		usleep(100000);
+		usleep(500000);
 		*pProcessId = pid;
 		return ptm;
 	}
 }
-
 
 static char *jsonEscape(const char *buf, int len) {
 	static const char *hexDigit = "0123456789ABCDEF";
@@ -95,15 +91,19 @@ static char *jsonEscape(const char *buf, int len) {
 	int count = 0;
 	const char *ptr = buf;
 	for (int i = 0; i < len; i++) {
-		unsigned char ch = *(unsigned char *)ptr++;
+		unsigned char ch = *(unsigned char *) ptr++;
 		if (ch < ' ') {
 			switch (ch) {
-				case '\b': case '\f': case '\n': case '\r': case '\t':
-					count += 2;
-					break;
-				default:
-					count += 6;
-					break;
+			case '\b':
+			case '\f':
+			case '\n':
+			case '\r':
+			case '\t':
+				count += 2;
+				break;
+			default:
+				count += 6;
+				break;
 			}
 		} else if (ch == '"' || ch == '\\' || ch == '/') {
 			count += 2;
@@ -114,29 +114,38 @@ static char *jsonEscape(const char *buf, int len) {
 		}
 	}
 
-
 	char *result;
 	result = new char[count + 1];
 	char *dst = result;
 	ptr = buf;
 	for (int i = 0; i < len; i++) {
-		unsigned char ch = *(unsigned char *)ptr++;
+		unsigned char ch = *(unsigned char *) ptr++;
 		if (ch < ' ') {
 			*dst++ = '\\';
 			switch (ch) {
-				case '\b': *dst++ = 'b'; break;
-				case '\f': *dst++ = 'f'; break;
-				case '\n': *dst++ = 'n'; break;
-				case '\r': *dst++ = 'r'; break;
-				case '\t': *dst++ = 't'; break;
-				default:
-unicode:
-					   *dst++ = 'u';
-					   *dst++ = '0';
-					   *dst++ = '0';
-					   *dst++ = hexDigit[ch >> 4];
-					   *dst++ = hexDigit[ch & 0xF];
-					   break;
+			case '\b':
+				*dst++ = 'b';
+				break;
+			case '\f':
+				*dst++ = 'f';
+				break;
+			case '\n':
+				*dst++ = 'n';
+				break;
+			case '\r':
+				*dst++ = 'r';
+				break;
+			case '\t':
+				*dst++ = 't';
+				break;
+			default:
+				unicode:
+				*dst++ = 'u';
+				*dst++ = '0';
+				*dst++ = '0';
+				*dst++ = hexDigit[ch >> 4];
+				*dst++ = hexDigit[ch & 0xF];
+				break;
 			}
 		} else if (ch == '"' || ch == '\\' || ch == '/') {
 			*dst++ = '\\';
@@ -151,7 +160,6 @@ unicode:
 	*dst++ = '\000';
 	return result;
 }
-
 
 static void
 shellinabox(struct mg_connection *conn,
@@ -224,15 +232,15 @@ shellinabox(struct mg_connection *conn,
 			fd_set set;
 			struct timeval timeout;
 			FD_ZERO(&set);
-			FD_SET(ptm,&set);
+			FD_SET(ptm, &set);
 			timeout.tv_sec = 0;
 			timeout.tv_usec = 100;
 			int s = select(1024, &set, NULL, NULL, &timeout);
-			if (s > 0)
-					{
+			if (s > 0){
 				read(ptm, buf, 6);
 				break;
 			}
+			perror(errno);
 			kill(pid, 9);
 		}
 		session = new SESSION;
@@ -250,7 +258,7 @@ shellinabox(struct mg_connection *conn,
 			mg_printf(conn, "{\"session\":\"%d\",\"data\":\"\"}\n",
 					sessions.size() - 1);
 
-		printf("terminal started pid=%d\n",pid);
+		printf("terminal started pid=%d\n", pid);
 		if (post_data)
 			delete[] post_data;
 		return;
@@ -307,6 +315,7 @@ shellinabox(struct mg_connection *conn,
 			keyCodes[len++] = 16 * ((c0 & 0xF) + 9 * (c0 > '9')) +
 					(c1 & 0xF) + 9 * (c1 > '9');
 		}
+		printf("vt100 input %s\n", keyCodes);
 		write(session->ptm, keyCodes, len);
 		delete[] keyCodes;
 		if (post_data)
@@ -323,7 +332,7 @@ shellinabox(struct mg_connection *conn,
 	fd_set set;
 	struct timeval timeout;
 	FD_ZERO(&set);
-	FD_SET(session->ptm,&set);
+	FD_SET(session->ptm, &set);
 	timeout.tv_sec = 30;
 	timeout.tv_usec = 0;
 	int s = select(1024, &set, NULL, NULL, &timeout);
@@ -343,9 +352,11 @@ shellinabox(struct mg_connection *conn,
 		session->alive = false;
 		close(session->ptm);
 		pthread_mutex_unlock(&(session->mutex));
-		printf("close session and leave sessionid:%d\n",sessionid);
+		printf("close session and leave sessionid:%d\n", sessionid);
 		return;
 	}
+
+	printf("vt100 output %s\n", buf);
 	char* t = jsonEscape(buf, n);
 
 	mg_printf(conn, "{\"session\":\"%d\",\"data\":\"%s\"}\n", sessionid, t);
