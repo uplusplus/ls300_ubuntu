@@ -33,8 +33,7 @@ int main(int argc, char **argv) {
 	if (argc > 1) {
 		ret = webserver_start(argv[1]);
 	} else
-//		ret = webserver_start("/sdcard/ls300/html/http/");
-		ret = webserver_start("~/workspace/ls300web/");
+		ret = webserver_start("/sdcard/ls300/html/http/");
 	e_assert(ret > 0, -1);
 //	while (getchar() != 'q')
 //		;

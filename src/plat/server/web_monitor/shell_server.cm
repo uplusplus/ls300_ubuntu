@@ -1,8 +1,11 @@
+
 extern "C" {
 #include <sys/time.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-//#include <asm/termios.h>
+#ifndef LINUX
+#include <asm/termios.h>
+#endif
 }
 #include <vector>
 
@@ -20,7 +23,7 @@ struct SESSION
 static std::vector<SESSION*> sessions;
 
 static int create_subprocess(pid_t* pProcessId)
-		{
+{
 	char *devname;
 
 	pid_t pid;
@@ -28,31 +31,30 @@ static int create_subprocess(pid_t* pProcessId)
 	printf("[ enter create_subprocess　]\n");
 
 	int ptm = open("/dev/ptmx", 00000002);
-	if (ptm < 0) {
-		printf("[ cannot open /dev/ptmx - %s ]\n", strerror(errno));
+	if(ptm < 0){
+		printf("[ cannot open /dev/ptmx - %s ]\n",strerror(errno));
 		return -1;
 	}
 	fcntl(ptm, 2, 1);
 
-	if (grantpt(ptm) || unlockpt(ptm) ||
-			((devname = (char*) ptsname(ptm)) == 0)) {
+	if(grantpt(ptm) || unlockpt(ptm) ||
+			((devname = (char*) ptsname(ptm)) == 0)){
 		printf("[ trouble with /dev/ptmx - %s ]\n", strerror(errno));
 		return -1;
 	}
 
 	pid = fork();
-	if (pid < 0) {
+	if(pid < 0) {
 		printf("- fork failed: %s -\n", strerror(errno));
 		return -1;
 	}
 
-	if (pid == 0) {
+	if(pid == 0){
 		close(ptm);
 		int pts;
 		setsid();
 		pts = open(devname, 00000002);
-		if (pts < 0)
-			exit(-1);
+		if(pts < 0) exit(-1);
 
 		dup2(pts, 0);
 		dup2(pts, 1);
@@ -64,10 +66,9 @@ static int create_subprocess(pid_t* pProcessId)
 		env[2] = "COLUMNS=80";
 		env[3] =
 				"PATH=/data/local/bin:/usr/bin:/usr/sbin:/bin:/sbin:/system/bin:/system/xbin:/system/xbin/bb:/system/sbin";
-		env[4] = NULL;
+		env[4] = "HOME=/sdcard";
 		env[5] = NULL;
 #ifndef LINUX
-		env[4] = "HOME=/sdcard";
 		execle("/system/xbin/ash", "/system/xbin/ash", NULL, env);
 		execle("/system/bin/bash", "/system/bin/bash", NULL, env);
 		execle("/system/xbin/bash", "/system/xbin/bash", NULL, env);
@@ -91,19 +92,15 @@ static char *jsonEscape(const char *buf, int len) {
 	int count = 0;
 	const char *ptr = buf;
 	for (int i = 0; i < len; i++) {
-		unsigned char ch = *(unsigned char *) ptr++;
+		unsigned char ch = *(unsigned char *)ptr++;
 		if (ch < ' ') {
 			switch (ch) {
-			case '\b':
-			case '\f':
-			case '\n':
-			case '\r':
-			case '\t':
-				count += 2;
-				break;
-			default:
-				count += 6;
-				break;
+				case '\b': case '\f': case '\n': case '\r': case '\t':
+					count += 2;
+					break;
+				default:
+					count += 6;
+					break;
 			}
 		} else if (ch == '"' || ch == '\\' || ch == '/') {
 			count += 2;
@@ -119,33 +116,23 @@ static char *jsonEscape(const char *buf, int len) {
 	char *dst = result;
 	ptr = buf;
 	for (int i = 0; i < len; i++) {
-		unsigned char ch = *(unsigned char *) ptr++;
+		unsigned char ch = *(unsigned char *)ptr++;
 		if (ch < ' ') {
 			*dst++ = '\\';
 			switch (ch) {
-			case '\b':
-				*dst++ = 'b';
-				break;
-			case '\f':
-				*dst++ = 'f';
-				break;
-			case '\n':
-				*dst++ = 'n';
-				break;
-			case '\r':
-				*dst++ = 'r';
-				break;
-			case '\t':
-				*dst++ = 't';
-				break;
-			default:
-				unicode:
-				*dst++ = 'u';
-				*dst++ = '0';
-				*dst++ = '0';
-				*dst++ = hexDigit[ch >> 4];
-				*dst++ = hexDigit[ch & 0xF];
-				break;
+				case '\b': *dst++ = 'b'; break;
+				case '\f': *dst++ = 'f'; break;
+				case '\n': *dst++ = 'n'; break;
+				case '\r': *dst++ = 'r'; break;
+				case '\t': *dst++ = 't'; break;
+				default:
+unicode:
+					   *dst++ = 'u';
+					   *dst++ = '0';
+					   *dst++ = '0';
+					   *dst++ = hexDigit[ch >> 4];
+					   *dst++ = hexDigit[ch & 0xF];
+					   break;
 			}
 		} else if (ch == '"' || ch == '\\' || ch == '/') {
 			*dst++ = '\\';
@@ -240,7 +227,6 @@ shellinabox(struct mg_connection *conn,
 				read(ptm, buf, 6);
 				break;
 			}
-			perror(errno);
 			kill(pid, 9);
 		}
 		session = new SESSION;
@@ -258,7 +244,7 @@ shellinabox(struct mg_connection *conn,
 			mg_printf(conn, "{\"session\":\"%d\",\"data\":\"\"}\n",
 					sessions.size() - 1);
 
-		printf("terminal started pid=%d\n", pid);
+		printf("terminal started pid=%d\n",pid);
 		if (post_data)
 			delete[] post_data;
 		return;
@@ -315,7 +301,7 @@ shellinabox(struct mg_connection *conn,
 			keyCodes[len++] = 16 * ((c0 & 0xF) + 9 * (c0 > '9')) +
 					(c1 & 0xF) + 9 * (c1 > '9');
 		}
-		printf("vt100 input %s\n", keyCodes);
+		printf("vt100 input:\t%*s\n", len,keyCodes);
 		write(session->ptm, keyCodes, len);
 		delete[] keyCodes;
 		if (post_data)
@@ -352,15 +338,14 @@ shellinabox(struct mg_connection *conn,
 		session->alive = false;
 		close(session->ptm);
 		pthread_mutex_unlock(&(session->mutex));
-		printf("close session and leave sessionid:%d\n", sessionid);
+		printf("close session and leave sessionid:%d\n",sessionid);
 		return;
 	}
 
-	printf("vt100 output %s\n", buf);
+	if(n>1) printf("vt100 output:\t%*s\n", n,buf);
 	char* t = jsonEscape(buf, n);
 
 	mg_printf(conn, "{\"session\":\"%d\",\"data\":\"%s\"}\n", sessionid, t);
-//	printf("end reponse session and leave sessionid:%d\n",sessionid);
 	delete[] t;
 	pthread_mutex_unlock(&(session->mutex));
 }
